@@ -8,14 +8,14 @@ It uses camunda/camunda, camunda/camunda-8-js-sdk, and camunda/camunda-docs.
 
 ## Structure
 
-- rest-api.yml - This file contains the latest version of the REST API specification. It is used as the source for generating the domain file and the generated file.
-- rest-api.domain.yaml - This file contains the domain typed REST API specification. It is hand made from the `rest-api.yaml` file and contains additional domain information.
-- rest-api.generated.yaml - This file is generated from the `rest-api.domain.yaml` file. It contains a generated REST API specification compatible with the Camunda codebase.
-- src/ - This directory contains the source code for the transformation from the domain file to the generated file.
-- vaccum - Vacuum linting for the generated spec
-- functions - Spectral functions for linting the domain spec
-- camunda - checkout camunda/camunda here for scripts to fetch the upstream rest-api.yaml
-- camunda-docs - checkout camunda/camunda-docs here for script to interact with documentation generation
+- `rest-api.yml` - This file contains the latest version of the REST API specification. It is used as the source for generating the domain file and the generated file.
+- `rest-api.domain.yaml` - This file contains the domain typed REST API specification. It is hand made from the `rest-api.yaml` file and contains additional domain information.
+- `rest-api.generated.yaml` - This file is generated from the `rest-api.domain.yaml` file. It contains a generated REST API specification compatible with the Camunda codebase.
+- `src/` - This directory contains the source code for the transformation from the domain file to the generated file.
+- `vaccum` - Vacuum linting for the generated spec
+- `functions` - Spectral functions for linting the domain spec
+- `camunda` - checkout camunda/camunda here for scripts to fetch the upstream rest-api.yaml
+- `camunda-docs` - checkout camunda/camunda-docs here for script to interact with documentation generation
 
 ## Setup
 
