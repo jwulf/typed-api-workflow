@@ -1,3 +1,7 @@
+# ignore checkouts of camunda and camunda-docs
+camunda
+camunda-docs
+
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/

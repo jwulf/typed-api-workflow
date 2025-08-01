@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  lint-generated-spec:
+    name: Legacy C8 REST OpenAPI linting
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}  # GITHUB_TOKEN unused in this job
+    env:
+      # renovate: datasource=github-releases depName=daveshanley/vacuum
+      VACUUM_VERSION: 'v0.17.6'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install vacuum
+        run: |
+          STRIPPED_VACUUM_VERSION="${VACUUM_VERSION#v}"
+          curl -s -L "https://github.com/daveshanley/vacuum/releases/download/${VACUUM_VERSION}/vacuum_${STRIPPED_VACUUM_VERSION}_Linux_x86_64.tar.gz" | tar xvz vacuum
+        shell: bash
+      - name: Run OpenAPI Linter
+        run: >
+          ./vacuum lint rest-api.generated.yaml
+          --ruleset vacuum-ruleset.yaml
+          --ignore-file zeebe/gateway-protocol/vacuum-ignores.yaml
+          --functions vacuum-rules
+          --details --no-clip --errors
+        shell: bash

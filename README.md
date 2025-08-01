@@ -14,6 +14,8 @@ It uses camunda/camunda, camunda/camunda-8-js-sdk, and camunda/camunda-docs.
 - src/ - This directory contains the source code for the transformation from the domain file to the generated file.
 - vaccum - Vacuum linting for the generated spec
 - functions - Spectral functions for linting the domain spec
+- camunda - checkout camunda/camunda here for scripts to fetch the upstream rest-api.yaml
+- camunda-docs - checkout camunda/camunda-docs here for script to interact with documentation generation
 
 ## Setup
 
@@ -37,11 +39,16 @@ The process involves generating a domain file from the latest version of the RES
 
 ## Establish a green baseline
 
-1. Pull main from camunda/camunda
-2. Run `./mvnw package -Dquickly -T1C` to build.
-3. Run `./mvnw verify -DskipChecks -DskipUTs -T1C -Dquickly` to verify the build.
-4. Start Camunda following the instructions in the [Running Camunda](#running-camunda) section.
-5. Run the Node.js SDK tests against the started Camunda instance to ensure everything works as expected.
+- Pull the latest changes from main and build Camunda: 
+
+```bash
+npm run spec:update
+npm run spec:build
+npm run spec:verify
+```
+
+- Start Camunda following the instructions in the [Running Camunda](#running-camunda) section.
+- Run the Node.js SDK tests against the started Camunda instance to ensure everything works as expected.
 
 This gives us a green baseline to work from. You can stop Camunda now.
 
@@ -49,23 +56,24 @@ This gives us a green baseline to work from. You can stop Camunda now.
 
 When updating the domain typed REST API, follow these steps to ensure that the changes are valid and do not break the build or change the behaviour of the API.
 
-1. Get the latest version of `zeebe/gateway-protocol/src/main/proto/rest-api.yaml`
-2. Copy it over `rest-api.yaml`
-3. Use the git status diff to see what has changed.
-4. Copy the changes to `rest-api.domain.yaml`, adding domain information.
-5. Run `npm run lint:domain` to ensure the domain file is valid. (You can use the Spectral plugin in VSCode for live linting.)
-6. Run the transformation - (either `npm run generate` or `mvn clean compile exec:java`) this will generate the `rest-api.generated.yaml` file.
-7. Run `npm run lint:generated` to lint the generated files with Vacuum.
+Read the scripts in package.json if you want to know what they do. 
+
+1. You got the latest version of `zeebe/gateway-protocol/src/main/proto/rest-api.yaml` by running `npm run spec:update`.
+2. Use the git status diff to see what has changed.
+3. Copy the changes to `rest-api.domain.yaml`, adding domain information.
+4. Run `npm run lint:domain` to ensure the domain file is valid. (You can use the Spectral plugin in VSCode for live linting.)
+5. Run `npm run spec:generate` - this will generate the `rest-api.generated.yaml` file.
+6. Run `npm run lint:generated` to lint the generated files= with Vacuum.
 
 This ensures that the generated files are valid and follow the expected structure.
 
 ## Verify the generated file
 
-1. Copy the generated file to the `zeebe/gateway-protocol/src/main/proto/rest-api.yaml` directory of camunda/camunda.
-2. Run `./mvnw package -Dquickly -T1C` to build with the generated file.
-3. Run `./mvnw verify -DskipChecks -DskipUTs -T1C -Dquickly` to verify the build.
+1. Run `npm spec:install` to copy the generated file to the `zeebe/gateway-protocol/src/main/proto/rest-api.yaml` directory of camunda/camunda.
+2. Run `npm run spec:build` to build with the generated file.
+3. Run `npm run spec:verify` to verify the build.
 
-This ensures that the generated file does not contain any changes that would break the build.
+This ensures that the generated file does not contain any changes that would break the build of Camunda 8.
 
 ## Verify the API behaviour
 
@@ -74,15 +82,9 @@ This ensures that the generated file does not contain any changes that would bre
 
 ## Inspect the impact of the changes on documentation
 
-1. In the `camunda/camunda-docs` repository, run the following command to build the documentation:
+1. Run `npm run docs:generate` to regenerate API docs in camunda/camunda-docs.
+2. Run `npm run docs:start` to start the live docs server.
 
-```bash
-cd docs
-mv <path>/rest-api.domain.yaml api/camunda/camunda-openapi.yaml
-npm i
-npm run api:generate:camunda
-npm start
-````
 You will now be able to inspect the impact of the changes on the documentation by navigating to `http://localhost:3000/`.
 
 ## Everything looks good?
@@ -93,27 +95,11 @@ Congratulations! You have successfully updated the domain typed REST API for Cam
 
 ## Running Camunda
 
-- In the camunda/camunda directory, build and test with the following commands: 
-
-```bash
-./mvnw package -Dquickly -T1C
-./mvnw verify -DskipChecks -DskipUTs -T1C -Dquickly
-```
-
 - Stop any running Elasticsearch Docker container.
 - Open the file `operate/docker-compose.yml` in IntelliJ and click the green arrow next to the elasticsearch service to start it.
-- Run the following command to suppress deprecation warnings:
+- Run `npm run silence:elastic` to suppress deprecation warnings in the logs.
 
-```bash
-curl -X PUT "http://localhost:9200/_cluster/settings" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "persistent": {
-      "logger.org.elasticsearch.deprecation": "OFF"
-    }
-  }'
-```
-- Open the file `src/main/java/io/camunda/application/StandaloneCamunda.java`. 
+- Open the file `src/main/java/io/camunda/application/StandaloneCamunda.java` from camunda/camunda in IntelliJ.
 - Ensure that the class run configuration has the following environment variables set:
 ```CAMUNDA_SECURITY_AUTHENTICATION_UNPROTECTEDAPI=true;CAMUNDA_SECURITY_AUTHORIZATIONS_ENABLED=false;ZEEBE_BROKER_EXPORTERS_CAMUNDAEXPORTER_CLASSNAME=io.camunda.exporter.CamundaExporter```
 - Click the green arrow next to the `class` declaration to run Camunda.
