@@ -5,8 +5,8 @@
   "scripts": {
     "test": "npm run lint",
     "spec:update": "cd camunda && git reset --hard && git clean -fd && git pull && cd .. && cp camunda/zeebe/gateway-protocol/src/main/proto/rest-api.yaml rest-api.yaml",
-    "docs:generate": "cp ./rest-api.domain.yaml ./camunda-docs/api/camunda/camunda-openapi.yaml && npm run --prefix camunda-docs/docs api:generate:camunda",
-    "docs:start": "npm run --prefix camunda-docs/docs start",
+    "docs:generate": "cp ./rest-api.domain.yaml ./camunda-docs/api/camunda/camunda-openapi.yaml && npm run --prefix camunda-docs api:generate:camunda",
+    "docs:start": "npm run --prefix camunda-docs start",
     "spec:install": "cp rest-api.generated.yaml camunda/zeebe/gateway-protocol/src/main/proto/rest-api.yaml",
     "spec:build": "cd camunda && ./mvnw package -Dquickly -T1C",
     "spec:verify": "cd camunda && ./mvnw verify -DskipChecks -DskipUTs -T1C -Dquickly",
