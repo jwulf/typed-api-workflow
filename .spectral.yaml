@@ -1,0 +1,38 @@
+extends: ["spectral:oas"]
+functions:
+  - enforceCamundaKeys
+  - enforceCamundaKeyPathParams
+
+rules:
+  key-properties-must-extend-camunda-key:
+    description: "Properties ending in 'Key' must use $ref (not primitive types like string)."
+    message: "Property '{{property}}' must use $ref, not a primitive type. This is a CamundaKey property, so it must reference a schema that extends CamundaKey."
+    given: $..properties[?(@property.match(/^[a-z].*Key$/))]
+    severity: error
+    then:
+      function: enforceCamundaKeys
+      functionOptions:
+        exceptions:
+          correlationKey
+          itemKey
+
+  key-property-ref-must-point-to-camundakey-or-subtype:
+    description: "Properties ending in 'Key' must reference CamundaKey or a schema that extends it via allOf."
+    message: "Key property '{{property}}' must reference CamundaKey or a schema that extends it."
+    given: "$.paths..properties[?(@property.match(/^[a-z].*Key$/))]"
+    severity: error
+    then:
+      function: pattern
+      functionOptions:
+        match: "#/components/schemas/(CamundaKey|[A-Za-z]+Key)$"
+
+  key-path-params-must-use-ref:
+    description: "Path parameters ending in 'Key' must use $ref to CamundaKey or a subtype."
+    message: "Path parameter '{{value.name}}' must use $ref, not a primitive type. It should reference a schema extending CamundaKey."
+    given: "$.paths[*][*].parameters[?(@.in=='path' && @.name.match(/Key$/))]"
+    severity: error
+    then:
+      function: enforceCamundaKeyPathParams
+      functionOptions:
+        exceptions:
+          - correlationKey

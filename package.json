@@ -1,0 +1,21 @@
+{
+  "name": "openapi-camunda-key-flattener",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run lint",
+    "lint": "npm run lint:domain && npm run lint:generated",
+    "lint:domain": "spectral lint rest-api.domain.yaml",
+    "lint:generated": "vacuum lint rest-api.generated.yaml --ruleset vacuum/vacuum-ruleset.yaml --functions vacuum/vacuum-rules --details --no-clip --errors",
+    "generate": "mvn clean compile exec:java"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "description": "",
+  "devDependencies": {
+    "spectral": "^0.0.0",
+    "vacuum": "^0.1.3"
+  }
+}
