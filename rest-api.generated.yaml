@@ -3,6 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
+# File generated at: 2025-08-02 22:09:42
 
 ---
 openapi: "3.0.3"
@@ -5496,12 +5497,16 @@ components:
             $ref: "#/components/schemas/VariableValueFilterProperty"
         userTaskKey:
           type: "string"
+          description: "The key for this user task."
         processDefinitionKey:
           type: "string"
+          description: "The key of the process definition."
         processInstanceKey:
           type: "string"
+          description: "The key of the process instance."
         elementInstanceKey:
           type: "string"
+          description: "The key of the element instance."
     UserTaskStateFilterProperty:
       description: "UserTaskStateEnum property with full advanced search capabilities."
       type: "object"
@@ -5623,14 +5628,19 @@ components:
           default: 50
         userTaskKey:
           type: "string"
+          description: "The key of the user task."
         elementInstanceKey:
           type: "string"
+          description: "The key of the element instance."
         processDefinitionKey:
           type: "string"
+          description: "The key of the process definition."
         processInstanceKey:
           type: "string"
+          description: "The key of the process instance."
         formKey:
           type: "string"
+          description: "The key of the form."
     UserTaskStateEnum:
       description: "The state of the user task."
       type: "string"
@@ -5750,10 +5760,13 @@ components:
           type: "string"
         variableKey:
           type: "string"
+          description: "The key for this variable."
         scopeKey:
           type: "string"
+          description: "The key of the scope of this variable."
         processInstanceKey:
           type: "string"
+          description: "The key of the process instance of this variable."
     ProcessDefinitionSearchQuerySortRequest:
       type: "object"
       properties:
@@ -5820,6 +5833,7 @@ components:
           type: "string"
         processDefinitionKey:
           type: "string"
+          description: "The key for this process definition."
         hasStartForm:
           description: "Indicates whether the start event of the process has an associated\
             \ Form Key."
@@ -5858,6 +5872,7 @@ components:
           type: "string"
         processDefinitionKey:
           type: "string"
+          description: "The key for this process definition."
         hasStartForm:
           description: "Indicates whether the start event of the process has an associated\
             \ Form Key."
@@ -6323,12 +6338,16 @@ components:
           description: "The tenant ID."
         processInstanceKey:
           type: "string"
+          description: "The key of this process instance."
         processDefinitionKey:
           type: "string"
+          description: "The process definition key."
         parentProcessInstanceKey:
           type: "string"
+          description: "The parent process instance key."
         parentElementInstanceKey:
           type: "string"
+          description: "The parent element instance key."
     ProcessInstanceStateEnum:
       description: "Process instance states"
       enum:
@@ -6350,8 +6369,10 @@ components:
       properties:
         processInstanceKey:
           type: "string"
+          description: "The key of the process instance."
         processDefinitionKey:
           type: "string"
+          description: "The key of the process definition."
         processDefinitionName:
           type: "string"
           description: "The name of the process definition (fall backs to the process\
@@ -6374,8 +6395,10 @@ components:
           description: "The sequence flow ID."
         processInstanceKey:
           type: "string"
+          description: "The key of this process instance."
         processDefinitionKey:
           type: "string"
+          description: "The process definition key."
         processDefinitionId:
           type: "string"
           description: "The process definition ID."
@@ -6538,12 +6561,17 @@ components:
           type: "string"
         elementInstanceKey:
           type: "string"
+          description: "The assigned key, which acts as a unique identifier for this\
+            \ element instance."
         processInstanceKey:
           type: "string"
+          description: "The process instance key associated to this element instance."
         processDefinitionKey:
           type: "string"
+          description: "The process definition key associated to this element instance."
         incidentKey:
           type: "string"
+          description: "The key of incident if field incident is true."
         startDate:
           description: "The start date of this element instance."
           allOf:
@@ -6626,12 +6654,17 @@ components:
           type: "string"
         elementInstanceKey:
           type: "string"
+          description: "The assigned key, which acts as a unique identifier for this\
+            \ element instance."
         processInstanceKey:
           type: "string"
+          description: "The process instance key associated to this element instance."
         processDefinitionKey:
           type: "string"
+          description: "The process definition key associated to this element instance."
         incidentKey:
           type: "string"
+          description: "Incident key associated with this element instance."
     AdHocSubProcessActivateActivitiesInstruction:
       type: "object"
       properties:
@@ -6705,8 +6738,12 @@ components:
           description: "The tenant ID of the decision definition."
         decisionDefinitionKey:
           type: "string"
+          description: "The assigned key, which acts as a unique identifier for this\
+            \ decision definition."
         decisionRequirementsKey:
           type: "string"
+          description: "The assigned key of the decision requirements graph that the\
+            \ decision definition is part of."
     IncidentSearchQuerySortRequest:
       type: "object"
       properties:
@@ -6794,14 +6831,20 @@ components:
           type: "string"
         incidentKey:
           type: "string"
+          description: "The assigned key, which acts as a unique identifier for this\
+            \ incident."
         processDefinitionKey:
           type: "string"
+          description: "The process definition key associated to this incident."
         processInstanceKey:
           type: "string"
+          description: "The process instance key associated to this incident."
         elementInstanceKey:
           type: "string"
+          description: "The element instance key associated to this incident."
         jobKey:
           type: "string"
+          description: "The job key, if exists, associated with this incident."
     IncidentSearchQueryResult:
       type: "object"
       allOf:
@@ -6827,18 +6870,23 @@ components:
       properties:
         messageSubscriptionKey:
           type: "string"
+          description: "The message subscription key associated with this message\
+            \ subscription."
         processDefinitionId:
           description: "The process definition ID associated with this message subscription."
           type: "string"
         processDefinitionKey:
           type: "string"
+          description: "The process definition key associated with this message subscription."
         processInstanceKey:
           type: "string"
+          description: "The process instance key associated with this message subscription."
         elementId:
           description: "The element ID associated with this message subscription."
           type: "string"
         elementInstanceKey:
           type: "string"
+          description: "The element instance key associated with this message subscription."
         messageSubscriptionType:
           $ref: "#/components/schemas/MessageSubscriptionTypeEnum"
         lastUpdatedDate:
@@ -6850,6 +6898,7 @@ components:
           type: "string"
         correlationKey:
           type: "string"
+          description: "The correlation key of the message subscription."
         tenantId:
           description: "The unique external tenant ID."
           type: "string"
@@ -7027,14 +7076,20 @@ components:
           type: "string"
         incidentKey:
           type: "string"
+          description: "The assigned key, which acts as a unique identifier for this\
+            \ incident."
         processDefinitionKey:
           type: "string"
+          description: "The process definition key associated to this incident."
         processInstanceKey:
           type: "string"
+          description: "The process instance key associated to this incident."
         elementInstanceKey:
           type: "string"
+          description: "The element instance key associated to this incident."
         jobKey:
           type: "string"
+          description: "The job key, if exists, associated with this incident."
     DecisionDefinitionSearchQueryResult:
       type: "object"
       allOf:
@@ -7067,8 +7122,12 @@ components:
           description: "The tenant ID of the decision definition."
         decisionDefinitionKey:
           type: "string"
+          description: "The assigned key, which acts as a unique identifier for this\
+            \ decision definition."
         decisionRequirementsKey:
           type: "string"
+          description: "The assigned key of the decision requirements graph that the\
+            \ decision definition is part of."
     UsageMetricsResponse:
       type: "object"
       allOf:
@@ -7196,6 +7255,7 @@ components:
       properties:
         authorizationKey:
           type: "string"
+          description: "The key of the created authorization."
     AuthorizationSearchQuerySortRequest:
       type: "object"
       properties:
@@ -7273,6 +7333,7 @@ components:
             $ref: "#/components/schemas/PermissionTypeEnum"
         authorizationKey:
           type: "string"
+          description: "The key of the authorization."
     AuthorizationSearchResult:
       type: "object"
       allOf:
@@ -8413,12 +8474,17 @@ components:
           type: "string"
         jobKey:
           type: "string"
+          description: "The key, a unique identifier for the job."
         processInstanceKey:
           type: "string"
+          description: "The job's process instance key."
         processDefinitionKey:
           type: "string"
+          description: "The key of the job's process definition."
         elementInstanceKey:
           type: "string"
+          description: "The unique key identifying the associated task, unique within\
+            \ the scope of the process instance."
         kind:
           $ref: "#/components/schemas/JobKindEnum"
         listenerEventType:
@@ -8463,6 +8529,7 @@ components:
           nullable: true
         formKey:
           type: "string"
+          description: "The key of the form associated with the user task."
         priority:
           description: "The priority of the user task."
           type: "integer"
@@ -8472,6 +8539,7 @@ components:
           nullable: true
         userTaskKey:
           type: "string"
+          description: "The unique key identifying the user task."
     JobFailRequest:
       type: "object"
       properties:
@@ -8843,6 +8911,7 @@ components:
           type: "string"
         elementInstanceKey:
           type: "string"
+          description: "The element instance key associated with the job."
         endTime:
           description: "When the job ended."
           type: "string"
@@ -8865,6 +8934,7 @@ components:
           nullable: true
         jobKey:
           type: "string"
+          description: "The key, a unique identifier for the job."
         kind:
           $ref: "#/components/schemas/JobKindEnum"
         listenerEventType:
@@ -8874,8 +8944,10 @@ components:
           type: "string"
         processDefinitionKey:
           type: "string"
+          description: "The process definition key associated with the job."
         processInstanceKey:
           type: "string"
+          description: "The process instance key associated with the job."
         retries:
           description: "The amount of retries left to this job."
           type: "integer"
@@ -9148,6 +9220,8 @@ components:
           description: "The tenant ID of the decision requirements."
         decisionRequirementsKey:
           type: "string"
+          description: "The assigned key, which acts as a unique identifier for this\
+            \ decision requirements."
         resourceName:
           type: "string"
           description: "The name of the resource from which the decision requirements\
@@ -9184,6 +9258,8 @@ components:
           description: "The tenant ID of the decision requirements."
         decisionRequirementsKey:
           type: "string"
+          description: "The assigned key, which acts as a unique identifier for this\
+            \ decision requirements."
     DecisionEvaluationInstruction:
       type: "object"
       properties:
@@ -9201,6 +9277,8 @@ components:
           type: "string"
         decisionDefinitionKey:
           type: "string"
+          description: "The unique key identifying the decision to be evaluated.\n\
+            Cannot be used together with decisionDefinitionId.\n"
     EvaluateDecisionResult:
       type: "object"
       properties:
@@ -9233,10 +9311,14 @@ components:
           type: "string"
         decisionDefinitionKey:
           type: "string"
+          description: "The unique key identifying the decision which was evaluated."
         decisionRequirementsKey:
           type: "string"
+          description: "The unique key identifying the decision requirements graph\
+            \ that the decision which was evaluated is part of."
         decisionInstanceKey:
           type: "string"
+          description: "The unique key identifying this decision evaluation."
         evaluatedDecisions:
           description: "Decisions that were evaluated within the requested decision\
             \ evaluation."
@@ -9280,6 +9362,7 @@ components:
             $ref: "#/components/schemas/EvaluatedDecisionInputItem"
         decisionDefinitionKey:
           type: "string"
+          description: "The unique key identifying the decision which was evaluate."
     MatchedDecisionRuleItem:
       type: "object"
       description: "A decision rule that matched within this decision evaluation."
@@ -9394,10 +9477,15 @@ components:
           description: "The tenant ID of the decision instance."
         decisionInstanceKey:
           type: "string"
+          description: "The key of the decision instance. Note that this is not the\
+            \ unique identifier of the entity itself; the `decisionInstanceId` serves\
+            \ as the primary identifier.\n"
         processDefinitionKey:
           type: "string"
+          description: "The key of the process definition."
         processInstanceKey:
           type: "string"
+          description: "The key of the process instance."
         decisionDefinitionKey:
           description: "The key of the decision."
           allOf:
@@ -9452,14 +9540,22 @@ components:
           description: "The tenant ID of the decision instance."
         decisionInstanceKey:
           type: "string"
+          description: "The key of the decision instance. Note that this is not the\
+            \ unique identifier of the entity itself; the `decisionInstanceId` serves\
+            \ as the primary identifier."
         processDefinitionKey:
           type: "string"
+          description: "The key of the process definition."
         processInstanceKey:
           type: "string"
+          description: "The key of the process instance."
         decisionDefinitionKey:
           type: "string"
+          description: "The key of the decision."
         elementInstanceKey:
           type: "string"
+          description: "The key of the element instance this decision instance is\
+            \ linked to."
     DecisionInstanceGetQueryResult:
       allOf:
       - $ref: "#/components/schemas/DecisionInstanceResult"
@@ -9531,8 +9627,11 @@ components:
           type: "string"
         messageKey:
           type: "string"
+          description: "The key of the correlated message"
         processInstanceKey:
           type: "string"
+          description: "The key of the first process instance the message correlated\
+            \ with"
     MessagePublicationRequest:
       type: "object"
       properties:
@@ -9574,6 +9673,7 @@ components:
           type: "string"
         messageKey:
           type: "string"
+          description: "The key of the message"
     DocumentReference:
       type: "object"
       properties:
@@ -9639,6 +9739,7 @@ components:
           description: "The ID of the process definition that created the document."
         processInstanceKey:
           type: "string"
+          description: "The key of the process instance that created the document."
         customProperties:
           type: "object"
           description: "Custom properties of the document."
@@ -9669,6 +9770,7 @@ components:
           type: "string"
         deploymentKey:
           type: "string"
+          description: "The unique key identifying the deployment."
         deployments:
           description: "Items deployed by the request."
           type: "array"
@@ -9707,6 +9809,8 @@ components:
           description: "The tenant ID of the deployed process."
         processDefinitionKey:
           type: "string"
+          description: "The assigned key, which acts as a unique identifier for this\
+            \ process."
     DeploymentDecisionResult:
       description: "A deployed decision."
       type: "object"
@@ -9731,8 +9835,12 @@ components:
             \ is part of, as parsed during deployment.\n"
         decisionDefinitionKey:
           type: "string"
+          description: "The assigned decision key, which acts as a unique identifier\
+            \ for this decision.\n"
         decisionRequirementsKey:
           type: "string"
+          description: "The assigned key of the decision requirements graph that this\
+            \ decision is part of.\n"
     DeploymentDecisionRequirementsResult:
       description: "Deployed decision requirements."
       type: "object"
@@ -9759,6 +9867,8 @@ components:
             \ parsed."
         decisionRequirementsKey:
           type: "string"
+          description: "The assigned decision requirements key, which acts as a unique\
+            \ identifier for this decision requirements.\n"
     DeploymentFormResult:
       description: "A deployed form."
       type: "object"
@@ -9779,6 +9889,8 @@ components:
           description: "The tenant ID of the deployed form."
         formKey:
           type: "string"
+          description: "The assigned key, which acts as a unique identifier for this\
+            \ form."
     DeploymentResourceResult:
       description: "A deployed Resource."
       type: "object"
@@ -9799,6 +9911,8 @@ components:
           description: "The tenant ID of the deployed form."
         resourceKey:
           type: "string"
+          description: "The assigned key, which acts as a unique identifier for this\
+            \ Resource."
     IncidentResolutionRequest:
       type: "object"
       properties:
@@ -9864,6 +9978,9 @@ components:
           format: "int64"
         processDefinitionKey:
           type: "string"
+          description: "The unique key identifying the process definition, for example,\
+            \ returned for a process in the\ndeploy resources endpoint. Cannot be\
+            \ used together with processDefinitionId.\n"
     ProcessInstanceCreationStartInstruction:
       type: "object"
       properties:
@@ -9925,8 +10042,12 @@ components:
           type: "object"
         processDefinitionKey:
           type: "string"
+          description: "The key of the process definition which was used to create\
+            \ the process instance.\n"
         processInstanceKey:
           type: "string"
+          description: "The unique identifier of the created process instance; to\
+            \ be used wherever a request\nneeds a process instance key (e.g. CancelProcessInstanceRequest).\n"
     ProcessInstanceMigrationBatchOperationRequest:
       type: "object"
       properties:
@@ -9950,6 +10071,8 @@ components:
             $ref: "#/components/schemas/MigrateProcessInstanceMappingInstruction"
         targetProcessDefinitionKey:
           type: "string"
+          description: "The key of process definition to migrate the process instance\
+            \ to."
       required:
       - "targetProcessDefinitionKey"
       - "mappingInstructions"
@@ -9968,6 +10091,8 @@ components:
           $ref: "#/components/schemas/OperationReference"
         targetProcessDefinitionKey:
           type: "string"
+          description: "The key of process definition to migrate the process instance\
+            \ to."
       required:
       - "targetProcessDefinitionKey"
       - "mappingInstructions"
@@ -10014,10 +10139,10 @@ components:
           items:
             $ref: "#/components/schemas/ModifyProcessInstanceVariableInstruction"
         ancestorElementInstanceKey:
-          type: "string"
           description: "The key of the ancestor scope the element instance should\
             \ be created in.\nSet to -1 to create the new element instance within\
             \ an existing element instance of the\nflow scope.\n"
+          type: "string"
       required:
       - "elementId"
     ModifyProcessInstanceVariableInstruction:
@@ -10044,6 +10169,7 @@ components:
       properties:
         elementInstanceKey:
           type: "string"
+          description: "The ID of the element that should be terminated."
       required:
       - "elementInstanceKey"
     SetVariableRequest:
@@ -10101,6 +10227,7 @@ components:
           type: "string"
         signalKey:
           type: "string"
+          description: "The unique ID of the signal that was broadcast."
     FormResult:
       type: "object"
       properties:
@@ -10119,6 +10246,8 @@ components:
           format: "int64"
         formKey:
           type: "string"
+          description: "The assigned key, which acts as a unique identifier for this\
+            \ form."
     ResourceResult:
       type: "object"
       properties:
@@ -10140,6 +10269,7 @@ components:
           type: "string"
         resourceKey:
           type: "string"
+          description: "The unique key of this resource."
     BatchOperationTypeEnum:
       description: "The type of the batch operation."
       type: "string"
@@ -10153,6 +10283,7 @@ components:
       properties:
         batchOperationKey:
           type: "string"
+          description: "Key of the batch operation."
         batchOperationType:
           $ref: "#/components/schemas/BatchOperationTypeEnum"
     BatchOperationSearchQuerySortRequest:
@@ -10385,6 +10516,7 @@ components:
       properties:
         batchOperationKey:
           type: "string"
+          description: "Key or (Operate Legacy ID = UUID) of the batch operation."
         state:
           description: "The state of the batch operation."
           type: "string"
@@ -10455,11 +10587,13 @@ components:
       properties:
         batchOperationKey:
           type: "string"
+          description: "The key (or operate legacy ID) of the batch operation."
         itemKey:
           description: "Key of the item, e.g. a process instance key."
           type: "string"
         processInstanceKey:
           type: "string"
+          description: "the process instance key of the processed item."
         state:
           description: "State of the item."
           type: "string"
