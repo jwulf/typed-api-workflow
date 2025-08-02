@@ -87,6 +87,8 @@ This ensures that the generated file does not contain any changes that would bre
 
 You will now be able to inspect the impact of the changes on the documentation by navigating to `http://localhost:3000/`.
 
+Update: the docs are now hosted live [here](https://preview.docs.camunda.cloud/pr-6342/docs/next/apis-tools/orchestration-cluster-api-rest/specifications/get-process-instance/).
+
 ## Everything looks good?
 
 Congratulations! You have successfully updated the domain typed REST API for Camunda.
