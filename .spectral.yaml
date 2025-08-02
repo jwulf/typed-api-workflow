@@ -43,6 +43,6 @@ overrides:
       - "rest-api.yaml"
       - "rest-api.generated.yaml"
     rules: 
-      - key-path-params-must-use-ref: "off"
-      - key-property-ref-must-point-to-camundakey-or-subtype: "off"
-      - key-properties-must-extend-camunda-key: "off"
+      key-path-params-must-use-ref: "off"
+      key-property-ref-must-point-to-camundakey-or-subtype: "off"
+      key-properties-must-extend-camunda-key: "off"
