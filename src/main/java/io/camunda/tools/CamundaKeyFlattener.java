@@ -9,13 +9,16 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+/**
+ * This tool flattens the CamundaKey types in the OpenAPI spec to simple string types.
+ */
 public class CamundaKeyFlattener {
 
     // To easily comment out description removal if needed
     private static final boolean STRIP_DESCRIPTIONS = false;
     private static final String CANONICAL_SOURCE = "zeebe/gateway-protocol/src/main/proto/rest-api.yaml";
-    private static final String INPUT_FILE = "rest-api.domain.yaml"; // Input file path
-    private static final String OUTPUT_FILE = "rest-api.generated.yaml"; // Output file path
+    private static final String INPUT_FILE = "rest-api.domain.yaml"; 
+    private static final String OUTPUT_FILE = "rest-api.generated.yaml"; 
     
     // Generate header comment with current timestamp
     private static String generateHeaderComment() {
@@ -33,8 +36,8 @@ public class CamundaKeyFlattener {
         mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 
-        File input = new File(INPUT_FILE );  // Replace with your OpenAPI input file
-        File output = new File(OUTPUT_FILE); // Your transformed output
+        File input = new File(INPUT_FILE );  
+        File output = new File(OUTPUT_FILE); 
 
         JsonNode root = mapper.readTree(input);
         Set<String> camundaKeyDescendants = new HashSet<>();

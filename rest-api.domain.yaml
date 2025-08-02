@@ -5403,7 +5403,6 @@ components:
       minLength: 1
       maxLength: 20
       description: "System-assigned entity key (Java long serialized as string)"
-      example: "2251799813685249"
     ProcessInstanceKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
