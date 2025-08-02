@@ -4,6 +4,9 @@
   "main": "index.js",
   "scripts": {
     "test": "npm run lint",
+    "camunda:clean": "rm -rf camunda/data && docker compose -f camunda/operate/docker-compose.yml stop elasticsearch",
+    "camunda:es:start": "docker compose -f camunda/operate/docker-compose.yml up -d elasticsearch",
+    "camunda:es:stop": "docker compose -f camunda/operate/docker-compose.yml stop elasticsearch",
     "spec:update": "cd camunda && git reset --hard && git clean -fd && git pull && cd .. && cp camunda/zeebe/gateway-protocol/src/main/proto/rest-api.yaml rest-api.yaml",
     "docs:generate": "cp ./rest-api.domain.yaml ./camunda-docs/api/camunda/camunda-openapi.yaml && npm run --prefix camunda-docs api:generate:camunda",
     "docs:start": "npm run --prefix camunda-docs start",
@@ -15,7 +18,7 @@
     "lint:original": "vacuum lint rest-api.yaml --ruleset vacuum/vacuum-ruleset.yaml --functions vacuum/vacuum-rules --details --no-clip --errors",
     "lint:domain": "spectral lint rest-api.domain.yaml",
     "lint:generated": "vacuum lint rest-api.generated.yaml --ruleset vacuum/vacuum-ruleset.yaml --functions vacuum/vacuum-rules --details --no-clip --errors",
-    "silence:elastic": "curl -X PUT \"http://localhost:9200/_cluster/settings\" -H \"Content-Type: application/json\" -d '{ \"persistent\":{\"logger.org.elasticsearch.deprecation\": \"OFF\"}}"
+    "silence:elastic": "curl -X PUT \"http://localhost:9200/_cluster/settings\" -H \"Content-Type: application/json\" -d '{ \"persistent\":{\"logger.org.elasticsearch.deprecation\": \"OFF\"}}'"
   },
   "keywords": [],
   "author": "",

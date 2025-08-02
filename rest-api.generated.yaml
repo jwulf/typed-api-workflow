@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-08-02 22:09:42
+# File generated at: 2025-08-03 00:03:41
 
 ---
 openapi: "3.0.3"

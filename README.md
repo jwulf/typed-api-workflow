@@ -1,6 +1,6 @@
-# Domain Typed REST API for Camunda development workflow
+# Domain Typed REST API for Camunda POC development workflow
 
-This repository contains the source, tools, and development workflow for the [domain typed REST API for Camunda 8](https://github.com/camunda/camunda/issues/36026).
+This repository contains the source, tools, and development workflow for developing the proof-of-concept for a [domain typed REST API for Camunda 8](https://github.com/camunda/camunda/issues/36026).
 
 This workflow is designed to ensure that the domain typed REST API is kept up-to-date with the latest version of the REST API, while also ensuring that the generated files are valid and do not break the build or change the behaviour of the API.
 
@@ -69,7 +69,7 @@ This ensures that the generated files are valid and follow the expected structur
 
 ## Verify the generated file
 
-1. Run `npm spec:install` to copy the generated file to the `zeebe/gateway-protocol/src/main/proto/rest-api.yaml` directory of camunda/camunda.
+1. Run `npm run spec:install` to copy the generated file to the `zeebe/gateway-protocol/src/main/proto/rest-api.yaml` directory of camunda/camunda.
 2. Run `npm run spec:build` to build with the generated file.
 3. Run `npm run spec:verify` to verify the build.
 
@@ -95,10 +95,11 @@ Congratulations! You have successfully updated the domain typed REST API for Cam
 
 ## Running Camunda
 
-- Stop any running Elasticsearch Docker container.
-- Open the file `operate/docker-compose.yml` in IntelliJ and click the green arrow next to the elasticsearch service to start it.
+- Run `npm run camunda:es:stop` to stop any running Elasticsearch Docker container.
+- Run `npm run camunda:es:start` to start an ES container. (Alternative: open the file `operate/docker-compose.yml` in IntelliJ and click the green arrow next to the elasticsearch service to start it).
 - Run `npm run silence:elastic` to suppress deprecation warnings in the logs.
 
+- Run `npm run camunda:clean` to delete the data directory from any previous run of Camunda.
 - Open the file `src/main/java/io/camunda/application/StandaloneCamunda.java` from camunda/camunda in IntelliJ.
 - Ensure that the class run configuration has the following environment variables set:
 ```CAMUNDA_SECURITY_AUTHENTICATION_UNPROTECTEDAPI=true;CAMUNDA_SECURITY_AUTHORIZATIONS_ENABLED=false;ZEEBE_BROKER_EXPORTERS_CAMUNDAEXPORTER_CLASSNAME=io.camunda.exporter.CamundaExporter```

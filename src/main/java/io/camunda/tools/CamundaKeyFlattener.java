@@ -142,7 +142,7 @@ public class CamundaKeyFlattener {
             }
         }
     }
-    
+
     private static JsonNode getSchemasRoot(JsonNode anyNode) {
         JsonNode current = anyNode;
         while (current != null && !current.isMissingNode()) {
