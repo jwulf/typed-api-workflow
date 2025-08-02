@@ -1,4 +1,4 @@
-# Domain Typed REST API for Camunda POC development workflow
+# Domain-typed REST API for Camunda POC development workflow
 
 This repository contains the source, tools, and development workflow for developing the proof-of-concept for a [domain typed REST API for Camunda 8](https://github.com/camunda/camunda/issues/36026).
 
