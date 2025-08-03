@@ -5408,36 +5408,43 @@ components:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for a process instance. Only use values returned by the system."
           format: "ProcessInstanceKey"
+          x-semantic-type: ProcessInstanceKey
     DeploymentKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for a deployment."
           format: "DeploymentKey"
+          x-semantic-type: DeploymentKey
     UserTaskKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for a user task. Only use values returned by the system."
           format: "UserTaskKey"
+          x-semantic-type: UserTaskKey
     ProcessDefinitionKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for a process definition. Only use values returned by the system."
           format: "ProcessDefinitionKey"
+          x-semantic-type: ProcessDefinitionKey
     ElementInstanceKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for a element instance. Only use values returned by the system."
           format: "ElementInstanceKey"
+          x-semantic-type: ElementInstanceKey
     FormKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for a form. Only use values returned by the system."
           format: "FormKey"
+          x-semantic-type: FormKey
     VariableKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for a variable. Only use values returned by the system."
           format: "VariableKey"
+          x-semantic-type: VariableKey
     ResourceKey:
       oneOf:
         - $ref: "#/components/schemas/ProcessDefinitionKey"
@@ -5450,53 +5457,68 @@ components:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for a scope. Only use values returned by the system."
+          format: "ScopeKey"
+          x-semantic-type: ScopeKey
     IncidentKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for a incident. Only use values returned by the system."
-          format: "ScopeKey"
+          format: "IncidentKey"
+          x-semantic-type: IncidentKey
     JobKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for a job. Only use values returned by the system."
           format: "JobKey"
+          x-semantic-type: JobKey
     MessageSubscriptionKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for a message subscription. Only use values returned by the system."
           format: "MessageSubscriptionKey"
+          x-semantic-type: MessageSubscriptionKey
     MessageCorrelationKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for a message correlation. Only use values returned by the system."
           format: "MessageCorrelationKey"
+          x-semantic-type: MessageCorrelationKey
     DecisionDefinitionKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for a decision definition. Only use values returned by the system."
           format: "DecisionDefinitionKey"
+          x-semantic-type: DecisionDefinitionKey
     DecisionRequirementsKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for a decision requirements definition. Only use values returned by the system."
           format: "DecisionRequirementsKey"
+          x-semantic-type: DecisionRequirementsKey
     AuthorizationKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for an authorization. Only use values returned by the system."
+          format: "AuthorizationKey"
+          x-semantic-type: AuthorizationKey
     MessageKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for an message. Only use values returned by the system."
           format: "MessageKey"
+          x-semantic-type: MessageKey
     DecisionInstanceKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for an decision instance. Only use values returned by the system."
+          format: "DecisionInstanceKey"
+          x-semantic-type: DecisionInstanceKey
     SignalKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "Key for an signal. Only use values returned by the system."
+          format: "SignalKey"
+          x-semantic-type: SignalKey
     BatchOperationKey:
       oneOf:
         - $ref: "#/components/schemas/CamundaKey"
