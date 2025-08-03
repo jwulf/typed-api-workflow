@@ -18,7 +18,19 @@
     "lint:original": "vacuum lint rest-api.yaml --ruleset vacuum/vacuum-ruleset.yaml --functions vacuum/vacuum-rules --details --no-clip --errors",
     "lint:domain": "spectral lint rest-api.domain.yaml",
     "lint:generated": "vacuum lint rest-api.generated.yaml --ruleset vacuum/vacuum-ruleset.yaml --functions vacuum/vacuum-rules --details --no-clip --errors",
-    "silence:elastic": "curl -X PUT \"http://localhost:9200/_cluster/settings\" -H \"Content-Type: application/json\" -d '{ \"persistent\":{\"logger.org.elasticsearch.deprecation\": \"OFF\"}}'"
+    "silence:elastic": "curl -X PUT \"http://localhost:9200/_cluster/settings\" -H \"Content-Type: application/json\" -d '{ \"persistent\":{\"logger.org.elasticsearch.deprecation\": \"OFF\"}}'",
+    "sdks:install": "cd sdks/tools && npm install",
+    "sdks:generate": "cd sdks/tools && ./generate-all-sdks.sh",
+    "sdks:enhance": "cd sdks/tools && node enhance-all-sdks.js ../../rest-api.domain.yaml ../",
+    "sdks:enhance:types": "cd sdks/tools && node enhance-semantic-types.js ../../rest-api.domain.yaml ../",
+    "sdks:enhance:docs": "cd sdks/tools && node enhance-eventually-consistent.js ../../rest-api.domain.yaml ../",
+    "sdks:clean": "cross-env rimraf sdks/{typescript,csharp,go,python,php}",
+    "sdks:list": "ls -la sdks/ | grep '^d' || echo 'No SDKs generated yet'",
+    "prebuild:sdks": "npm run sdks:clean",
+    "build:sdks": "npm run sdks:install && npm run sdks:generate",
+    "postbuild:sdks": "echo '✅ SDKs generated in ./sdks/' && npm run sdks:list",
+    "watch:spec": "nodemon --watch rest-api.domain.yaml --exec 'npm run build:sdks'",
+    "test:sdks": "npm run sdks:install && cd sdks/tools && npm run test"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +38,10 @@
   "type": "commonjs",
   "description": "",
   "devDependencies": {
+    "cross-env": "^10.0.0",
+    "nodemon": "^3.1.10",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^6.0.1",
     "spectral": "^0.0.0",
     "vacuum": "^0.1.3"
   }

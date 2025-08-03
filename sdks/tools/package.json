@@ -1,0 +1,31 @@
+
+{
+  "name": "semantic-type-sdk-enhancer",
+  "version": "1.0.0",
+  "description": "Post-processing script to add semantic types to generated SDKs",
+  "main": "enhance-semantic-types.js",
+  "scripts": {
+    "generate": "./generate-all-sdks.sh",
+    "enhance": "node enhance-semantic-types.js rest-api.domain.yaml ./sdks",
+    "build": "npm run generate"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.7.0"
+  },
+  "keywords": [
+    "openapi",
+    "codegen",
+    "sdk",
+    "semantic-types",
+    "typescript",
+    "csharp",
+    "go",
+    "python",
+    "php"
+  ],
+  "author": "Your Team",
+  "license": "MIT"
+}
