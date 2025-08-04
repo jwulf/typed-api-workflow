@@ -1,10 +1,10 @@
 import { SdkEnhancementStrategy } from "./SdkEnhancementOrchestrator";
 import { OpenAPIV3 } from 'openapi-types';
+import { TypeScriptSemanticTypeEnhancer, SemanticType } from './typescript/TypeScriptSemanticTypeEnhancer';
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as yaml from 'js-yaml';
-import { SdkDefinition, SdkDefinitions, SupportedSdk } from "../sdks";
+import { SdkDefinitions } from "../sdks";
 
 export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
   name = 'enhance-semantic-types';
@@ -15,28 +15,18 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
     python: this.enhancePython,
     php: this.enhancePHP,
   }
-  semanticTypes: Map<string, {
-    name: string;
-    description: string;
-    pattern: string | null;
-    minLength?: number;
-    maxLength?: number;
-  }>;
+  semanticTypes: Map<string, SemanticType>;
+  private typeScriptEnhancer: TypeScriptSemanticTypeEnhancer;
 
   constructor(spec: OpenAPIV3.Document, sdks: SdkDefinitions) {
     super(spec, sdks);
     this.semanticTypes = this.extractSemanticTypes();
+    this.typeScriptEnhancer = new TypeScriptSemanticTypeEnhancer(this.semanticTypes);
     console.log(`Found ${this.semanticTypes.size} semantic types:`, Array.from(this.semanticTypes.keys()));
   }
 
   extractSemanticTypes() {
-    const types = new Map<string, {
-      name: string;
-      description: string;
-      pattern: string | null;
-      minLength?: number;
-      maxLength?: number;
-    }>();
+    const types = new Map<string, SemanticType>();
 
     const processSchema = (name: string, schema: OpenAPIV3.SchemaObject, visited = new Set<string>()) => {
       if (visited.has(name)) return; // Prevent circular references
@@ -188,253 +178,7 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
 
   // ===== TYPESCRIPT =====
   enhanceTypeScript(sdkPath: string) {
-    const typesCode = this.generateTypeScriptTypes();
-    const typesFilePath = path.join(sdkPath, 'semanticTypes.ts');
-    fs.writeFileSync(typesFilePath, typesCode);
-    
-    this.updateTypeScriptModels(sdkPath);
-    this.updateTypeScriptIndex(sdkPath);
-    this.enhanceObjectSerializer(sdkPath);
-    
-    console.log(`  ✓ Created ${typesFilePath}`);
-  }
-
-  generateTypeScriptTypes() {
-    let code = '// Auto-generated semantic types\n\n';
-    
-    for (const [name, type] of Array.from(this.semanticTypes.entries())) {
-      code += `/**\n * ${type.description}\n */\n`;
-      code += `export type ${name} = string & { readonly __brand: '${name}' };\n\n`;
-      
-      code += `export class ${name}Type {\n`;
-      code += `  /**\n   * Create a new ${name} with validation\n   */\n`;
-      code += `  static create(value: string): ${name} {\n`;
-      code += `    if (!this.isValid(value)) {\n`;
-      code += `      throw new Error(\`Invalid ${name}: \${value}\`);\n`;
-      code += `    }\n`;
-      code += `    return value as ${name};\n`;
-      code += `  }\n\n`;
-      
-      code += `  /**\n   * Get the string value of a ${name}\n   */\n`;
-      code += `  static getValue(key: ${name}): string {\n`;
-      code += `    return key as string;\n`;
-      code += `  }\n\n`;
-      
-      code += `  /**\n   * Compare two ${name} instances for equality\n   */\n`;
-      code += `  static equals(a: ${name}, b: ${name}): boolean {\n`;
-      code += `    return (a as string) === (b as string);\n`;
-      code += `  }\n\n`;
-      
-      code += `  /**\n   * Validate a string value for ${name}\n   */\n`;
-      code += `  static isValid(value: string): boolean {\n`;
-      code += `    if (!value) return false;\n`;
-      if (type.pattern) {
-        code += `    if (!/${type.pattern}/.test(value)) return false;\n`;
-      }
-      if (type.minLength !== undefined) {
-        code += `    if (value.length < ${type.minLength}) return false;\n`;
-      }
-      if (type.maxLength !== undefined) {
-        code += `    if (value.length > ${type.maxLength}) return false;\n`;
-      }
-      code += `    return true;\n`;
-      code += `  }\n`;
-      code += `}\n\n`;
-    }
-    
-    return code;
-  }
-
-  updateTypeScriptModels(sdkPath: string) {
-    const modelsDir = path.join(sdkPath, 'model');
-    if (!fs.existsSync(modelsDir)) {
-      console.log(`  ! Models directory not found: ${modelsDir}`);
-      return;
-    }
-    
-    const files = fs.readdirSync(modelsDir).filter(f => f.endsWith('.ts'));
-    
-    for (const file of files) {
-      const filePath = path.join(modelsDir, file);
-      let content = fs.readFileSync(filePath, 'utf8');
-      let changed = false;
-      
-      // First, replace property declarations and attributeTypeMap entries
-      for (const typeName of Array.from(this.semanticTypes.keys())) {
-        // Convert PascalCase to camelCase for property matching
-        const camelCaseTypeName = typeName.charAt(0).toLowerCase() + typeName.slice(1);
-        
-        // Replace property declarations - handle both single quotes and double quotes
-        // Check both PascalCase and camelCase versions
-        const patterns = [
-          // PascalCase patterns (e.g., 'ProcessDefinitionKey')
-          new RegExp(`'(\\w*${typeName})'\\??: string`, 'g'),
-          new RegExp(`"(\\w*${typeName})"\\??: string`, 'g'),
-          new RegExp(`'(\\w*${typeName})': string`, 'g'),
-          new RegExp(`"(\\w*${typeName})": string`, 'g'),
-          new RegExp(`'(\\w*${typeName})'\\??: any`, 'g'),
-          new RegExp(`"(\\w*${typeName})"\\??: any`, 'g'),
-          // camelCase patterns (e.g., 'processDefinitionKey')
-          new RegExp(`'(\\w*${camelCaseTypeName})'\\??: string`, 'g'),
-          new RegExp(`"(\\w*${camelCaseTypeName})"\\??: string`, 'g'),
-          new RegExp(`'(\\w*${camelCaseTypeName})': string`, 'g'),
-          new RegExp(`"(\\w*${camelCaseTypeName})": string`, 'g'),
-          new RegExp(`'(\\w*${camelCaseTypeName})'\\??: any`, 'g'),
-          new RegExp(`"(\\w*${camelCaseTypeName})"\\??: any`, 'g'),
-        ];
-        
-        for (const pattern of patterns) {
-          if (pattern.test(content)) {
-            content = content.replace(pattern, `'$1'?: ${typeName}`);
-            changed = true;
-          }
-        }
-
-        // Fix attributeTypeMap entries - this is critical for ObjectSerializer to work properly
-        const attributeTypeMapPatterns = [
-          // Match entries with "any" type that should be semantic types
-          new RegExp(`(\\s*{[^}]*"name":\\s*"\\w*${camelCaseTypeName}"[^}]*"type":\\s*)"any"`, 'g'),
-          new RegExp(`(\\s*{[^}]*"name":\\s*"\\w*${typeName}"[^}]*"type":\\s*)"any"`, 'g'),
-          // Also match string types that should be semantic types
-          new RegExp(`(\\s*{[^}]*"name":\\s*"\\w*${camelCaseTypeName}"[^}]*"type":\\s*)"string"`, 'g'),
-          new RegExp(`(\\s*{[^}]*"name":\\s*"\\w*${typeName}"[^}]*"type":\\s*)"string"`, 'g'),
-        ];
-        
-        for (const mapPattern of attributeTypeMapPatterns) {
-          if (mapPattern.test(content)) {
-            content = content.replace(mapPattern, `$1"${typeName}"`);
-            changed = true;
-          }
-        }
-      }
-      
-      // After all type replacements, add imports for semantic types that are now used
-      const needsImport = Array.from(this.semanticTypes.keys()).some(typeName => 
-        content.includes(`: ${typeName}`) || content.includes(`"${typeName}"`)
-      );
-      
-      if (needsImport && !content.includes('semanticTypes')) {
-        // Get all the semantic types that are actually used in this file
-        const usedTypes = Array.from(this.semanticTypes.keys()).filter(typeName => 
-          content.includes(`: ${typeName}`) || content.includes(`"${typeName}"`)
-        );
-        
-        if (usedTypes.length > 0) {
-          // Find the position after the last import statement
-          const lines = content.split('\n');
-          let insertIndex = 0;
-          for (let i = 0; i < lines.length; i++) {
-            if (lines[i].startsWith('import ')) {
-              insertIndex = i + 1;
-            } else if (lines[i].trim() === '' && insertIndex > 0) {
-              // Found an empty line after imports
-              insertIndex = i;
-              break;
-            } else if (!lines[i].startsWith('import ') && !lines[i].startsWith('/**') && lines[i].trim() !== '' && insertIndex > 0) {
-              // Found first non-import, non-comment line
-              insertIndex = i;
-              break;
-            }
-          }
-          
-          // Insert the import statement
-          const importStatement = `import { ${usedTypes.join(', ')} } from '../semanticTypes';`;
-          lines.splice(insertIndex, 0, importStatement);
-          content = lines.join('\n');
-          changed = true;
-        }
-      }
-      
-      if (changed) {
-        fs.writeFileSync(filePath, content);
-        console.log(`  ✓ Updated ${file}`);
-      }
-    }
-  }
-
-  enhanceObjectSerializer(sdkPath: string) {
-    const modelsPath = path.join(sdkPath, 'model/models.ts');
-    if (!fs.existsSync(modelsPath)) {
-      console.log(`  ! Models file not found: ${modelsPath}`);
-      return;
-    }
-
-    let content = fs.readFileSync(modelsPath, 'utf8');
-    
-    // Check if we've already enhanced the ObjectSerializer
-    if (content.includes('// Semantic type handling')) {
-      console.log(`  ✓ ObjectSerializer already enhanced`);
-      return;
-    }
-
-    // Add import for semantic types at the top
-    const semanticTypeNames = Array.from(this.semanticTypes.keys());
-    const semanticTypeImports = semanticTypeNames.map(name => `${name}, ${name}Type`).join(', ');
-    const importStatement = `import { ${semanticTypeImports} } from '../semanticTypes';\n`;
-    
-    // Insert import after existing imports
-    const importMatch = content.match(/^(import.*?\n)+/m);
-    if (importMatch && importMatch.index !== undefined) {
-      const lastImportIndex = importMatch.index + importMatch[0].length;
-      content = content.slice(0, lastImportIndex) + importStatement + content.slice(lastImportIndex);
-    } else {
-      content = importStatement + content;
-    }
-
-    // Enhance serialize method
-    const serializeEnhancement = this.generateSerializeEnhancement();
-    content = content.replace(
-      /(public static serialize\(data: any, type: string\): any \{\s*if \(data == undefined\) \{\s*return data;\s*\})/,
-      `$1${serializeEnhancement}`
-    );
-
-    // Enhance deserialize method  
-    const deserializeEnhancement = this.generateDeserializeEnhancement();
-    content = content.replace(
-      /(public static deserialize\(data: any, type: string\): any \{\s*\/\/ polymorphism may change the actual type\.\s*type = ObjectSerializer\.findCorrectType\(data, type\);\s*if \(data == undefined\) \{\s*return data;\s*\})/,
-      `$1${deserializeEnhancement}`
-    );
-
-    fs.writeFileSync(modelsPath, content);
-    console.log(`  ✓ Enhanced ObjectSerializer with semantic type support`);
-  }
-
-  generateSerializeEnhancement(): string {
-    const semanticTypeNames = Array.from(this.semanticTypes.keys());
-    let enhancement = '\n        // Semantic type handling - convert branded types to strings for JSON\n';
-    
-    for (const typeName of semanticTypeNames) {
-      enhancement += `        else if (type === "${typeName}") {\n`;
-      enhancement += `            return ${typeName}Type.getValue(data as ${typeName});\n`;
-      enhancement += `        }\n`;
-    }
-    
-    return enhancement;
-  }
-
-  generateDeserializeEnhancement(): string {
-    const semanticTypeNames = Array.from(this.semanticTypes.keys());
-    let enhancement = '\n        // Semantic type handling - convert JSON strings to branded types\n';
-    
-    for (const typeName of semanticTypeNames) {
-      enhancement += `        else if (type === "${typeName}") {\n`;
-      enhancement += `            return ${typeName}Type.create(data as string);\n`;
-      enhancement += `        }\n`;
-    }
-    
-    return enhancement;
-  }
-
-  updateTypeScriptIndex(sdkPath: string) {
-    const indexPath = path.join(sdkPath, 'index.ts');
-    if (fs.existsSync(indexPath)) {
-      let content = fs.readFileSync(indexPath, 'utf8');
-      if (!content.includes('semanticTypes')) {
-        content += '\nexport * from "./semanticTypes";\n';
-        fs.writeFileSync(indexPath, content);
-        console.log(`  ✓ Updated index.ts`);
-      }
-    }
+    this.typeScriptEnhancer.enhanceTypeScript(sdkPath);
   }
 
   // ===== C# =====
