@@ -22,10 +22,10 @@
     "sdks:install": "cd sdks/tools && npm install",
     "sdks:generate": "npm run sdks:clean && cd sdks/tools && ts-node ./generate-all-sdks.ts",
     "sdks:clean": "cross-env rimraf sdks/generated/*",
-    "sdks:list": "ls -la sdks/ | grep '^d' || echo 'No SDKs generated yet'",
+    "sdks:list": "ls -la sdks/generated | grep '^d' || echo 'No SDKs generated yet'",
     "prebuild:sdks": "npm run sdks:clean",
     "build:sdks": "npm run sdks:install && npm run sdks:generate",
-    "postbuild:sdks": "echo '✅ SDKs generated in ./sdks/' && npm run sdks:list",
+    "postbuild:sdks": "echo '✅ SDKs generated in ./sdks/generated' && npm run sdks:list",
     "watch:spec": "nodemon --watch rest-api.domain.yaml --exec 'npm run build:sdks'",
     "test:sdks": "npm run sdks:install && cd sdks/tools && npm run test"
   },

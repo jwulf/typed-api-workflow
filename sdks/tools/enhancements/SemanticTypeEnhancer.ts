@@ -64,8 +64,20 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
             if (refName && refSchema) {
               processSchema(refName, refSchema, visited);
             }
-          } else if ('allOf' in subSchema || 'pattern' in subSchema) {
-            processSchema(name, { ...schema, ...subSchema } as OpenAPIV3.SchemaObject, visited);
+          } else {
+            // Process any object schema that could have x-semantic-type
+            const subSchemaObj = subSchema as OpenAPIV3.SchemaObject;
+            const extendedSubSchema = subSchemaObj as OpenAPIV3.SchemaObject & { 'x-semantic-type'?: string };
+            
+            if (extendedSubSchema['x-semantic-type']) {
+              types.set(extendedSubSchema['x-semantic-type'], {
+                name: extendedSubSchema['x-semantic-type'],
+                description: subSchemaObj.description || schema.description || '',
+                pattern: this.resolvePattern(subSchemaObj, visited) || this.resolvePattern(schema, visited),
+                minLength: this.resolveMinLength(subSchemaObj, visited) || this.resolveMinLength(schema, visited),
+                maxLength: this.resolveMaxLength(subSchemaObj, visited) || this.resolveMaxLength(schema, visited)
+              });
+            }
           }
         }
       }
@@ -233,7 +245,7 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
   }
 
   updateTypeScriptModels(sdkPath: string) {
-    const modelsDir = path.join(sdkPath, 'models');
+    const modelsDir = path.join(sdkPath, 'model');
     if (!fs.existsSync(modelsDir)) {
       console.log(`  ! Models directory not found: ${modelsDir}`);
       return;
@@ -262,7 +274,9 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
           new RegExp(`'(\\w*${typeName})'\\??: string`, 'g'),
           new RegExp(`"(\\w*${typeName})"\\??: string`, 'g'),
           new RegExp(`'(\\w*${typeName})': string`, 'g'),
-          new RegExp(`"(\\w*${typeName})": string`, 'g')
+          new RegExp(`"(\\w*${typeName})": string`, 'g'),
+          new RegExp(`'(\\w*${typeName})'\\??: any`, 'g'),
+          new RegExp(`"(\\w*${typeName})"\\??: any`, 'g'),
         ];
         
         for (const pattern of patterns) {
