@@ -259,43 +259,7 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
       let content = fs.readFileSync(filePath, 'utf8');
       let changed = false;
       
-      // Add import if we're going to use semantic types
-      const needsImport = Array.from(this.semanticTypes.keys()).some(typeName => 
-        content.includes(`'${typeName}'`) || content.includes(`"${typeName}"`)
-      );
-      
-      if (needsImport && !content.includes('semanticTypes')) {
-        // Get all the semantic types that are actually used in this file
-        const usedTypes = Array.from(this.semanticTypes.keys()).filter(typeName => 
-          content.includes(`'${typeName}'`) || content.includes(`"${typeName}"`) || content.includes(`: ${typeName}`)
-        );
-        
-        if (usedTypes.length > 0) {
-          // Find the position after the last import statement
-          const lines = content.split('\n');
-          let insertIndex = 0;
-          for (let i = 0; i < lines.length; i++) {
-            if (lines[i].startsWith('import ')) {
-              insertIndex = i + 1;
-            } else if (lines[i].trim() === '' && insertIndex > 0) {
-              // Found an empty line after imports
-              insertIndex = i;
-              break;
-            } else if (!lines[i].startsWith('import ') && !lines[i].startsWith('/**') && lines[i].trim() !== '' && insertIndex > 0) {
-              // Found first non-import, non-comment line
-              insertIndex = i;
-              break;
-            }
-          }
-          
-          // Insert the import statement
-          const importStatement = `import { ${usedTypes.join(', ')} } from '../semanticTypes';`;
-          lines.splice(insertIndex, 0, importStatement);
-          content = lines.join('\n');
-          changed = true;
-        }
-      }
-      
+      // First, replace property declarations and attributeTypeMap entries
       for (const typeName of Array.from(this.semanticTypes.keys())) {
         // Convert PascalCase to camelCase for property matching
         const camelCaseTypeName = typeName.charAt(0).toLowerCase() + typeName.slice(1);
@@ -341,6 +305,43 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
             content = content.replace(mapPattern, `$1"${typeName}"`);
             changed = true;
           }
+        }
+      }
+      
+      // After all type replacements, add imports for semantic types that are now used
+      const needsImport = Array.from(this.semanticTypes.keys()).some(typeName => 
+        content.includes(`: ${typeName}`) || content.includes(`"${typeName}"`)
+      );
+      
+      if (needsImport && !content.includes('semanticTypes')) {
+        // Get all the semantic types that are actually used in this file
+        const usedTypes = Array.from(this.semanticTypes.keys()).filter(typeName => 
+          content.includes(`: ${typeName}`) || content.includes(`"${typeName}"`)
+        );
+        
+        if (usedTypes.length > 0) {
+          // Find the position after the last import statement
+          const lines = content.split('\n');
+          let insertIndex = 0;
+          for (let i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith('import ')) {
+              insertIndex = i + 1;
+            } else if (lines[i].trim() === '' && insertIndex > 0) {
+              // Found an empty line after imports
+              insertIndex = i;
+              break;
+            } else if (!lines[i].startsWith('import ') && !lines[i].startsWith('/**') && lines[i].trim() !== '' && insertIndex > 0) {
+              // Found first non-import, non-comment line
+              insertIndex = i;
+              break;
+            }
+          }
+          
+          // Insert the import statement
+          const importStatement = `import { ${usedTypes.join(', ')} } from '../semanticTypes';`;
+          lines.splice(insertIndex, 0, importStatement);
+          content = lines.join('\n');
+          changed = true;
         }
       }
       
