@@ -1,26 +1,53 @@
-#!/usr/bin/env node
+import { SdkEnhancementStrategy } from "./SdkEnhancementOrchestrator";
+import { OpenAPIV3 } from 'openapi-types';
 
-const fs = require('fs');
-const path = require('path');
-const yaml = require('js-yaml');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as yaml from 'js-yaml';
+import { SdkDefinition, SdkDefinitions, SupportedSdk } from "../sdks";
 
-class SemanticTypeEnhancer {
-  constructor(specPath) {
-    this.spec = yaml.load(fs.readFileSync(specPath, 'utf8'));
+export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
+  name = 'enhance-semantic-types';
+  sdkEnhancementStrategies = {
+    typescript: this.enhanceTypeScript,
+    csharp: this.enhanceCSharp,
+    go: this.enhanceGo,
+    python: this.enhancePython,
+    php: this.enhancePHP,
+  }
+  semanticTypes: Map<string, {
+    name: string;
+    description: string;
+    pattern: string | null;
+    minLength?: number;
+    maxLength?: number;
+  }>;
+
+  constructor(spec: OpenAPIV3.Document, sdks: SdkDefinitions) {
+    super(spec, sdks);
     this.semanticTypes = this.extractSemanticTypes();
     console.log(`Found ${this.semanticTypes.size} semantic types:`, Array.from(this.semanticTypes.keys()));
   }
 
   extractSemanticTypes() {
-    const types = new Map();
-    
-    const processSchema = (name, schema, visited = new Set()) => {
+    const types = new Map<string, {
+      name: string;
+      description: string;
+      pattern: string | null;
+      minLength?: number;
+      maxLength?: number;
+    }>();
+
+    const processSchema = (name: string, schema: OpenAPIV3.SchemaObject, visited = new Set<string>()) => {
       if (visited.has(name)) return; // Prevent circular references
       visited.add(name);
       
-      if (schema['x-semantic-type']) {
-        types.set(schema['x-semantic-type'], {
-          name: schema['x-semantic-type'],
+      // Type assertion for the custom extension
+      const extendedSchema = schema as OpenAPIV3.SchemaObject & { 'x-semantic-type'?: string };
+      
+      if (extendedSchema['x-semantic-type']) {
+        types.set(extendedSchema['x-semantic-type'], {
+          name: extendedSchema['x-semantic-type'],
           description: schema.description || '',
           pattern: this.resolvePattern(schema, visited),
           minLength: this.resolveMinLength(schema, visited),
@@ -31,40 +58,54 @@ class SemanticTypeEnhancer {
       // Handle allOf inheritance
       if (schema.allOf) {
         for (const subSchema of schema.allOf) {
-          if (subSchema.$ref) {
+          if ('$ref' in subSchema && subSchema.$ref) {
             const refName = this.getRefName(subSchema.$ref);
             const refSchema = this.resolveRef(subSchema.$ref);
-            processSchema(refName, refSchema, visited);
-          } else {
-            processSchema(name, { ...schema, ...subSchema }, visited);
+            if (refName && refSchema) {
+              processSchema(refName, refSchema, visited);
+            }
+          } else if ('allOf' in subSchema || 'pattern' in subSchema) {
+            processSchema(name, { ...schema, ...subSchema } as OpenAPIV3.SchemaObject, visited);
           }
         }
       }
     };
 
-    for (const [name, schema] of Object.entries(this.spec.components?.schemas || {})) {
-      processSchema(name, schema);
+    if (this.spec.components?.schemas) {
+      for (const [name, schemaOrRef] of Object.entries(this.spec.components.schemas)) {
+        // Handle both direct schemas and references
+        if ('$ref' in schemaOrRef) {
+          const resolvedSchema = this.resolveRef(schemaOrRef.$ref);
+          if (resolvedSchema) {
+            processSchema(name, resolvedSchema);
+          }
+        } else {
+          processSchema(name, schemaOrRef as OpenAPIV3.SchemaObject);
+        }
+      }
     }
     
     return types;
   }
 
-  getRefName(ref) {
+  getRefName(ref: string): string | undefined {
     return ref.split('/').pop();
   }
 
-  resolvePattern(schema, visited = new Set()) {
+  resolvePattern(schema: OpenAPIV3.SchemaObject, visited = new Set<string>()): string | null {
     if (schema.pattern) return schema.pattern;
     if (schema.allOf) {
       for (const subSchema of schema.allOf) {
-        if (subSchema.$ref) {
+        if ('$ref' in subSchema && subSchema.$ref) {
           const refName = this.getRefName(subSchema.$ref);
-          if (!visited.has(refName)) {
+          if (refName && !visited.has(refName)) {
             const resolved = this.resolveRef(subSchema.$ref);
-            const pattern = this.resolvePattern(resolved, visited);
-            if (pattern) return pattern;
+            if (resolved) {
+              const pattern = this.resolvePattern(resolved, visited);
+              if (pattern) return pattern;
+            }
           }
-        } else if (subSchema.pattern) {
+        } else if ('pattern' in subSchema && subSchema.pattern) {
           return subSchema.pattern;
         }
       }
@@ -72,18 +113,20 @@ class SemanticTypeEnhancer {
     return null;
   }
 
-  resolveMinLength(schema, visited = new Set()) {
+  resolveMinLength(schema: OpenAPIV3.SchemaObject, visited = new Set<string>()): number | undefined {
     if (schema.minLength !== undefined) return schema.minLength;
     if (schema.allOf) {
       for (const subSchema of schema.allOf) {
-        if (subSchema.$ref) {
+        if ('$ref' in subSchema && subSchema.$ref) {
           const refName = this.getRefName(subSchema.$ref);
-          if (!visited.has(refName)) {
+          if (refName && !visited.has(refName)) {
             const resolved = this.resolveRef(subSchema.$ref);
-            const minLength = this.resolveMinLength(resolved, visited);
-            if (minLength !== undefined) return minLength;
+            if (resolved) {
+              const minLength = this.resolveMinLength(resolved, visited);
+              if (minLength !== undefined) return minLength;
+            }
           }
-        } else if (subSchema.minLength !== undefined) {
+        } else if ('minLength' in subSchema && subSchema.minLength !== undefined) {
           return subSchema.minLength;
         }
       }
@@ -91,18 +134,20 @@ class SemanticTypeEnhancer {
     return undefined;
   }
 
-  resolveMaxLength(schema, visited = new Set()) {
+  resolveMaxLength(schema: OpenAPIV3.SchemaObject, visited = new Set<string>()): number | undefined {
     if (schema.maxLength !== undefined) return schema.maxLength;
     if (schema.allOf) {
       for (const subSchema of schema.allOf) {
-        if (subSchema.$ref) {
+        if ('$ref' in subSchema && subSchema.$ref) {
           const refName = this.getRefName(subSchema.$ref);
-          if (!visited.has(refName)) {
+          if (refName && !visited.has(refName)) {
             const resolved = this.resolveRef(subSchema.$ref);
-            const maxLength = this.resolveMaxLength(resolved, visited);
-            if (maxLength !== undefined) return maxLength;
+            if (resolved) {
+              const maxLength = this.resolveMaxLength(resolved, visited);
+              if (maxLength !== undefined) return maxLength;
+            }
           }
-        } else if (subSchema.maxLength !== undefined) {
+        } else if ('maxLength' in subSchema && subSchema.maxLength !== undefined) {
           return subSchema.maxLength;
         }
       }
@@ -110,36 +155,27 @@ class SemanticTypeEnhancer {
     return undefined;
   }
 
-  resolveRef(ref) {
+  resolveRef(ref: string): OpenAPIV3.SchemaObject | null {
     const parts = ref.replace('#/', '').split('/');
-    let current = this.spec;
+    let current: any = this.spec;
     for (const part of parts) {
       current = current[part];
+      if (!current) return null;
     }
-    return current;
+    return current as OpenAPIV3.SchemaObject;
   }
 
-  enhanceAllSDKs(baseDir) {
-    console.log('Enhancing TypeScript SDK...');
-    this.enhanceTypeScript(path.join(baseDir, 'typescript'));
-    
-    console.log('Enhancing C# SDK...');
-    this.enhanceCSharp(path.join(baseDir, 'csharp'));
-    
-    console.log('Enhancing Go SDK...');
-    this.enhanceGo(path.join(baseDir, 'go'));
-    
-    console.log('Enhancing Python SDK...');
-    this.enhancePython(path.join(baseDir, 'python'));
-    
-    console.log('Enhancing PHP SDK...');
-    this.enhancePHP(path.join(baseDir, 'php'));
-    
-    console.log('All SDKs enhanced successfully!');
+  // Template method hooks
+  protected getStartMessage(): string {
+    return '📝 Adding semantic types...';
+  }
+
+  protected getCompletionMessage(): string {
+    return '✅ All SDKs enhanced with semantic types!';
   }
 
   // ===== TYPESCRIPT =====
-  enhanceTypeScript(sdkPath) {
+  enhanceTypeScript(sdkPath: string) {
     const typesCode = this.generateTypeScriptTypes();
     const typesFilePath = path.join(sdkPath, 'semanticTypes.ts');
     fs.writeFileSync(typesFilePath, typesCode);
@@ -153,7 +189,7 @@ class SemanticTypeEnhancer {
   generateTypeScriptTypes() {
     let code = '// Auto-generated semantic types\n\n';
     
-    for (const [name, type] of this.semanticTypes) {
+    for (const [name, type] of Array.from(this.semanticTypes.entries())) {
       code += `/**\n * ${type.description}\n */\n`;
       code += `export type ${name} = string & { readonly __brand: '${name}' };\n\n`;
       
@@ -196,7 +232,7 @@ class SemanticTypeEnhancer {
     return code;
   }
 
-  updateTypeScriptModels(sdkPath) {
+  updateTypeScriptModels(sdkPath: string) {
     const modelsDir = path.join(sdkPath, 'models');
     if (!fs.existsSync(modelsDir)) {
       console.log(`  ! Models directory not found: ${modelsDir}`);
@@ -220,7 +256,7 @@ class SemanticTypeEnhancer {
         changed = true;
       }
       
-      for (const typeName of this.semanticTypes.keys()) {
+      for (const typeName of Array.from(this.semanticTypes.keys())) {
         // Replace property declarations - handle both single quotes and double quotes
         const patterns = [
           new RegExp(`'(\\w*${typeName})'\\??: string`, 'g'),
@@ -244,7 +280,7 @@ class SemanticTypeEnhancer {
     }
   }
 
-  updateTypeScriptIndex(sdkPath) {
+  updateTypeScriptIndex(sdkPath: string) {
     const indexPath = path.join(sdkPath, 'index.ts');
     if (fs.existsSync(indexPath)) {
       let content = fs.readFileSync(indexPath, 'utf8');
@@ -257,7 +293,7 @@ class SemanticTypeEnhancer {
   }
 
   // ===== C# =====
-  enhanceCSharp(sdkPath) {
+  enhanceCSharp(sdkPath: string) {
     const typesCode = this.generateCSharpTypes();
     const typesFilePath = path.join(sdkPath, 'src/main/CSharp/YourCompany.ProcessApi/Model/SemanticTypes.cs');
     
@@ -277,7 +313,7 @@ class SemanticTypeEnhancer {
     code += 'using System.Text.RegularExpressions;\n\n';
     code += 'namespace YourCompany.ProcessApi.Model\n{\n';
     
-    for (const [name, type] of this.semanticTypes) {
+    for (const [name, type] of Array.from(this.semanticTypes.entries())) {
       code += `    /// <summary>\n    /// ${type.description}\n    /// </summary>\n`;
       code += `    [JsonConverter(typeof(${name}Converter))]\n`;
       code += `    public readonly struct ${name} : IEquatable<${name}>\n    {\n`;
@@ -333,7 +369,7 @@ class SemanticTypeEnhancer {
     return code;
   }
 
-  updateCSharpModels(sdkPath) {
+  updateCSharpModels(sdkPath: string) {
     const modelsDir = path.join(sdkPath, 'src/main/CSharp/YourCompany.ProcessApi/Model');
     if (!fs.existsSync(modelsDir)) {
       console.log(`  ! Models directory not found: ${modelsDir}`);
@@ -347,7 +383,7 @@ class SemanticTypeEnhancer {
       let content = fs.readFileSync(filePath, 'utf8');
       let changed = false;
       
-      for (const typeName of this.semanticTypes.keys()) {
+      for (const typeName of Array.from(this.semanticTypes.keys())) {
         // Replace property declarations
         const patterns = [
           new RegExp(`public string (\\w*${typeName}) { get; set; }`, 'g'),
@@ -370,7 +406,7 @@ class SemanticTypeEnhancer {
   }
 
   // ===== GO =====
-  enhanceGo(sdkPath) {
+  enhanceGo(sdkPath: string) {
     const typesCode = this.generateGoTypes();
     const typesFilePath = path.join(sdkPath, 'semantic_types.go');
     fs.writeFileSync(typesFilePath, typesCode);
@@ -384,7 +420,7 @@ class SemanticTypeEnhancer {
     let code = 'package openapi\n\n';
     code += 'import (\n\t"encoding/json"\n\t"fmt"\n\t"regexp"\n)\n\n';
     
-    for (const [name, type] of this.semanticTypes) {
+    for (const [name, type] of Array.from(this.semanticTypes.entries())) {
       code += `// ${type.description}\n`;
       code += `type ${name} string\n\n`;
       
@@ -437,7 +473,7 @@ class SemanticTypeEnhancer {
     return code;
   }
 
-  updateGoModels(sdkPath) {
+  updateGoModels(sdkPath: string) {
     const files = fs.readdirSync(sdkPath).filter(f => f.endsWith('.go') && f !== 'semantic_types.go');
     
     for (const file of files) {
@@ -445,7 +481,7 @@ class SemanticTypeEnhancer {
       let content = fs.readFileSync(filePath, 'utf8');
       let changed = false;
       
-      for (const typeName of this.semanticTypes.keys()) {
+      for (const typeName of Array.from(this.semanticTypes.keys())) {
         // Replace field declarations in structs
         const patterns = [
           new RegExp(`(\\w*${typeName})\\s+string\\s+\`json:"([^"]+)"\``, 'g'),
@@ -468,7 +504,7 @@ class SemanticTypeEnhancer {
   }
 
   // ===== PYTHON =====
-  enhancePython(sdkPath) {
+  enhancePython(sdkPath: string) {
     const typesCode = this.generatePythonTypes();
     const typesFilePath = path.join(sdkPath, 'openapi_client/semantic_types.py');
     
@@ -486,7 +522,7 @@ class SemanticTypeEnhancer {
     let code = '"""Auto-generated semantic types"""\n';
     code += 'import re\nfrom typing import Any, Union\n\n';
     
-    for (const [name, type] of this.semanticTypes) {
+    for (const [name, type] of Array.from(this.semanticTypes.entries())) {
       code += `class ${name}:\n`;
       code += `    """${type.description}"""\n`;
       code += `    \n`;
@@ -545,7 +581,7 @@ class SemanticTypeEnhancer {
     return code;
   }
 
-  updatePythonModels(sdkPath) {
+  updatePythonModels(sdkPath: string) {
     const modelsDir = path.join(sdkPath, 'openapi_client/models');
     if (!fs.existsSync(modelsDir)) {
       console.log(`  ! Models directory not found: ${modelsDir}`);
@@ -570,7 +606,7 @@ class SemanticTypeEnhancer {
         changed = true;
       }
       
-      for (const typeName of this.semanticTypes.keys()) {
+      for (const typeName of Array.from(this.semanticTypes.keys())) {
         // Replace type annotations and property definitions
         const patterns = [
           new RegExp(`(\\w*${typeName.toLowerCase()}): str`, 'g'),
@@ -601,7 +637,7 @@ class SemanticTypeEnhancer {
     }
   }
 
-  updatePythonInit(sdkPath) {
+  updatePythonInit(sdkPath: string) {
     const initPath = path.join(sdkPath, 'openapi_client/__init__.py');
     if (fs.existsSync(initPath)) {
       let content = fs.readFileSync(initPath, 'utf8');
@@ -614,7 +650,7 @@ class SemanticTypeEnhancer {
   }
 
   // ===== PHP =====
-  enhancePHP(sdkPath) {
+  enhancePHP(sdkPath: string) {
     const typesCode = this.generatePHPTypes();
     const typesDir = path.join(sdkPath, 'lib/Model');
     const typesFilePath = path.join(typesDir, 'SemanticTypes.php');
@@ -632,7 +668,7 @@ class SemanticTypeEnhancer {
     let code = '<?php\n/**\n * Auto-generated semantic types\n */\n\n';
     code += 'namespace OpenAPI\\Client\\Model;\n\n';
     
-    for (const [name, type] of this.semanticTypes) {
+    for (const [name, type] of Array.from(this.semanticTypes.entries())) {
       code += `/**\n * ${type.description}\n */\n`;
       code += `class ${name} implements \\JsonSerializable\n{\n`;
       code += `    private string $value;\n\n`;
@@ -682,7 +718,7 @@ class SemanticTypeEnhancer {
     return code;
   }
 
-  updatePHPModels(sdkPath) {
+  updatePHPModels(sdkPath: string) {
     const modelsDir = path.join(sdkPath, 'lib/Model');
     if (!fs.existsSync(modelsDir)) {
       console.log(`  ! Models directory not found: ${modelsDir}`);
@@ -696,7 +732,7 @@ class SemanticTypeEnhancer {
       let content = fs.readFileSync(filePath, 'utf8');
       let changed = false;
       
-      for (const typeName of this.semanticTypes.keys()) {
+      for (const typeName of Array.from(this.semanticTypes.keys())) {
         // Replace property declarations and type hints
         const patterns = [
           new RegExp(`protected \\$([a-z_]*${typeName.toLowerCase()}[a-z_]*);`, 'gi'),
@@ -733,44 +769,3 @@ class SemanticTypeEnhancer {
     }
   }
 }
-
-// CLI Usage
-if (require.main === module) {
-  const args = process.argv.slice(2);
-  
-  if (args.length < 2) {
-    console.log('Usage: node enhance-semantic-types.js <spec-file> <sdks-directory>');
-    console.log('Example: node enhance-semantic-types.js rest-api.domain.yaml ./sdks');
-    process.exit(1);
-  }
-  
-  let [specFile, sdksDir] = args;
-  
-  // Handle relative paths when called from different directories
-  if (!path.isAbsolute(specFile)) {
-    specFile = path.resolve(process.cwd(), specFile);
-  }
-  if (!path.isAbsolute(sdksDir)) {
-    sdksDir = path.resolve(process.cwd(), sdksDir);
-  }
-  
-  if (!fs.existsSync(specFile)) {
-    console.error(`Error: Spec file not found: ${specFile}`);
-    process.exit(1);
-  }
-  
-  if (!fs.existsSync(sdksDir)) {
-    console.error(`Error: SDKs directory not found: ${sdksDir}`);
-    process.exit(1);
-  }
-  
-  try {
-    const enhancer = new SemanticTypeEnhancer(specFile);
-    enhancer.enhanceAllSDKs(sdksDir);
-  } catch (error) {
-    console.error('Error enhancing SDKs:', error.message);
-    process.exit(1);
-  }
-}
-
-module.exports = { SemanticTypeEnhancer };

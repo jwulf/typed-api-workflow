@@ -1,12 +1,31 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
-const yaml = require('js-yaml');
+import * as fs from 'fs';
+import * as path from 'path';
+import { OpenAPIV3 } from 'openapi-types';
+import { SdkDefinitions } from '../sdks';
+import { SdkEnhancementStrategy } from './SdkEnhancementOrchestrator';
 
-class EventuallyConsistentEnhancer {
-  constructor(specPath) {
-    this.spec = yaml.load(fs.readFileSync(specPath, 'utf8'));
+export class EventuallyConsistentEnhancer extends SdkEnhancementStrategy {
+  name = 'enhance-eventually-consistent';
+    sdkEnhancementStrategies = {
+    typescript: this.enhanceTypeScript,
+    csharp: this.enhanceCSharp,
+    go: this.enhanceGo,
+    python: this.enhancePython,
+    php: this.enhancePHP,
+  }
+  spec: OpenAPIV3.Document;
+  eventuallyConsistentOperations: Map<string, {
+    operationId: string;
+    path: string;
+    method: string;
+    summary: string;
+    description: string;
+  }>;
+  constructor(spec: OpenAPIV3.Document, sdks: SdkDefinitions) {
+    super(spec, sdks); // Call parent constructor
+    this.spec = spec
     this.eventuallyConsistentOperations = this.extractEventuallyConsistentOperations();
     console.log(`Found ${this.eventuallyConsistentOperations.size} eventually consistent operations:`, Array.from(this.eventuallyConsistentOperations.keys()));
   }
@@ -15,20 +34,40 @@ class EventuallyConsistentEnhancer {
   static EVENTUALLY_CONSISTENT_COMMENT = 'This endpoint is eventually consistent with the system state.';
 
   extractEventuallyConsistentOperations() {
-    const operations = new Map();
+    const operations = new Map<string, {
+      operationId: string;
+      path: string;
+      method: string;
+      summary: string;
+      description: string;
+    }>();
     
-    for (const [pathKey, pathValue] of Object.entries(this.spec.paths || {})) {
-      for (const [method, operation] of Object.entries(pathValue)) {
-        if (operation && typeof operation === 'object' && operation['x-eventually-consistent']) {
-          const operationId = operation.operationId;
-          if (operationId) {
-            operations.set(operationId, {
-              operationId,
-              path: pathKey,
-              method: method.toUpperCase(),
-              summary: operation.summary || '',
-              description: operation.description || ''
-            });
+    if (!this.spec.paths) return operations;
+    
+    for (const [pathKey, pathItem] of Object.entries(this.spec.paths)) {
+      if (!pathItem) continue;
+      
+      // Check each HTTP method directly
+      const httpMethods = ['get', 'post', 'put', 'delete', 'patch', 'head', 'options', 'trace'] as const;
+      
+      for (const method of httpMethods) {
+        const operation = pathItem[method];
+        
+        if (operation && typeof operation === 'object' && 'operationId' in operation) {
+          // Type assertion for the custom extension
+          const extendedOperation = operation as OpenAPIV3.OperationObject & { 'x-eventually-consistent'?: boolean };
+          
+          if (extendedOperation['x-eventually-consistent']) {
+            const operationId = extendedOperation.operationId;
+            if (operationId) {
+              operations.set(operationId, {
+                operationId,
+                path: pathKey,
+                method: method.toUpperCase(),
+                summary: extendedOperation.summary || '',
+                description: extendedOperation.description || ''
+              });
+            }
           }
         }
       }
@@ -37,25 +76,25 @@ class EventuallyConsistentEnhancer {
     return operations;
   }
 
-  enhanceAllSDKs(baseDir) {
-    if (this.eventuallyConsistentOperations.size === 0) {
-      console.log('⏭️  No eventually consistent operations found. Skipping...');
-      return;
-    }
+  // Template method hooks
+  protected shouldProceed(): boolean {
+    return this.eventuallyConsistentOperations.size > 0;
+  }
 
-    console.log('📝 Adding eventually consistent documentation...');
-    
-    this.enhanceTypeScript(path.join(baseDir, 'typescript'));
-    this.enhanceCSharp(path.join(baseDir, 'csharp'));
-    this.enhanceGo(path.join(baseDir, 'go'));
-    this.enhancePython(path.join(baseDir, 'python'));
-    this.enhancePHP(path.join(baseDir, 'php'));
-    
-    console.log('✅ All SDKs enhanced with eventually consistent documentation!');
+  protected getSkipMessage(): string {
+    return '⏭️  No eventually consistent operations found. Skipping...';
+  }
+
+  protected getStartMessage(): string {
+    return '📝 Adding eventually consistent documentation...';
+  }
+
+  protected getCompletionMessage(): string {
+    return '✅ All SDKs enhanced with eventually consistent documentation!';
   }
 
   // ===== TYPESCRIPT =====
-  enhanceTypeScript(sdkPath) {
+  enhanceTypeScript(sdkPath: string) {
     if (!fs.existsSync(sdkPath)) {
       console.log(`  ! TypeScript SDK not found: ${sdkPath}`);
       return;
@@ -85,7 +124,7 @@ class EventuallyConsistentEnhancer {
     }
   }
 
-  updateTypeScriptApiFiles(apiDir) {
+  updateTypeScriptApiFiles(apiDir: string) {
     const files = fs.readdirSync(apiDir).filter(f => f.endsWith('.ts'));
     let updatedFiles = 0;
     
@@ -95,7 +134,7 @@ class EventuallyConsistentEnhancer {
       let originalContent = content;
       let changed = false;
 
-      for (const operation of this.eventuallyConsistentOperations.values()) {
+      for (const operation of Array.from(this.eventuallyConsistentOperations.values())) {
         // Multiple patterns to catch different method declaration styles
         const patterns = [
           // Standard async method
@@ -135,7 +174,7 @@ class EventuallyConsistentEnhancer {
   }
 
   // ===== C# =====
-  enhanceCSharp(sdkPath) {
+  enhanceCSharp(sdkPath: string) {
     if (!fs.existsSync(sdkPath)) {
       console.log(`  ! C# SDK not found: ${sdkPath}`);
       return;
@@ -163,7 +202,7 @@ class EventuallyConsistentEnhancer {
     }
   }
 
-  updateCSharpApiFiles(apiDir) {
+  updateCSharpApiFiles(apiDir: string) {
     const files = fs.readdirSync(apiDir).filter(f => f.endsWith('.cs'));
     let updatedFiles = 0;
     
@@ -172,7 +211,7 @@ class EventuallyConsistentEnhancer {
       let content = fs.readFileSync(filePath, 'utf8');
       let originalContent = content;
 
-      for (const operation of this.eventuallyConsistentOperations.values()) {
+      for (const operation of Array.from(this.eventuallyConsistentOperations.values())) {
         // Multiple patterns for C# method declarations
         const patterns = [
           // Async methods with Task return type
@@ -207,7 +246,7 @@ class EventuallyConsistentEnhancer {
   }
 
   // ===== GO =====
-  enhanceGo(sdkPath) {
+  enhanceGo(sdkPath: string) {
     if (!fs.existsSync(sdkPath)) {
       console.log(`  ! Go SDK not found: ${sdkPath}`);
       return;
@@ -223,7 +262,7 @@ class EventuallyConsistentEnhancer {
       let content = fs.readFileSync(filePath, 'utf8');
       let originalContent = content;
 
-      for (const operation of this.eventuallyConsistentOperations.values()) {
+      for (const operation of Array.from(this.eventuallyConsistentOperations.values())) {
         // Go function patterns
         const patterns = [
           // Method with receiver
@@ -256,7 +295,7 @@ class EventuallyConsistentEnhancer {
   }
 
   // ===== PYTHON =====
-  enhancePython(sdkPath) {
+  enhancePython(sdkPath: string) {
     if (!fs.existsSync(sdkPath)) {
       console.log(`  ! Python SDK not found: ${sdkPath}`);
       return;
@@ -284,7 +323,7 @@ class EventuallyConsistentEnhancer {
     }
   }
 
-  updatePythonApiFiles(apiDir) {
+  updatePythonApiFiles(apiDir: string) {
     const files = fs.readdirSync(apiDir).filter(f => f.endsWith('.py') && f !== '__init__.py');
     let updatedFiles = 0;
     
@@ -293,7 +332,7 @@ class EventuallyConsistentEnhancer {
       let content = fs.readFileSync(filePath, 'utf8');
       let originalContent = content;
 
-      for (const operation of this.eventuallyConsistentOperations.values()) {
+      for (const operation of Array.from(this.eventuallyConsistentOperations.values())) {
         // Python method patterns
         const patterns = [
           // Regular method definition
@@ -338,7 +377,7 @@ class EventuallyConsistentEnhancer {
   }
 
   // ===== PHP =====
-  enhancePHP(sdkPath) {
+  enhancePHP(sdkPath: string) {
     if (!fs.existsSync(sdkPath)) {
       console.log(`  ! PHP SDK not found: ${sdkPath}`);
       return;
@@ -366,7 +405,7 @@ class EventuallyConsistentEnhancer {
     }
   }
 
-  updatePHPApiFiles(apiDir) {
+  updatePHPApiFiles(apiDir: string) {
     const files = fs.readdirSync(apiDir).filter(f => f.endsWith('.php'));
     let updatedFiles = 0;
     
@@ -375,7 +414,7 @@ class EventuallyConsistentEnhancer {
       let content = fs.readFileSync(filePath, 'utf8');
       let originalContent = content;
 
-      for (const operation of this.eventuallyConsistentOperations.values()) {
+      for (const operation of Array.from(this.eventuallyConsistentOperations.values())) {
         // PHP method patterns
         const patterns = [
           // Public method
@@ -410,51 +449,3 @@ class EventuallyConsistentEnhancer {
   }
 }
 
-// CLI Usage
-if (require.main === module) {
-  const args = process.argv.slice(2);
-  
-  if (args.length < 2) {
-    console.log('Usage: node enhance-eventually-consistent.js <spec-file> <sdks-directory>');
-    console.log('Example: node enhance-eventually-consistent.js rest-api.domain.yaml ./sdks');
-    console.log('');
-    console.log('This script adds documentation to methods for endpoints that have');
-    console.log('the x-eventually-consistent: true vendor extension.');
-    console.log('');
-    console.log('The comment added is:');
-    console.log(`"${EventuallyConsistentEnhancer.EVENTUALLY_CONSISTENT_COMMENT}"`);
-    console.log('');
-    console.log('To change this comment, edit the EVENTUALLY_CONSISTENT_COMMENT constant');
-    console.log('in this file and regenerate all SDKs.');
-    process.exit(1);
-  }
-  
-  let [specFile, sdksDir] = args;
-  
-  if (!path.isAbsolute(specFile)) {
-    specFile = path.resolve(process.cwd(), specFile);
-  }
-  if (!path.isAbsolute(sdksDir)) {
-    sdksDir = path.resolve(process.cwd(), sdksDir);
-  }
-  
-  if (!fs.existsSync(specFile)) {
-    console.error(`Error: Spec file not found: ${specFile}`);
-    process.exit(1);
-  }
-  
-  if (!fs.existsSync(sdksDir)) {
-    console.error(`Error: SDKs directory not found: ${sdksDir}`);
-    process.exit(1);
-  }
-  
-  try {
-    const enhancer = new EventuallyConsistentEnhancer(specFile);
-    enhancer.enhanceAllSDKs(sdksDir);
-  } catch (error) {
-    console.error('Error enhancing SDKs:', error.message);
-    process.exit(1);
-  }
-}
-
-module.exports = { EventuallyConsistentEnhancer };
