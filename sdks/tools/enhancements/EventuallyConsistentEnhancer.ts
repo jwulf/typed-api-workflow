@@ -5,6 +5,7 @@ import * as path from 'path';
 import { OpenAPIV3 } from 'openapi-types';
 import { SdkDefinitions } from '../sdks';
 import { SdkEnhancementStrategy } from './SdkEnhancementOrchestrator';
+import { TypeScriptEventualEnhancer } from './typescript/TypeScriptEventualEnhancer';
 
 export class EventuallyConsistentEnhancer extends SdkEnhancementStrategy {
   name = 'enhance-eventually-consistent';
@@ -47,6 +48,10 @@ export class EventuallyConsistentEnhancer extends SdkEnhancementStrategy {
     for (const [pathKey, pathItem] of Object.entries(this.spec.paths)) {
       if (!pathItem) continue;
       
+      // Check if the path itself is marked as eventually consistent
+      const extendedPathItem = pathItem as OpenAPIV3.PathItemObject & { 'x-eventually-consistent'?: boolean };
+      const pathIsEventuallyConsistent = extendedPathItem['x-eventually-consistent'];
+      
       // Check each HTTP method directly
       const httpMethods = ['get', 'post', 'put', 'delete', 'patch', 'head', 'options', 'trace'] as const;
       
@@ -57,7 +62,10 @@ export class EventuallyConsistentEnhancer extends SdkEnhancementStrategy {
           // Type assertion for the custom extension
           const extendedOperation = operation as OpenAPIV3.OperationObject & { 'x-eventually-consistent'?: boolean };
           
-          if (extendedOperation['x-eventually-consistent']) {
+          // Check if operation is eventually consistent (either at path level or operation level)
+          const isEventuallyConsistent = pathIsEventuallyConsistent || extendedOperation['x-eventually-consistent'];
+          
+          if (isEventuallyConsistent) {
             const operationId = extendedOperation.operationId;
             if (operationId) {
               operations.set(operationId, {
@@ -102,74 +110,18 @@ export class EventuallyConsistentEnhancer extends SdkEnhancementStrategy {
     
     console.log('📝 Enhancing TypeScript SDK...');
     
-    // Try multiple possible API directory structures
-    const possibleApiDirs = [
-      path.join(sdkPath, 'apis'),
-      path.join(sdkPath, 'api'),
-      path.join(sdkPath, 'src/apis'),
-      path.join(sdkPath, 'src/api')
-    ];
+    // Use AST-based enhancer for TypeScript
+    const tsEnhancer = new TypeScriptEventualEnhancer(EventuallyConsistentEnhancer.EVENTUALLY_CONSISTENT_COMMENT);
     
-    let foundApiDir = false;
-    for (const apiDir of possibleApiDirs) {
-      if (fs.existsSync(apiDir)) {
-        this.updateTypeScriptApiFiles(apiDir);
-        foundApiDir = true;
-        break;
+    try {
+      const updatedFiles = tsEnhancer.enhanceTypeScriptFiles(sdkPath, this.eventuallyConsistentOperations);
+      
+      if (updatedFiles > 0) {
+        console.log(`  ✓ Updated ${updatedFiles} TypeScript API files`);
       }
-    }
-    
-    if (!foundApiDir) {
-      console.log(`  ! No TypeScript API directory found`);
-    }
-  }
-
-  updateTypeScriptApiFiles(apiDir: string) {
-    const files = fs.readdirSync(apiDir).filter(f => f.endsWith('.ts'));
-    let updatedFiles = 0;
-    
-    for (const file of files) {
-      const filePath = path.join(apiDir, file);
-      let content = fs.readFileSync(filePath, 'utf8');
-      let originalContent = content;
-      let changed = false;
-
-      for (const operation of Array.from(this.eventuallyConsistentOperations.values())) {
-        // Multiple patterns to catch different method declaration styles
-        const patterns = [
-          // Standard async method
-          new RegExp(`(\\s*)(public\\s+async\\s+\\w+\\s+${operation.operationId}\\s*\\([^)]*\\)[^{]*{)`, 'g'),
-          // Method without async
-          new RegExp(`(\\s*)(public\\s+\\w+\\s+${operation.operationId}\\s*\\([^)]*\\)[^{]*{)`, 'g'),
-          // Arrow function style
-          new RegExp(`(\\s*)(${operation.operationId}\\s*=\\s*async\\s*\\([^)]*\\)\\s*=>\\s*{)`, 'g'),
-          // Function declaration
-          new RegExp(`(\\s*)(function\\s+${operation.operationId}\\s*\\([^)]*\\)[^{]*{)`, 'g')
-        ];
-
-        for (const methodPattern of patterns) {
-          content = content.replace(methodPattern, (match, indent, methodDecl) => {
-            // Check if already has our comment
-            if (match.includes(EventuallyConsistentEnhancer.EVENTUALLY_CONSISTENT_COMMENT)) {
-              return match;
-            }
-            
-            // Add JSDoc comment
-            const comment = `${indent}/**\n${indent} * ${EventuallyConsistentEnhancer.EVENTUALLY_CONSISTENT_COMMENT}\n${indent} */\n`;
-            return `${comment}${indent}${methodDecl}`;
-          });
-        }
-      }
-
-      if (content !== originalContent) {
-        fs.writeFileSync(filePath, content);
-        updatedFiles++;
-        changed = true;
-      }
-    }
-    
-    if (updatedFiles > 0) {
-      console.log(`  ✓ Updated ${updatedFiles} TypeScript API files`);
+    } finally {
+      // Clean up resources
+      tsEnhancer.dispose();
     }
   }
 

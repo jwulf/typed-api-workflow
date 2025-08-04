@@ -1154,8 +1154,8 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
 
   /user-tasks/{userTaskKey}:
-    x-eventually-consistent: true
     get:
+      x-eventually-consistent: true
       tags:
         - User task
       operationId: getUserTask
@@ -1236,8 +1236,8 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
 
   /user-tasks/{userTaskKey}/form:
-    x-eventually-consistent: true
     get:
+      x-eventually-consistent: true
       tags:
         - User task
       operationId: getUserTaskForm
@@ -1349,8 +1349,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /user-tasks/{userTaskKey}/variables/search:
-    x-eventually-consistent: true
     post:
+      x-eventually-consistent: true
       tags:
         - User task
       operationId: searchUserTaskVariables
