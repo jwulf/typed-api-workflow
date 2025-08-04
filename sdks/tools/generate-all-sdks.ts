@@ -11,11 +11,19 @@ import { SemanticTypeEnhancer } from './enhancements/SemanticTypeEnhancer';
 import { EventuallyConsistentEnhancer } from './enhancements/EventuallyConsistentEnhancer';
 import { TypeScriptCodeFixerEnhancer } from './enhancements/typescript/TypeScriptCodeFixerEnhancer';
 
+import { PostBuildOrchestrator } from './post-build/PostBuildOrchestrator';
+import { TypeScriptPostBuildStrategy } from './post-build/typescript/TypeScriptPostBuildStrategy';
+
 // Custom post-processing of generated SDKs
 const enhancementStrategies = [
   SemanticTypeEnhancer, // Enhance semantic types with validation
   EventuallyConsistentEnhancer, // Enhance eventually consistent operations
   TypeScriptCodeFixerEnhancer, // Fix TypeScript code generation issues
+]
+
+// Post-build tasks for generated SDKs
+const postBuildStrategies = [
+  TypeScriptPostBuildStrategy, // Install deps, compile, and test TypeScript SDKs
 ]
 
 // ANSI color codes for console output
@@ -111,7 +119,21 @@ async function enhanceSDKs(spec: OpenAPIV3.Document, sdksDir: string) {
     }
 }
 
-function main() {
+async function runPostBuildTasks(spec: OpenAPIV3.Document, sdksDir: string) {
+    log('🔧 Running post-build tasks...', colors.cyan);
+    
+    try {
+        const orchestrator = new PostBuildOrchestrator(spec, sdks, sdksDir, postBuildStrategies);
+        await orchestrator.runAllPostBuildTasks();
+
+        log('🎉 All post-build tasks completed!', colors.green);
+    } catch (error) {
+        log('❌ Failed to run post-build tasks', colors.red);
+        process.exit(1);
+    }
+}
+
+async function main() {
     // Detect paths
     const { specFile, sdksDir } = detectPaths();
     
@@ -144,7 +166,10 @@ function main() {
     const spec = yaml.load(fs.readFileSync(specFile, 'utf8')) as OpenAPIV3.Document;
     
     // Enhance SDKs
-    enhanceSDKs(spec, sdksDir);
+    await enhanceSDKs(spec, sdksDir);
+    
+    // Run post-build tasks after enhancements are complete
+    await runPostBuildTasks(spec, sdksDir);
     
     log('');
     log('📦 Generated SDKs:', colors.cyan);
