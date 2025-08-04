@@ -194,6 +194,7 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
     
     this.updateTypeScriptModels(sdkPath);
     this.updateTypeScriptIndex(sdkPath);
+    this.enhanceObjectSerializer(sdkPath);
     
     console.log(`  ✓ Created ${typesFilePath}`);
   }
@@ -285,6 +286,24 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
             changed = true;
           }
         }
+
+        // Fix attributeTypeMap entries - this is critical for ObjectSerializer to work properly
+        const camelCaseTypeName = typeName.charAt(0).toLowerCase() + typeName.slice(1);
+        const attributeTypeMapPatterns = [
+          // Match entries with "any" type that should be semantic types
+          new RegExp(`(\\s*{[^}]*"name":\\s*"\\w*${camelCaseTypeName}"[^}]*"type":\\s*)"any"`, 'g'),
+          new RegExp(`(\\s*{[^}]*"name":\\s*"\\w*${typeName}"[^}]*"type":\\s*)"any"`, 'g'),
+          // Also match string types that should be semantic types
+          new RegExp(`(\\s*{[^}]*"name":\\s*"\\w*${camelCaseTypeName}"[^}]*"type":\\s*)"string"`, 'g'),
+          new RegExp(`(\\s*{[^}]*"name":\\s*"\\w*${typeName}"[^}]*"type":\\s*)"string"`, 'g'),
+        ];
+        
+        for (const mapPattern of attributeTypeMapPatterns) {
+          if (mapPattern.test(content)) {
+            content = content.replace(mapPattern, `$1"${typeName}"`);
+            changed = true;
+          }
+        }
       }
       
       if (changed) {
@@ -292,6 +311,79 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
         console.log(`  ✓ Updated ${file}`);
       }
     }
+  }
+
+  enhanceObjectSerializer(sdkPath: string) {
+    const modelsPath = path.join(sdkPath, 'model/models.ts');
+    if (!fs.existsSync(modelsPath)) {
+      console.log(`  ! Models file not found: ${modelsPath}`);
+      return;
+    }
+
+    let content = fs.readFileSync(modelsPath, 'utf8');
+    
+    // Check if we've already enhanced the ObjectSerializer
+    if (content.includes('// Semantic type handling')) {
+      console.log(`  ✓ ObjectSerializer already enhanced`);
+      return;
+    }
+
+    // Add import for semantic types at the top
+    const semanticTypeNames = Array.from(this.semanticTypes.keys());
+    const semanticTypeImports = semanticTypeNames.map(name => `${name}, ${name}Type`).join(', ');
+    const importStatement = `import { ${semanticTypeImports} } from '../semanticTypes';\n`;
+    
+    // Insert import after existing imports
+    const importMatch = content.match(/^(import.*?\n)+/m);
+    if (importMatch && importMatch.index !== undefined) {
+      const lastImportIndex = importMatch.index + importMatch[0].length;
+      content = content.slice(0, lastImportIndex) + importStatement + content.slice(lastImportIndex);
+    } else {
+      content = importStatement + content;
+    }
+
+    // Enhance serialize method
+    const serializeEnhancement = this.generateSerializeEnhancement();
+    content = content.replace(
+      /(public static serialize\(data: any, type: string\): any \{\s*if \(data == undefined\) \{\s*return data;\s*\})/,
+      `$1${serializeEnhancement}`
+    );
+
+    // Enhance deserialize method  
+    const deserializeEnhancement = this.generateDeserializeEnhancement();
+    content = content.replace(
+      /(public static deserialize\(data: any, type: string\): any \{\s*\/\/ polymorphism may change the actual type\.\s*type = ObjectSerializer\.findCorrectType\(data, type\);\s*if \(data == undefined\) \{\s*return data;\s*\})/,
+      `$1${deserializeEnhancement}`
+    );
+
+    fs.writeFileSync(modelsPath, content);
+    console.log(`  ✓ Enhanced ObjectSerializer with semantic type support`);
+  }
+
+  generateSerializeEnhancement(): string {
+    const semanticTypeNames = Array.from(this.semanticTypes.keys());
+    let enhancement = '\n        // Semantic type handling - convert branded types to strings for JSON\n';
+    
+    for (const typeName of semanticTypeNames) {
+      enhancement += `        else if (type === "${typeName}") {\n`;
+      enhancement += `            return ${typeName}Type.getValue(data as ${typeName});\n`;
+      enhancement += `        }\n`;
+    }
+    
+    return enhancement;
+  }
+
+  generateDeserializeEnhancement(): string {
+    const semanticTypeNames = Array.from(this.semanticTypes.keys());
+    let enhancement = '\n        // Semantic type handling - convert JSON strings to branded types\n';
+    
+    for (const typeName of semanticTypeNames) {
+      enhancement += `        else if (type === "${typeName}") {\n`;
+      enhancement += `            return ${typeName}Type.create(data as string);\n`;
+      enhancement += `        }\n`;
+    }
+    
+    return enhancement;
   }
 
   updateTypeScriptIndex(sdkPath: string) {
