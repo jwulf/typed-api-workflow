@@ -30,33 +30,42 @@ export class TypeScriptSemanticTypeEnhancer {
   }
 
   generateTypeScriptTypes() {
-    let code = '// Auto-generated semantic types\n\n';
+    let code = '// Auto-generated semantic types using CamundaKey pattern for true nominal typing\n\n';
+    
+    // Add the base CamundaKey interface
+    code += '/**\n';
+    code += ' * Base interface for nominal typing of Camunda domain values.\n';
+    code += ' * This prevents accidental assignment between different semantic types.\n';
+    code += ' */\n';
+    code += 'interface CamundaKey<T> extends String {\n';
+    code += '  readonly __type: T;\n';
+    code += '}\n\n';
     
     for (const [name, type] of Array.from(this.semanticTypes.entries())) {
       code += `/**\n * ${type.description}\n */\n`;
-      code += `export type ${name} = string & { readonly __brand: '${name}' };\n\n`;
+      code += `export type ${name} = CamundaKey<'${name}'>;\n\n`;
       
-      code += `export class ${name}Type {\n`;
+      code += `export namespace ${name} {\n`;
       code += `  /**\n   * Create a new ${name} with validation\n   */\n`;
-      code += `  static create(value: string): ${name} {\n`;
-      code += `    if (!this.isValid(value)) {\n`;
+      code += `  export function create(value: string): ${name} {\n`;
+      code += `    if (!isValid(value)) {\n`;
       code += `      throw new Error(\`Invalid ${name}: \${value}\`);\n`;
       code += `    }\n`;
-      code += `    return value as ${name};\n`;
+      code += `    return value as unknown as ${name};\n`;
       code += `  }\n\n`;
       
       code += `  /**\n   * Get the string value of a ${name}\n   */\n`;
-      code += `  static getValue(key: ${name}): string {\n`;
-      code += `    return key as string;\n`;
+      code += `  export function getValue(key: ${name}): string {\n`;
+      code += `    return key as unknown as string;\n`;
       code += `  }\n\n`;
       
       code += `  /**\n   * Compare two ${name} instances for equality\n   */\n`;
-      code += `  static equals(a: ${name}, b: ${name}): boolean {\n`;
-      code += `    return (a as string) === (b as string);\n`;
+      code += `  export function equals(a: ${name}, b: ${name}): boolean {\n`;
+      code += `    return (a as unknown as string) === (b as unknown as string);\n`;
       code += `  }\n\n`;
       
       code += `  /**\n   * Validate a string value for ${name}\n   */\n`;
-      code += `  static isValid(value: string): boolean {\n`;
+      code += `  export function isValid(value: string): boolean {\n`;
       code += `    if (!value) return false;\n`;
       if (type.pattern) {
         code += `    if (!/${type.pattern}/.test(value)) return false;\n`;
@@ -277,7 +286,7 @@ export class TypeScriptSemanticTypeEnhancer {
 
     // Add import for semantic types at the top
     const semanticTypeNames = Array.from(this.semanticTypes.keys());
-    const semanticTypeImports = semanticTypeNames.map(name => `${name}, ${name}Type`).join(', ');
+    const semanticTypeImports = semanticTypeNames.join(', ');
     const importStatement = `import { ${semanticTypeImports} } from '../semanticTypes';\n`;
     
     // Insert import after existing imports
@@ -313,7 +322,7 @@ export class TypeScriptSemanticTypeEnhancer {
     
     for (const typeName of semanticTypeNames) {
       enhancement += `        else if (type === "${typeName}") {\n`;
-      enhancement += `            return ${typeName}Type.getValue(data as ${typeName});\n`;
+      enhancement += `            return ${typeName}.getValue(data as ${typeName});\n`;
       enhancement += `        }\n`;
     }
     
@@ -326,7 +335,7 @@ export class TypeScriptSemanticTypeEnhancer {
     
     for (const typeName of semanticTypeNames) {
       enhancement += `        else if (type === "${typeName}") {\n`;
-      enhancement += `            return ${typeName}Type.create(data as string);\n`;
+      enhancement += `            return ${typeName}.create(data as string);\n`;
       enhancement += `        }\n`;
     }
     
