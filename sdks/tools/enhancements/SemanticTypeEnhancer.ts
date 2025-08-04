@@ -264,20 +264,59 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
         content.includes(`'${typeName}'`) || content.includes(`"${typeName}"`)
       );
       
-      if (needsImport && !content.includes('import {') && !content.includes('semanticTypes')) {
-        content = `import { ${Array.from(this.semanticTypes.keys()).join(', ')} } from '../semanticTypes';\n${content}`;
-        changed = true;
+      if (needsImport && !content.includes('semanticTypes')) {
+        // Get all the semantic types that are actually used in this file
+        const usedTypes = Array.from(this.semanticTypes.keys()).filter(typeName => 
+          content.includes(`'${typeName}'`) || content.includes(`"${typeName}"`) || content.includes(`: ${typeName}`)
+        );
+        
+        if (usedTypes.length > 0) {
+          // Find the position after the last import statement
+          const lines = content.split('\n');
+          let insertIndex = 0;
+          for (let i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith('import ')) {
+              insertIndex = i + 1;
+            } else if (lines[i].trim() === '' && insertIndex > 0) {
+              // Found an empty line after imports
+              insertIndex = i;
+              break;
+            } else if (!lines[i].startsWith('import ') && !lines[i].startsWith('/**') && lines[i].trim() !== '' && insertIndex > 0) {
+              // Found first non-import, non-comment line
+              insertIndex = i;
+              break;
+            }
+          }
+          
+          // Insert the import statement
+          const importStatement = `import { ${usedTypes.join(', ')} } from '../semanticTypes';`;
+          lines.splice(insertIndex, 0, importStatement);
+          content = lines.join('\n');
+          changed = true;
+        }
       }
       
       for (const typeName of Array.from(this.semanticTypes.keys())) {
+        // Convert PascalCase to camelCase for property matching
+        const camelCaseTypeName = typeName.charAt(0).toLowerCase() + typeName.slice(1);
+        
         // Replace property declarations - handle both single quotes and double quotes
+        // Check both PascalCase and camelCase versions
         const patterns = [
+          // PascalCase patterns (e.g., 'ProcessDefinitionKey')
           new RegExp(`'(\\w*${typeName})'\\??: string`, 'g'),
           new RegExp(`"(\\w*${typeName})"\\??: string`, 'g'),
           new RegExp(`'(\\w*${typeName})': string`, 'g'),
           new RegExp(`"(\\w*${typeName})": string`, 'g'),
           new RegExp(`'(\\w*${typeName})'\\??: any`, 'g'),
           new RegExp(`"(\\w*${typeName})"\\??: any`, 'g'),
+          // camelCase patterns (e.g., 'processDefinitionKey')
+          new RegExp(`'(\\w*${camelCaseTypeName})'\\??: string`, 'g'),
+          new RegExp(`"(\\w*${camelCaseTypeName})"\\??: string`, 'g'),
+          new RegExp(`'(\\w*${camelCaseTypeName})': string`, 'g'),
+          new RegExp(`"(\\w*${camelCaseTypeName})": string`, 'g'),
+          new RegExp(`'(\\w*${camelCaseTypeName})'\\??: any`, 'g'),
+          new RegExp(`"(\\w*${camelCaseTypeName})"\\??: any`, 'g'),
         ];
         
         for (const pattern of patterns) {
@@ -288,7 +327,6 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
         }
 
         // Fix attributeTypeMap entries - this is critical for ObjectSerializer to work properly
-        const camelCaseTypeName = typeName.charAt(0).toLowerCase() + typeName.slice(1);
         const attributeTypeMapPatterns = [
           // Match entries with "any" type that should be semantic types
           new RegExp(`(\\s*{[^}]*"name":\\s*"\\w*${camelCaseTypeName}"[^}]*"type":\\s*)"any"`, 'g'),
