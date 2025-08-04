@@ -88,6 +88,10 @@ export class TypeScriptSemanticTypeEnhancer {
       const filePath = path.join(modelsDir, file);
       let content = fs.readFileSync(filePath, 'utf8');
       let changed = false;
+
+      // Fix any incorrect semantic type imports first
+      changed = this.fixIncorrectSemanticTypeImports(content, filePath) || changed;
+      content = fs.readFileSync(filePath, 'utf8'); // Re-read after potential fixes
       
       // First, replace property declarations and attributeTypeMap entries
       for (const typeName of Array.from(this.semanticTypes.keys())) {
@@ -180,6 +184,80 @@ export class TypeScriptSemanticTypeEnhancer {
         console.log(`  ✓ Updated ${file}`);
       }
     }
+  }
+
+  /**
+   * Fixes incorrect semantic type imports that reference non-existent individual files
+   * instead of the centralized semanticTypes.ts
+   */
+  private fixIncorrectSemanticTypeImports(content: string, filePath: string): boolean {
+    let changed = false;
+    let updatedContent = content;
+    
+    // Check for any semantic type imports that reference individual files
+    const incorrectImports: string[] = [];
+    const referencedTypes: string[] = [];
+    
+    for (const semanticType of Array.from(this.semanticTypes.keys())) {
+      // Look for various import patterns for this semantic type
+      const patterns = [
+        new RegExp(`import \\{ ${semanticType} \\} from '\\./.*${semanticType.toLowerCase()}';`, 'gi'),
+        new RegExp(`import \\{ ${semanticType} \\} from '\\.\/${semanticType.toLowerCase()}';`, 'gi'),
+        new RegExp(`import \\{ ${semanticType} \\} from '\\.\\\/${semanticType.toLowerCase()}';`, 'gi')
+      ];
+      
+      for (const pattern of patterns) {
+        const matches = updatedContent.match(pattern);
+        if (matches) {
+          incorrectImports.push(...matches);
+          if (!referencedTypes.includes(semanticType)) {
+            referencedTypes.push(semanticType);
+          }
+          changed = true;
+        }
+      }
+    }
+    
+    // Remove all incorrect imports
+    for (const incorrectImport of incorrectImports) {
+      updatedContent = updatedContent.replace(incorrectImport, '');
+    }
+    
+    // Clean up any empty lines left by removed imports
+    updatedContent = updatedContent.replace(/\n\s*\n\s*\n/g, '\n\n');
+    
+    // If we removed imports, add the correct import
+    if (changed && referencedTypes.length > 0) {
+      // Add the correct import at the top
+      const importStatement = `import { ${referencedTypes.join(', ')} } from '../semanticTypes';`;
+      
+      // Find where to insert the import (after existing imports)
+      const lines = updatedContent.split('\n');
+      let insertIndex = 0;
+      
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith('import ') || lines[i].startsWith('import{')) {
+          insertIndex = i + 1;
+        } else if (lines[i].trim() === '' && insertIndex > 0) {
+          // Found empty line after imports
+          break;
+        } else if (!lines[i].startsWith('import ') && !lines[i].startsWith('/*') && 
+                   !lines[i].startsWith(' *') && !lines[i].startsWith('*/') && 
+                   lines[i].trim() !== '' && insertIndex > 0) {
+          // Found non-import, non-comment line
+          break;
+        }
+      }
+      
+      // Insert the import
+      lines.splice(insertIndex, 0, importStatement);
+      updatedContent = lines.join('\n');
+      
+      fs.writeFileSync(filePath, updatedContent);
+      console.log(`  ✓ Fixed semantic type imports in ${path.basename(filePath)}`);
+    }
+    
+    return changed;
   }
 
   enhanceObjectSerializer(sdkPath: string) {

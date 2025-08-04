@@ -76,9 +76,9 @@ type StrategyConstructor<T extends SdkEnhancementStrategy> = new (spec: OpenAPIV
 export abstract class SdkEnhancementStrategy {
     constructor(protected spec: OpenAPIV3.Document, protected sdks: SdkDefinitions) {}
     public abstract name: string;
-    public abstract sdkEnhancementStrategies: {
+    public abstract sdkEnhancementStrategies: Partial<{
         [K in SupportedSdk]: (sdkPath: string) => Promise<void> | void;
-    }
+    }>
 
     // Template method - implemented in base class
     async enhanceAllSDKs(baseDir: string): Promise<void> {

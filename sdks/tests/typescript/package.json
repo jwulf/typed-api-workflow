@@ -1,0 +1,22 @@
+{
+  "name": "typescript-sdk-tests",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "pretest": "cd ../../generated/typescript && npm install",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "description": "",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^12",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.1",
+    "typescript": "^4.0 || ^5.0"
+  }
+}

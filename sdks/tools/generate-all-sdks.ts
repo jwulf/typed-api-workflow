@@ -9,11 +9,13 @@ import { SdkDefinition, sdks, SupportedSdk } from './sdks';
 import { SdkEnhancementOrchestrator } from './enhancements/SdkEnhancementOrchestrator';
 import { SemanticTypeEnhancer } from './enhancements/SemanticTypeEnhancer';
 import { EventuallyConsistentEnhancer } from './enhancements/EventuallyConsistentEnhancer';
+import { TypeScriptCodeFixerEnhancer } from './enhancements/typescript/TypeScriptCodeFixerEnhancer';
 
 // Custom post-processing of generated SDKs
 const enhancementStrategies = [
   SemanticTypeEnhancer, // Enhance semantic types with validation
   EventuallyConsistentEnhancer, // Enhance eventually consistent operations
+  TypeScriptCodeFixerEnhancer, // Fix TypeScript code generation issues
 ]
 
 // ANSI color codes for console output
