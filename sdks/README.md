@@ -4,9 +4,9 @@ This directory contains the tooling for generated SDKs, using the openapi-genera
 
 The layout: 
 
-`generated` - generated SDK code output
-`templates` - custom templates for code generation
-`tools` - SDK generation tool chain
-`  - enhancements` - generation post-processing tasks for SDKs
-`. - post-build` - post-generation build tasks for SDKs
-`tests` - acceptance tests for SDK builds
+- `generated` - generated SDK code output
+- `templates` - custom templates for code generation
+- `tools` - SDK generation tool chain
+- `  - enhancements` - generation post-processing tasks for SDKs
+- `. - post-build` - post-generation build tasks for SDKs
+- `tests` - acceptance tests for SDK builds
