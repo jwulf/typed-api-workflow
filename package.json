@@ -14,6 +14,7 @@
     "spec:build": "cd camunda && ./mvnw package -Dquickly -T1C",
     "spec:verify": "cd camunda && ./mvnw verify -DskipChecks -DskipUTs -T1C -Dquickly",
     "spec:generate": "cd java/openapi-camunda-key-flattener && mvn clean compile exec:java",
+    "spec:consistency": "cd java/rest-api-consistency-analyzer && ./verify-domain.sh",
     "lint": "npm run lint:domain && npm run lint:generated",
     "lint:original": "vacuum lint rest-api.yaml --ruleset vacuum/vacuum-ruleset.yaml --functions vacuum/vacuum-rules --details --no-clip --errors",
     "lint:domain": "spectral lint rest-api.domain.yaml",

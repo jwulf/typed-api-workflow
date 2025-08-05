@@ -12,8 +12,10 @@ It uses camunda/camunda, camunda/camunda-8-js-sdk, and camunda/camunda-docs.
 - `rest-api.domain.yaml` - This file contains the domain typed REST API specification. It is hand made from the `rest-api.yaml` file and contains additional domain information.
 - `rest-api.generated.yaml` - This file is generated from the `rest-api.domain.yaml` file. It contains a generated REST API specification compatible with the Camunda codebase.
 - `java/openapi-camunda-key-flattener/src/` - This directory contains the source code for the transformation from the domain file to the generated file. This tool rewrites all schemas that extend `CamundaKey` as the primitive `string`. It is a pre-processing step that produces a version of the API spec that is compatible with the existing build chain in camunda/camunda.
+= `java/rest-api-consistency-analyzer` - This tool analyses the controllers in the Zeebe gateway and reasons about their eventual consistency. It then checks the spec to assert that all eventually consistent endpoints have the `x-eventually-consistent` vendor extension on them. It also picks up other issues as a side-effect (like method mismatch between the spec and a controller).
 - `vaccum` - Vacuum linting for the generated spec
 - `functions` - Spectral functions for linting the domain spec
+- `docs-patch` - a patch for `camunda-docs/api/camunda/generate-strategy.js` to support the docs pre-processing of the new features in the spec.
 - `camunda` - checkout camunda/camunda here for scripts to fetch the upstream rest-api.yaml
 - `camunda-docs` - checkout camunda/camunda-docs here for script to interact with documentation generation
 
@@ -123,3 +125,27 @@ Run the 8.8 integration tests:
 npm run test:local-integration:8.8
 ```
 
+## SDK Generation
+
+This project contains proof-of-concept work for SDK generation from the OpenAPI spec, in the `sdks` directory.
+
+SDK generation-related tasks:
+
+```
+npm run sdks:install # Install SDK generation tooling
+npm run sdks:generate # Generate all SDKs
+npm run sdks:clean # Clean SDK generated code output
+npm run sdks:list" # List all generated SDKs
+npm run build:sdks # Build all SDks
+npm run watch:spec # Watch domain spec and rebuild all SDKs on change
+npm run test:sdks # Build and test all SDKs
+npm run test:typescript # Run the acceptance tests for the TypeScript SDK
+```
+
+See the `README.md` file in `sdks` for information about generating SDKs. 
+
+## Eventual Consistency
+
+This project adds metadata to the OpenAPI spec about the eventually-consistent nature of endpoints, based on static analysis of the controller code. 
+
+See the `EVENTUAL.md` file for more information on eventual consistency.
