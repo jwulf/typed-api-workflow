@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-08-05 15:41:43
+# File generated at: 2025-08-05 18:17:58
 
 ---
 openapi: "3.0.3"
@@ -1683,7 +1683,7 @@ paths:
                 summary: "Create a process instance by processDefinitionId and version."
                 value:
                   processDefinitionId: "my-business-process"
-                  version: 1
+                  processDefinitionVersion: 1
                   variables: {}
       responses:
         "200":
@@ -4724,7 +4724,7 @@ paths:
   /system/usage-metrics:
     get:
       tags:
-      - "Usage metrics"
+      - "System"
       operationId: "getUsageMetrics"
       summary: "Get usage metrics"
       description: "Retrieve the usage metrics based on given criteria."
@@ -6707,6 +6707,10 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/AdHocSubProcessActivateActivityReference"
+        cancelRemainingInstances:
+          description: "Whether to cancel remaining instances of the ad-hoc sub-process."
+          type: "boolean"
+          default: false
       required:
       - "elements"
     AdHocSubProcessActivateActivityReference:
@@ -7513,11 +7517,14 @@ components:
     CamundaUserResult:
       type: "object"
       properties:
-        userId:
-          description: "The ID of the user."
+        username:
+          description: "The username of the user."
           type: "string"
         displayName:
           description: "The display name of the user."
+          type: "string"
+        email:
+          description: "The email of the user."
           type: "string"
         authorizedApplications:
           description: "The applications the user is authorized to use."
@@ -7528,14 +7535,7 @@ components:
           description: "The tenants the user is a member of."
           type: "array"
           items:
-            type: "object"
-            properties:
-              tenantId:
-                type: "string"
-                description: "The ID of the tenant."
-              name:
-                type: "string"
-                description: "The name of the tenant."
+            $ref: "#/components/schemas/TenantResult"
         groups:
           description: "The groups assigned to the user."
           type: "array"
@@ -9951,14 +9951,16 @@ components:
           $ref: "#/components/schemas/OperationReference"
     ProcessInstanceCreationInstruction:
       type: "object"
+      description: "Instructions for creating a process instance. The process definition\
+        \ can be specified\neither by ID or by key, but not both.\n"
       properties:
         processDefinitionId:
           description: "The BPMN process ID of the process definition to start an\
             \ instance of.\nCannot be used together with processDefinitionKey.\n"
           type: "string"
         processDefinitionVersion:
-          description: "The version of the process. Only considered when a processDefinitionId\
-            \ is provided.\nBy default, the latest version of the process is used.\n"
+          description: "The version of the process. By default, the latest version\
+            \ of the process is used.\n"
           type: "integer"
           format: "int32"
           default: -1

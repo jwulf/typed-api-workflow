@@ -50,6 +50,7 @@ rules:
         allowedExtensions:
           - "x-eventually-consistent"
           - "x-semantic-type"
+          - "x-flatten-union"
 
 overrides:
   - files:

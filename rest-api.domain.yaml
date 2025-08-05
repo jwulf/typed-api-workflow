@@ -7870,11 +7870,14 @@ components:
     CamundaUserResult:
       type: object
       properties:
-        userId:
-          description: The ID of the user.
-          type: string
+        username:
+          description: The username of the user.
+          type: "string"
         displayName:
           description: The display name of the user.
+          type: string
+        email:
+          description: The email of the user.
           type: string
         authorizedApplications:
           description: The applications the user is authorized to use.
@@ -7885,14 +7888,7 @@ components:
           description: The tenants the user is a member of.
           type: array
           items:
-            type: object
-            properties:
-              tenantId:
-                type: string
-                description: The ID of the tenant.
-              name:
-                type: string
-                description: The name of the tenant.
+            $ref: "#/components/schemas/TenantResult"
         groups:
           description: The groups assigned to the user.
           type: array
@@ -10353,6 +10349,7 @@ components:
           $ref: '#/components/schemas/OperationReference'
 
     ProcessInstanceCreationInstruction:
+      x-flatten-union: true
       description: |
         Instructions for creating a process instance. The process definition can be specified
         either by ID or by key, but not both.
@@ -10369,8 +10366,7 @@ components:
               type: string
             processDefinitionVersion:
               description: |
-                The version of the process. Only considered when a processDefinitionId is provided.
-                By default, the latest version of the process is used.
+                The version of the process. By default, the latest version of the process is used.
               type: integer
               format: int32
               default: -1
@@ -10436,8 +10432,7 @@ components:
                     deploy resources endpoint. Cannot be used together with processDefinitionId.
             processDefinitionVersion:
               description: |
-                The version of the process. Only considered when a processDefinitionId is provided.
-                By default, the latest version of the process is used.
+                The version of the process. By default, the latest version of the process is used.
               type: integer
               format: int32
               default: -1
