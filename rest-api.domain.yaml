@@ -51,9 +51,9 @@ tags:
   - name: Role
   - name: Setup
   - name: Signal
+  - name: System
   - name: Tenant
   - name: User
-  - name: Usage metrics
   - name: User task
   - name: Variable
 
@@ -1155,6 +1155,7 @@ paths:
 
   /user-tasks/{userTaskKey}:
     get:
+      x-eventually-consistent: true
       tags:
         - User task
       operationId: getUserTask
@@ -1236,6 +1237,7 @@ paths:
 
   /user-tasks/{userTaskKey}/form:
     get:
+      x-eventually-consistent: true
       tags:
         - User task
       operationId: getUserTaskForm
@@ -1315,6 +1317,7 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
   /user-tasks/search:
+    x-eventually-consistent: true
     post:
       tags:
         - User task
@@ -1347,6 +1350,7 @@ paths:
 
   /user-tasks/{userTaskKey}/variables/search:
     post:
+      x-eventually-consistent: true
       tags:
         - User task
       operationId: searchUserTaskVariables
@@ -1380,6 +1384,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /variables/search:
+    x-eventually-consistent: true
     post:
       tags:
         - Variable
@@ -1411,6 +1416,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /variables/{variableKey}:
+    x-eventually-consistent: true
     get:
       tags:
         - Variable
@@ -1500,6 +1506,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
 
   /process-definitions/search:
+    x-eventually-consistent: true
     post:
       tags:
         - Process definition
@@ -1531,6 +1538,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /process-definitions/{processDefinitionKey}:
+    x-eventually-consistent: true
     get:
       tags:
         - Process definition
@@ -1571,6 +1579,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /process-definitions/{processDefinitionKey}/xml:
+    x-eventually-consistent: true
     get:
       tags:
         - Process definition
@@ -1618,6 +1627,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /process-definitions/{processDefinitionKey}/form:
+    x-eventually-consistent: true
     get:
       tags:
         - Process definition
@@ -1726,7 +1736,7 @@ paths:
                 summary: "Create a process instance by processDefinitionId and version."
                 value:
                   processDefinitionId: "my-business-process"
-                  version: 1
+                  processDefinitionVersion: 1
                   variables: {}
       responses:
         "200":
@@ -1754,6 +1764,7 @@ paths:
                 $ref: "#/components/schemas/ProblemDetail"
 
   /process-instances/{processInstanceKey}:
+    x-eventually-consistent: true
     get:
       tags:
         - Process instance
@@ -1791,6 +1802,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /process-instances/{processInstanceKey}/sequence-flows:
+    x-eventually-consistent: true
     get:
       tags:
         - Process instance
@@ -1822,6 +1834,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /process-instances/{processInstanceKey}/statistics/element-instances:
+    x-eventually-consistent: true
     get:
       tags:
         - Process instance
@@ -1853,6 +1866,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /process-instances/search:
+    x-eventually-consistent: true
     post:
       tags:
         - Process instance
@@ -1883,6 +1897,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /process-instances/{processInstanceKey}/incidents/search:
+    x-eventually-consistent: true
     post:
       tags:
         - Process instance
@@ -2204,6 +2219,7 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
   /process-instances/{processInstanceKey}/call-hierarchy:
+    x-eventually-consistent: true
     get:
       tags:
         - Process instance
@@ -2243,6 +2259,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /element-instances/search:
+    x-eventually-consistent: true
     post:
       tags:
         - Element instance
@@ -2274,6 +2291,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /element-instances/{elementInstanceKey}:
+    x-eventually-consistent: true
     get:
       tags:
         - Element instance
@@ -2314,6 +2332,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /decision-definitions/search:
+    x-eventually-consistent: true
     post:
       tags:
         - Decision definition
@@ -2345,6 +2364,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /decision-definitions/{decisionDefinitionKey}:
+    x-eventually-consistent: true
     get:
       tags:
         - Decision definition
@@ -2385,6 +2405,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /decision-definitions/{decisionDefinitionKey}/xml:
+    x-eventually-consistent: true
     get:
       tags:
         - Decision definition
@@ -2425,6 +2446,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /decision-requirements/search:
+    x-eventually-consistent: true
     post:
       tags:
         - Decision requirements
@@ -2456,6 +2478,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /decision-requirements/{decisionRequirementsKey}:
+    x-eventually-consistent: true
     get:
       tags:
         - Decision requirements
@@ -2496,6 +2519,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /decision-requirements/{decisionRequirementsKey}/xml:
+    x-eventually-consistent: true
     get:
       tags:
         - Decision requirements
@@ -2536,6 +2560,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /decision-instances/search:
+    x-eventually-consistent: true
     post:
       tags:
         - Decision instance
@@ -2567,6 +2592,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /decision-instances/{decisionInstanceId}:
+    x-eventually-consistent: true
     get:
       tags:
         - Decision instance
@@ -4465,6 +4491,7 @@ paths:
         "400":
           $ref: "#/components/responses/InvalidData"
   /documents/{documentId}:
+    x-eventually-consistent: true
     get:
       tags:
         - Document
@@ -4637,6 +4664,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
 
   /users/search:
+    x-eventually-consistent: true
     post:
       tags:
         - User
@@ -4802,6 +4830,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
 
   /incidents/search:
+    x-eventually-consistent: true
     post:
       tags:
         - Incident
@@ -4833,6 +4862,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /incidents/{incidentKey}:
+    x-eventually-consistent: true
     get:
       tags:
         - Incident
@@ -4871,10 +4901,11 @@ paths:
                 $ref: "#/components/schemas/ProblemDetail"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  /usage-metrics:
+
+  /system/usage-metrics:
     get:
       tags:
-        - Usage metrics
+        - System
       operationId: getUsageMetrics
       summary: Get usage metrics
       description: Retrieve the usage metrics based on given criteria.
@@ -4922,6 +4953,7 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+
   /deployments:
     post:
       tags:
@@ -5003,6 +5035,7 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
   /resources/{resourceKey}:
+    x-eventually-consistent: true
     get:
       tags:
         - Resource
@@ -5036,6 +5069,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
   /resources/{resourceKey}/content:
+    x-eventually-consistent: true
     get:
       tags:
         - Resource
@@ -5183,6 +5217,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
 
   /batch-operations/{batchOperationKey}:
+    x-eventually-consistent: true
     get:
       tags:
         - Batch operation
@@ -5220,6 +5255,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
   /batch-operations/search:
+    x-eventually-consistent: true
     post:
       tags:
         - Batch operation
@@ -5366,6 +5402,7 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
   /batch-operation-items/search:
+    x-eventually-consistent: true
     post:
       tags:
         - Batch operation
@@ -7010,6 +7047,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AdHocSubProcessActivateActivityReference"
+        cancelRemainingInstances:
+          description: Whether to cancel remaining instances of the ad-hoc sub-process.
+          type: boolean
+          default: false
       required:
         - elements
     AdHocSubProcessActivateActivityReference:
@@ -7018,6 +7059,10 @@ components:
         elementId:
           description: The ID of the element that should be activated.
           type: string
+        variables:
+          description: Variables to be set when activating the element.
+          type: object
+          additionalProperties: true
       required:
         - elementId
     DecisionDefinitionSearchQuerySortRequest:
@@ -7825,11 +7870,14 @@ components:
     CamundaUserResult:
       type: object
       properties:
-        userId:
-          description: The ID of the user.
-          type: string
+        username:
+          description: The username of the user.
+          type: "string"
         displayName:
           description: The display name of the user.
+          type: string
+        email:
+          description: The email of the user.
           type: string
         authorizedApplications:
           description: The applications the user is authorized to use.
@@ -7840,14 +7888,7 @@ components:
           description: The tenants the user is a member of.
           type: array
           items:
-            type: object
-            properties:
-              tenantId:
-                type: string
-                description: The ID of the tenant.
-              name:
-                type: string
-                description: The name of the tenant.
+            $ref: "#/components/schemas/TenantResult"
         groups:
           description: The groups assigned to the user.
           type: array
@@ -7863,16 +7904,9 @@ components:
           type: string
         c8Links:
           description: The links to the components in the C8 stack.
-          type: array
-          items:
-            type: object
-            properties:
-              name:
-                type: string
-                description: The name of the component.
-              link:
-                type: string
-                description: A link to the component.
+          type: object
+          additionalProperties:
+            type: string
         canLogout:
           description: Flag for understanding if the user is able to perform logout.
           type: boolean
@@ -10315,75 +10349,141 @@ components:
           $ref: '#/components/schemas/OperationReference'
 
     ProcessInstanceCreationInstruction:
-      type: object
-      properties:
-        processDefinitionId:
-          description: |
-            The BPMN process ID of the process definition to start an instance of.
-            Cannot be used together with processDefinitionKey.
-          type: string
-        processDefinitionVersion:
-          description: |
-            The version of the process. Only considered when a processDefinitionId is provided.
-            By default, the latest version of the process is used.
-          type: integer
-          format: int32
-          default: -1
-        variables:
-          description: |
-            JSON object that will instantiate the variables for the root variable scope
-            of the process instance.
-          type: object
-          additionalProperties: true
-        tenantId:
-          description: The tenant ID of the process definition.
-          type: string
-        operationReference:
-          $ref: '#/components/schemas/OperationReference'
-        startInstructions:
-          description: |
-            List of start instructions. By default, the process instance will start at
-            the start event. If provided, the process instance will apply start instructions
-            after it has been created.
-          type: array
-          items:
-            $ref: "#/components/schemas/ProcessInstanceCreationStartInstruction"
-        runtimeInstructions:
-          description: |
-            Runtime instructions (alpha). List of instructions that affect the runtime behavior of
-            the process instance. Refer to specific instruction types for more details.
+      x-flatten-union: true
+      description: |
+        Instructions for creating a process instance. The process definition can be specified
+        either by ID or by key.
+      oneOf:
+        - type: object
+          title: "Process creation by ID"
+          required: [processDefinitionId]
+          additionalProperties: false
+          properties:
+            processDefinitionId:
+              description: |
+                The BPMN process ID of the process definition to start an instance of.
+              type: string
+            processDefinitionVersion:
+              description: |
+                The version of the process. By default, the latest version of the process is used.
+              type: integer
+              format: int32
+              default: -1
+            variables:
+              description: |
+                JSON object that will instantiate the variables for the root variable scope
+                of the process instance.
+              type: object
+              additionalProperties: true
+            tenantId:
+              description: The tenant ID of the process definition.
+              type: string
+            operationReference:
+              $ref: '#/components/schemas/OperationReference'
+            startInstructions:
+              description: |
+                List of start instructions. By default, the process instance will start at
+                the start event. If provided, the process instance will apply start instructions
+                after it has been created.
+              type: array
+              items:
+                $ref: "#/components/schemas/ProcessInstanceCreationStartInstruction"
+            runtimeInstructions:
+              description: |
+                Runtime instructions (alpha). List of instructions that affect the runtime behavior of
+                the process instance. Refer to specific instruction types for more details.
 
-            This parameter is an alpha feature and may be subject to change
-            in future releases.
-          type: array
-          items:
-            $ref: "#/components/schemas/ProcessInstanceCreationRuntimeInstruction"
-        awaitCompletion:
-          description: |
-            Wait for the process instance to complete. If the process instance completion does
-            not occur within the requestTimeout, the request will be closed. This can lead to a 504
-            response status. Disabled by default.
-          type: boolean
-          default: false
-        fetchVariables:
-          description: |
-            List of variables by name to be included in the response when awaitCompletion is set to true.
-            If empty, all visible variables in the root scope will be returned.
-          type: array
-          items:
-            type: string
-        requestTimeout:
-          description: |
-            Timeout (in ms) the request waits for the process to complete. By default or
-            when set to 0, the generic request timeout configured in the cluster is applied.
-          type: integer
-          format: int64
-        processDefinitionKey:
-          allOf:
-            - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: |
-                The unique key identifying the process definition, for example, returned for a process in the
-                deploy resources endpoint. Cannot be used together with processDefinitionId.
+                This parameter is an alpha feature and may be subject to change
+                in future releases.
+              type: array
+              items:
+                $ref: "#/components/schemas/ProcessInstanceCreationRuntimeInstruction"
+            awaitCompletion:
+              description: |
+                Wait for the process instance to complete. If the process instance completion does
+                not occur within the requestTimeout, the request will be closed. This can lead to a 504
+                response status. Disabled by default.
+              type: boolean
+              default: false
+            fetchVariables:
+              description: |
+                List of variables by name to be included in the response when awaitCompletion is set to true.
+                If empty, all visible variables in the root scope will be returned.
+              type: array
+              items:
+                type: string
+            requestTimeout:
+              description: |
+                Timeout (in ms) the request waits for the process to complete. By default or
+                when set to 0, the generic request timeout configured in the cluster is applied.
+              type: integer
+              format: int64
+        - type: object
+          title: "Process creation by key"
+          required: [processDefinitionKey]
+          additionalProperties: false
+          properties:
+            processDefinitionKey:
+              allOf:
+                - $ref: "#/components/schemas/ProcessDefinitionKey"
+                - description: |
+                    The unique key identifying the process definition, for example, returned for a process in the
+                    deploy resources endpoint.
+            processDefinitionVersion:
+              description: |
+                The version of the process. By default, the latest version of the process is used.
+              type: integer
+              format: int32
+              default: -1
+            variables:
+              description: |
+                JSON object that will instantiate the variables for the root variable scope
+                of the process instance.
+              type: object
+              additionalProperties: true
+            tenantId:
+              description: The tenant ID of the process definition.
+              type: string
+            operationReference:
+              $ref: '#/components/schemas/OperationReference'
+            startInstructions:
+              description: |
+                List of start instructions. By default, the process instance will start at
+                the start event. If provided, the process instance will apply start instructions
+                after it has been created.
+              type: array
+              items:
+                $ref: "#/components/schemas/ProcessInstanceCreationStartInstruction"
+            runtimeInstructions:
+              description: |
+                Runtime instructions (alpha). List of instructions that affect the runtime behavior of
+                the process instance. Refer to specific instruction types for more details.
+
+                This parameter is an alpha feature and may be subject to change
+                in future releases.
+              type: array
+              items:
+                $ref: "#/components/schemas/ProcessInstanceCreationRuntimeInstruction"
+            awaitCompletion:
+              description: |
+                Wait for the process instance to complete. If the process instance completion does
+                not occur within the requestTimeout, the request will be closed. This can lead to a 504
+                response status. Disabled by default.
+              type: boolean
+              default: false
+            fetchVariables:
+              description: |
+                List of variables by name to be included in the response when awaitCompletion is set to true.
+                If empty, all visible variables in the root scope will be returned.
+              type: array
+              items:
+                type: string
+            requestTimeout:
+              description: |
+                Timeout (in ms) the request waits for the process to complete. By default or
+                when set to 0, the generic request timeout configured in the cluster is applied.
+              type: integer
+              format: int64
     ProcessInstanceCreationStartInstruction:
       type: object
       properties:
@@ -10701,6 +10801,11 @@ components:
         - RESOLVE_INCIDENT
         - MIGRATE_PROCESS_INSTANCE
         - MODIFY_PROCESS_INSTANCE
+        - DELETE_PROCESS_INSTANCE
+        - ADD_VARIABLE
+        - UPDATE_VARIABLE
+        - DELETE_DECISION_DEFINITION
+        - DELETE_PROCESS_DEFINITION
     BatchOperationCreatedResult:
       type: object
       properties:

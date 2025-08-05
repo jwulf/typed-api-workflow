@@ -17,8 +17,8 @@ public class CamundaKeyFlattener {
     // To easily comment out description removal if needed
     private static final boolean STRIP_DESCRIPTIONS = false;
     private static final String CANONICAL_SOURCE = "zeebe/gateway-protocol/src/main/proto/rest-api.yaml";
-    private static final String INPUT_FILE = "rest-api.domain.yaml"; 
-    private static final String OUTPUT_FILE = "rest-api.generated.yaml"; 
+    private static final String INPUT_FILE = "../../rest-api.domain.yaml"; 
+    private static final String OUTPUT_FILE = "../../rest-api.generated.yaml"; 
     
     // Generate header comment with current timestamp
     private static String generateHeaderComment() {
@@ -53,16 +53,19 @@ public class CamundaKeyFlattener {
             }
         }
 
-        // Step 2: Rewrite descendants as simple string type
+        // Step 2: Flatten union schemas marked with x-flatten-union
+        flattenUnionSchemas(schemas);
+
+        // Step 3: Rewrite descendants as simple string type
         for (String keyName : camundaKeyDescendants) {
             ObjectNode schemaNode = (ObjectNode) schemas.get(keyName);
             retainDescriptionAndReplaceWithString(schemaNode);
         }
 
-        // Step 3: Replace references and types throughout the spec
+        // Step 4: Replace references and types throughout the spec
         replaceRefs(root, camundaKeyDescendants, root.at("/components/schemas"));
 
-        // Step 4: Inject metadata
+        // Step 5: Inject metadata
         injectMetadata(root);
 
         // Step 5: Write with dynamic header comment
@@ -73,6 +76,100 @@ public class CamundaKeyFlattener {
         }
 
         System.out.println("Finished writing to " + OUTPUT_FILE);
+    }
+
+    /**
+     * Flattens schemas marked with x-flatten-union vendor extension.
+     * Merges all properties from oneOf variants into a single schema.
+     */
+    private static void flattenUnionSchemas(JsonNode schemas) {
+        if (schemas == null || !schemas.isObject()) return;
+        
+        List<String> schemasToFlatten = new ArrayList<>();
+        
+        // Find all schemas with x-flatten-union extension
+        for (Iterator<String> it = schemas.fieldNames(); it.hasNext(); ) {
+            String schemaName = it.next();
+            JsonNode schema = schemas.get(schemaName);
+            if (schema.has("x-flatten-union") && schema.get("x-flatten-union").asBoolean()) {
+                schemasToFlatten.add(schemaName);
+            }
+        }
+        
+        // Flatten each marked schema
+        for (String schemaName : schemasToFlatten) {
+            ObjectNode schema = (ObjectNode) schemas.get(schemaName);
+            flattenUnionSchema(schema);
+        }
+    }
+
+    /**
+     * Flattens a single union schema by merging all oneOf variants.
+     */
+    private static void flattenUnionSchema(ObjectNode schema) {
+        JsonNode oneOfNode = schema.get("oneOf");
+        if (oneOfNode == null || !oneOfNode.isArray()) {
+            throw new RuntimeException("Schema marked with x-flatten-union must have oneOf property");
+        }
+        
+        ObjectNode flattenedProperties = schema.objectNode();
+        Set<String> allPropertyNames = new HashSet<>();
+        
+        // Collect all properties from all variants
+        for (JsonNode variant : oneOfNode) {
+            if (!variant.has("properties")) continue;
+            
+            JsonNode properties = variant.get("properties");
+            if (!properties.isObject()) continue;
+            
+            for (Iterator<String> it = properties.fieldNames(); it.hasNext(); ) {
+                String propName = it.next();
+                JsonNode propDef = properties.get(propName);
+                
+                // Check for property conflicts
+                if (flattenedProperties.has(propName)) {
+                    JsonNode existing = flattenedProperties.get(propName);
+                    if (!arePropertyDefinitionsCompatible(existing, propDef)) {
+                        throw new RuntimeException("Property conflict in union flattening: property '" + 
+                            propName + "' has incompatible definitions across oneOf variants");
+                    }
+                }
+                
+                flattenedProperties.set(propName, propDef);
+                allPropertyNames.add(propName);
+            }
+        }
+        
+        // Preserve description and type
+        JsonNode description = schema.get("description");
+        JsonNode type = schema.get("type");
+        
+        // Clear the schema and rebuild it
+        schema.removeAll();
+        
+        if (type != null) {
+            schema.set("type", type);
+        } else {
+            schema.put("type", "object");
+        }
+        
+        if (description != null) {
+            schema.set("description", description);
+        }
+        
+        schema.set("properties", flattenedProperties);
+        
+        // Remove required arrays as per requirements (make all properties optional)
+        // Note: We intentionally don't set any required properties
+    }
+
+    /**
+     * Checks if two property definitions are compatible (same type, format, etc.)
+     */
+    private static boolean arePropertyDefinitionsCompatible(JsonNode prop1, JsonNode prop2) {
+        // For this implementation, we require exact equality
+        // You could make this more lenient by comparing only type, format, etc.
+        return prop1.equals(prop2);
     }
 
      private static void replaceRefs(JsonNode node, Set<String> keyNames, JsonNode schemasRoot) {

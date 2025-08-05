@@ -3,6 +3,7 @@ extends: ["spectral:oas"]
 functions:
   - enforceCamundaKeys
   - enforceCamundaKeyPathParams
+  - vendorExtensionWhitelist
 
 rules:
   key-properties-must-extend-camunda-key:
@@ -37,6 +38,19 @@ rules:
       functionOptions:
         exceptions:
           - correlationKey
+
+  vendor-extensions-whitelist:
+    description: "Only approved vendor extensions are allowed."
+    message: "{{error}}"
+    given: "$"
+    severity: error
+    then:
+      function: vendorExtensionWhitelist
+      functionOptions:
+        allowedExtensions:
+          - "x-eventually-consistent"
+          - "x-semantic-type"
+          - "x-flatten-union"
 
 overrides:
   - files:
