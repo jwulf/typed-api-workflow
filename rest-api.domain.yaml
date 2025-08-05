@@ -10352,7 +10352,7 @@ components:
       x-flatten-union: true
       description: |
         Instructions for creating a process instance. The process definition can be specified
-        either by ID or by key, but not both.
+        either by ID or by key.
       oneOf:
         - type: object
           title: "Process creation by ID"
@@ -10362,7 +10362,6 @@ components:
             processDefinitionId:
               description: |
                 The BPMN process ID of the process definition to start an instance of.
-                Cannot be used together with processDefinitionKey.
               type: string
             processDefinitionVersion:
               description: |
@@ -10429,7 +10428,7 @@ components:
                 - $ref: "#/components/schemas/ProcessDefinitionKey"
                 - description: |
                     The unique key identifying the process definition, for example, returned for a process in the
-                    deploy resources endpoint. Cannot be used together with processDefinitionId.
+                    deploy resources endpoint.
             processDefinitionVersion:
               description: |
                 The version of the process. By default, the latest version of the process is used.
