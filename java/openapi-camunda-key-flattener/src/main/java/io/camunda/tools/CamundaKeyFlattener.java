@@ -17,8 +17,8 @@ public class CamundaKeyFlattener {
     // To easily comment out description removal if needed
     private static final boolean STRIP_DESCRIPTIONS = false;
     private static final String CANONICAL_SOURCE = "zeebe/gateway-protocol/src/main/proto/rest-api.yaml";
-    private static final String INPUT_FILE = "rest-api.domain.yaml"; 
-    private static final String OUTPUT_FILE = "rest-api.generated.yaml"; 
+    private static final String INPUT_FILE = "../../rest-api.domain.yaml"; 
+    private static final String OUTPUT_FILE = "../../rest-api.generated.yaml"; 
     
     // Generate header comment with current timestamp
     private static String generateHeaderComment() {
