@@ -1,5 +1,5 @@
 /**
- * This file goes into camunda/camunda-docs/api/camunda/generation-strategy.js 
+ * This file is an enhanced version of camunda/camunda-docs/api/camunda/generation-strategy.js 
  * It supports the the transform of the new spec for docs. 
  * It strips out the constraint metadata for the CamundaKey types, adds eventually consistent admonitions, and removes vendor extensions.
  */
