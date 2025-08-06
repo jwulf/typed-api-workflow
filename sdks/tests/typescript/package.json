@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "pretest": "cd ../../generated/typescript && npm install",
-    "test": "jest"
+    "test": "jest --testPathIgnorePatterns integration",
+    "test:integration": "jest --testPathIgnorePatterns test.spec"
   },
   "keywords": [],
   "author": "",
