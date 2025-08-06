@@ -91,7 +91,7 @@ public class CamundaKeyFlattener {
         for (Iterator<String> it = schemas.fieldNames(); it.hasNext(); ) {
             String schemaName = it.next();
             JsonNode schema = schemas.get(schemaName);
-            if (schema.has("x-flatten-union") && schema.get("x-flatten-union").asBoolean()) {
+            if (schema.has("x-flatten-union") && schema.get("x-polymorphic-schema").asBoolean()) {
                 schemasToFlatten.add(schemaName);
             }
         }

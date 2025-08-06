@@ -50,7 +50,7 @@ rules:
         allowedExtensions:
           - "x-eventually-consistent"
           - "x-semantic-type"
-          - "x-flatten-union"
+          - "x-polymorphic-schema"
 
   endpoints-must-have-consistency-declaration:
     description: "All endpoints must have x-eventually-consistent vendor extension."
