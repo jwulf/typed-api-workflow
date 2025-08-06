@@ -381,6 +381,8 @@ function stripCamundaKeyConstraintsForDocs(originalSpec) {
  * Add a documentation note for eventual consistency to all endpoints that need it.
  */
 function addEventualConsistencyAdmonition(specFilePath) {
+
+  const EVENTUAL_CONSISTENCY_VENDOR_EXTENSION='x-eventually-consistent'
   try {
     // Read and parse the YAML file
     const fileContents = fs.readFileSync(specFilePath, 'utf8');
@@ -390,10 +392,8 @@ function addEventualConsistencyAdmonition(specFilePath) {
     if (spec.paths) {
       Object.keys(spec.paths).forEach(pathKey => {
         const pathItem = spec.paths[pathKey];
-        
-        // Check if the path item itself has the eventual consistency marker
-        const pathHasEventualConsistency = pathItem['x-eventually-consistent'] === true;
-        
+
+
         Object.keys(pathItem).forEach(method => {
           const operation = pathItem[method];
 
@@ -403,11 +403,13 @@ function addEventualConsistencyAdmonition(specFilePath) {
           }
 
           // Check if this operation has the eventual consistency marker (either on the operation or inherited from path)
-          const operationHasEventualConsistency = operation['x-eventually-consistent'] === true;
+          const operationHasEventualConsistency = operation[EVENTUAL_CONSISTENCY_VENDOR_EXTENSION] === true;
+
+          const operationHasStrongConsistency = operation[EVENTUAL_CONSISTENCY_VENDOR_EXTENSION] === false;
           
-          if (operationHasEventualConsistency || pathHasEventualConsistency) {
+          if (operationHasEventualConsistency) {
             // Add the admonition to the description
-            const admonition = '\n\n:::tip\nThis endpoint provides eventually consistent data. There may be a slight delay between when data is written and when it becomes available for reading.\n:::\n';
+            const admonition = '\n\n:::warning\nThis endpoint provides eventually consistent data. There may be a slight delay between when data is written and when it becomes available for reading.\n:::\n';
 
             if (operation.description) {
               operation.description += admonition;
@@ -415,6 +417,15 @@ function addEventualConsistencyAdmonition(specFilePath) {
               operation.description = admonition.trim();
             }
             admonitionsAdded++
+          } else {
+            if (operationHasStrongConsistency) {
+              // In an else block to avoid adding both in the case of a malformed spec
+              if (operation.description) {
+                operation.description += '\n\n:::tip\nThis endpoint provides strongly consistent data.\n:::\n';
+              } else {
+                operation.description = '\n\n:::tip\nThis endpoint provides strongly consistent data.\n:::\n';
+              }
+            }
           }
         });
       });
