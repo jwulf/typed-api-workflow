@@ -26,8 +26,8 @@ public class OpenApiPatcher {
 
     public OpenApiPatcher() {
         YAMLFactory yamlFactory = new YAMLFactory()
-            .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES)
-            .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
+            .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+            .enable(YAMLGenerator.Feature.INDENT_ARRAYS_WITH_INDICATOR);
         this.yamlMapper = new ObjectMapper(yamlFactory);
     }
 
