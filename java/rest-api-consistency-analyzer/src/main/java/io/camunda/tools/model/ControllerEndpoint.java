@@ -9,6 +9,7 @@ public record ControllerEndpoint(
     String path,
     boolean hasRequiresSecondaryStorage,
     boolean inheritedFromClass,
+    boolean hasHiddenAnnotation,
     int lineNumber
 ) {
 

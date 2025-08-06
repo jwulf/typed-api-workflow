@@ -15,6 +15,7 @@ import java.util.List;
 public class OpenApiParser {
 
     private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+    private final List<String> pathLevelViolations = new ArrayList<>();
 
     public List<OpenApiEndpoint> parseOpenApiSpec(Path openApiFile) throws IOException {
         List<OpenApiEndpoint> endpoints = new ArrayList<>();
@@ -46,8 +47,21 @@ public class OpenApiParser {
         return endpoints;
     }
 
+    public List<String> getPathLevelViolations() {
+        return new ArrayList<>(pathLevelViolations);
+    }
+
     private void processPathNode(List<OpenApiEndpoint> endpoints, String fullPathName,
                                JsonNode pathNode, String originalContent) {
+
+        // FATAL: Check for x-eventually-consistent at path level (should only be at operation level)
+        JsonNode pathLevelExtension = pathNode.get("x-eventually-consistent");
+        if (pathLevelExtension != null) {
+            String originalPathName = extractOriginalPathName(fullPathName);
+            int lineNumber = findPathLineNumber(originalContent, originalPathName);
+            pathLevelViolations.add(String.format("%s (OpenAPI line: %d) - x-eventually-consistent declared at path level", 
+                fullPathName, lineNumber));
+        }
 
         Iterator<String> methodNames = pathNode.fieldNames();
 
@@ -59,10 +73,10 @@ public class OpenApiParser {
                 JsonNode methodNode = pathNode.get(methodName);
 
                 // Check for x-eventually-consistent extension
-                boolean hasEventuallyConsistentExtension = false;
+                Boolean eventuallyConsistentValue = null;
                 JsonNode extension = methodNode.get("x-eventually-consistent");
                 if (extension != null && extension.isBoolean()) {
-                    hasEventuallyConsistentExtension = extension.booleanValue();
+                    eventuallyConsistentValue = extension.booleanValue();
                 }
 
                 // Try to find line number (this is approximate, using the original path name)
@@ -72,7 +86,7 @@ public class OpenApiParser {
                 OpenApiEndpoint endpoint = new OpenApiEndpoint(
                     fullPathName,
                     methodName,
-                    hasEventuallyConsistentExtension,
+                    eventuallyConsistentValue,
                     lineNumber
                 );
 
@@ -119,6 +133,20 @@ public class OpenApiParser {
             }
         }
 
+        return -1; // Not found
+    }
+
+    private int findPathLineNumber(String content, String pathName) {
+        String[] lines = content.split("\n");
+        
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i].trim();
+            // Look for the path declaration
+            if (line.startsWith(pathName + ":")) {
+                return i + 1; // Line numbers are 1-based
+            }
+        }
+        
         return -1; // Not found
     }
 

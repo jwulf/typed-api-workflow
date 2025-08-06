@@ -9,8 +9,39 @@ public record AnalysisReport(
     List<String> missingExtensionEndpoints,
     List<String> incorrectExtensionEndpoints,
     List<String> unmatchedControllerEndpoints,
-    List<String> unmatchedOpenApiEndpoints
+    List<String> unmatchedOpenApiEndpoints,
+    List<String> endpointsMissingConsistencyDeclaration,
+    List<String> hiddenEndpoints,
+    List<String> hiddenEndpointsInSpec,
+    List<String> pathLevelExtensionViolations
 ) {
+
+    /**
+     * Check if there are any fatal errors that should cause the analyzer to fail.
+     * Fatal errors include:
+     * - Controller endpoints not found in OpenAPI spec (excluding hidden endpoints)
+     * - Mismatched consistency annotations between controller and spec
+     * - OpenAPI endpoints missing consistency declarations
+     * - Hidden endpoints found in OpenAPI spec (should not be documented)
+     * - x-eventually-consistent declared at path level (should be operation-level only)
+     */
+    public boolean hasFatalErrors() {
+        return !unmatchedControllerEndpoints.isEmpty() ||
+               !missingExtensionEndpoints.isEmpty() ||
+               !incorrectExtensionEndpoints.isEmpty() ||
+               !endpointsMissingConsistencyDeclaration.isEmpty() ||
+               !hiddenEndpointsInSpec.isEmpty() ||
+               !pathLevelExtensionViolations.isEmpty();
+    }
+
+    /**
+     * Check if there are any warnings.
+     * Warnings include:
+     * - OpenAPI endpoints not yet implemented in controllers
+     */
+    public boolean hasWarnings() {
+        return !unmatchedOpenApiEndpoints.isEmpty();
+    }
 
     public void printReport() {
         System.out.println("=".repeat(80));
@@ -20,45 +51,94 @@ public record AnalysisReport(
         System.out.printf("📊 Summary:%n");
         System.out.printf("  • Controller v2 endpoints found: %d%n", controllerEndpoints.size());
         System.out.printf("  • OpenAPI v2 endpoints found: %d%n", openApiEndpoints.size());
-        System.out.printf("  • Correctly marked endpoints: %d%n", correctlyMarkedEndpoints.size());
-        System.out.printf("  • Missing x-eventually-consistent: %d%n", missingExtensionEndpoints.size());
-        System.out.printf("  • Incorrect x-eventually-consistent: %d%n", incorrectExtensionEndpoints.size());
-        System.out.printf("  • Unmatched controller endpoints: %d%n", unmatchedControllerEndpoints.size());
-        System.out.printf("  • Unmatched OpenAPI endpoints: %d%n", unmatchedOpenApiEndpoints.size());
+        System.out.printf("  • Correctly documented endpoints: %d%n", correctlyMarkedEndpoints.size());
+        System.out.printf("  • Hidden endpoints (excluded from spec): %d%n", hiddenEndpoints.size());
         System.out.println();
 
-        if (!missingExtensionEndpoints.isEmpty()) {
-            System.out.println("❌ Endpoints missing x-eventually-consistent extension:");
-            missingExtensionEndpoints.forEach(endpoint ->
-                System.out.printf("  • %s%n", endpoint));
+        // Fatal Errors
+        if (hasFatalErrors()) {
+            System.out.println("❌ FATAL ERRORS:");
+            
+            if (!unmatchedControllerEndpoints.isEmpty()) {
+                System.out.printf("  • Controller endpoints missing from OpenAPI spec: %d%n", unmatchedControllerEndpoints.size());
+                unmatchedControllerEndpoints.forEach(endpoint ->
+                    System.out.printf("    - %s%n", endpoint));
+                System.out.println();
+            }
+
+            if (!missingExtensionEndpoints.isEmpty()) {
+                System.out.printf("  • Endpoints missing x-eventually-consistent extension: %d%n", missingExtensionEndpoints.size());
+                missingExtensionEndpoints.forEach(endpoint ->
+                    System.out.printf("    - %s%n", endpoint));
+                System.out.println();
+            }
+
+            if (!incorrectExtensionEndpoints.isEmpty()) {
+                System.out.printf("  • Endpoints with incorrect x-eventually-consistent extension: %d%n", incorrectExtensionEndpoints.size());
+                incorrectExtensionEndpoints.forEach(endpoint ->
+                    System.out.printf("    - %s%n", endpoint));
+                System.out.println();
+            }
+
+            if (!endpointsMissingConsistencyDeclaration.isEmpty()) {
+                System.out.printf("  • OpenAPI endpoints missing consistency declaration: %d%n", endpointsMissingConsistencyDeclaration.size());
+                System.out.println("    (All endpoints must have either x-eventually-consistent: true or x-eventually-consistent: false)");
+                endpointsMissingConsistencyDeclaration.forEach(endpoint ->
+                    System.out.printf("    - %s%n", endpoint));
+                System.out.println();
+            }
+
+            if (!hiddenEndpointsInSpec.isEmpty()) {
+                System.out.printf("  • Hidden endpoints incorrectly documented in spec: %d%n", hiddenEndpointsInSpec.size());
+                System.out.println("    (Endpoints annotated with @Hidden should NOT appear in OpenAPI spec)");
+                hiddenEndpointsInSpec.forEach(endpoint ->
+                    System.out.printf("    - %s%n", endpoint));
+                System.out.println();
+            }
+
+            if (!pathLevelExtensionViolations.isEmpty()) {
+                System.out.printf("  • Paths with x-eventually-consistent declared at path level: %d%n", pathLevelExtensionViolations.size());
+                System.out.println("    (x-eventually-consistent should only be declared at operation/method level for proper granularity)");
+                pathLevelExtensionViolations.forEach(violation ->
+                    System.out.printf("    - %s%n", violation));
+                System.out.println();
+            }
+        }
+
+        // Warnings
+        if (hasWarnings()) {
+            System.out.println("⚠️  WARNINGS:");
+            
+            if (!unmatchedOpenApiEndpoints.isEmpty()) {
+                System.out.printf("  • OpenAPI endpoints not yet implemented: %d%n", unmatchedOpenApiEndpoints.size());
+                unmatchedOpenApiEndpoints.forEach(endpoint ->
+                    System.out.printf("    - %s%n", endpoint));
+                System.out.println();
+            }
+        }
+
+        // Success summary
+        if (!hasFatalErrors() && !hasWarnings()) {
+            System.out.println("✅ Perfect! All endpoints are correctly documented and implemented.");
+        } else if (!hasFatalErrors()) {
+            System.out.println("✅ All implemented endpoints are correctly documented.");
+            System.out.println("   (Some endpoints in spec are not yet implemented - see warnings above)");
+        }
+
+        // Detailed breakdown of correctly marked endpoints
+        if (!correctlyMarkedEndpoints.isEmpty()) {
+            System.out.println("📋 Correctly documented endpoints:");
+            correctlyMarkedEndpoints.forEach(endpoint ->
+                System.out.printf("  %s%n", endpoint));
             System.out.println();
         }
 
-        if (!incorrectExtensionEndpoints.isEmpty()) {
-            System.out.println("⚠️  Endpoints with incorrect x-eventually-consistent extension:");
-            incorrectExtensionEndpoints.forEach(endpoint ->
-                System.out.printf("  • %s%n", endpoint));
+        // Show hidden endpoints that are correctly excluded from spec
+        if (!hiddenEndpoints.isEmpty()) {
+            System.out.println("🔒 Hidden endpoints (correctly excluded from OpenAPI spec):");
+            hiddenEndpoints.forEach(endpoint ->
+                System.out.printf("  %s%n", endpoint));
             System.out.println();
-        }
-
-        if (!unmatchedControllerEndpoints.isEmpty()) {
-            System.out.println("🔍 Controller endpoints not found in OpenAPI spec:");
-            unmatchedControllerEndpoints.forEach(endpoint ->
-                System.out.printf("  • %s%n", endpoint));
-            System.out.println();
-        }
-
-        if (!unmatchedOpenApiEndpoints.isEmpty()) {
-            System.out.println("🔍 OpenAPI endpoints not found in controllers:");
-            unmatchedOpenApiEndpoints.forEach(endpoint ->
-                System.out.printf("  • %s%n", endpoint));
-            System.out.println();
-        }
-
-        if (correctlyMarkedEndpoints.size() == controllerEndpoints.size() &&
-            missingExtensionEndpoints.isEmpty() &&
-            incorrectExtensionEndpoints.isEmpty()) {
-            System.out.println("✅ All endpoints are correctly marked!");
         }
 
         System.out.println("=".repeat(80));

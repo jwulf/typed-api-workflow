@@ -1,9 +1,9 @@
 # ignore generated SDKs
 sdks/generated
 
-# ignore checkouts of camunda and camunda-docs
-camunda
-camunda-docs
+# ignore checkouts of camunda and camunda-docs in root only
+/camunda
+/camunda-docs
 
 target/
 !.mvn/wrapper/maven-wrapper.jar

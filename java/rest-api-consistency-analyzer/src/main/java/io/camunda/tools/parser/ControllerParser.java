@@ -54,6 +54,9 @@ public class ControllerParser {
 
             // Check if class has @RequiresSecondaryStorage
             boolean classHasRequiresSecondaryStorage = hasRequiresSecondaryStorageAnnotation(classDecl.getAnnotations());
+            
+            // Check if class has @Hidden
+            boolean classHasHiddenAnnotation = hasHiddenAnnotation(classDecl.getAnnotations());
 
             // Process each base path that contains v2
             for (String classBasePath : classBasePaths) {
@@ -63,7 +66,7 @@ public class ControllerParser {
 
                     // Process each method in the class
                     classDecl.findAll(MethodDeclaration.class).forEach(method -> {
-                        processMethod(endpoints, className, method, normalizedBasePath, classHasRequiresSecondaryStorage);
+                        processMethod(endpoints, className, method, normalizedBasePath, classHasRequiresSecondaryStorage, classHasHiddenAnnotation);
                     });
                 }
             }
@@ -74,7 +77,7 @@ public class ControllerParser {
 
     private void processMethod(List<ControllerEndpoint> endpoints, String className,
                              MethodDeclaration method, String classBasePath,
-                             boolean classHasRequiresSecondaryStorage) {
+                             boolean classHasRequiresSecondaryStorage, boolean classHasHiddenAnnotation) {
 
         List<AnnotationExpr> methodAnnotations = method.getAnnotations();
 
@@ -89,10 +92,16 @@ public class ControllerParser {
 
                 // Check if method has @RequiresSecondaryStorage
                 boolean methodHasRequiresSecondaryStorage = hasRequiresSecondaryStorageAnnotation(methodAnnotations);
+                
+                // Check if method has @Hidden
+                boolean methodHasHiddenAnnotation = hasHiddenAnnotation(methodAnnotations);
 
                 // Determine if this endpoint requires secondary storage
                 boolean hasRequiresSecondaryStorage = classHasRequiresSecondaryStorage || methodHasRequiresSecondaryStorage;
                 boolean inheritedFromClass = classHasRequiresSecondaryStorage && !methodHasRequiresSecondaryStorage;
+                
+                // Determine if this endpoint is hidden
+                boolean hasHidden = classHasHiddenAnnotation || methodHasHiddenAnnotation;
 
                 ControllerEndpoint endpoint = new ControllerEndpoint(
                     className,
@@ -101,6 +110,7 @@ public class ControllerParser {
                     fullPath,
                     hasRequiresSecondaryStorage,
                     inheritedFromClass,
+                    hasHidden,
                     method.getBegin().map(pos -> pos.line).orElse(-1)
                 );
 
@@ -234,6 +244,11 @@ public class ControllerParser {
     private boolean hasRequiresSecondaryStorageAnnotation(List<AnnotationExpr> annotations) {
         return annotations.stream()
             .anyMatch(ann -> ann.getNameAsString().equals("RequiresSecondaryStorage"));
+    }
+
+    private boolean hasHiddenAnnotation(List<AnnotationExpr> annotations) {
+        return annotations.stream()
+            .anyMatch(ann -> ann.getNameAsString().equals("Hidden"));
     }
 
     private boolean isHttpMethodAnnotation(String annotationName) {

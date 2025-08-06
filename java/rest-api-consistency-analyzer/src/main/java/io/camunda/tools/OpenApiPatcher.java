@@ -100,15 +100,47 @@ public class OpenApiPatcher {
                                     ControllerEndpoint matchingController = findMatchingControllerEndpoint(
                                         fullPath, methodName, controllerEndpoints);
 
-                                    if (matchingController != null &&
-                                        matchingController.hasRequiresSecondaryStorage() &&
-                                        !hasEventuallyConsistentExtension(methodObjectNode)) {
-
-                                        // Add the extension
-                                        methodObjectNode.put("x-eventually-consistent", true);
-                                        patchedCount[0]++;
-                                        System.out.printf("  ✅ Added x-eventually-consistent to %s %s%n",
-                                            methodName.toUpperCase(), fullPath);
+                                    if (matchingController != null) {
+                                        // Skip hidden endpoints - they should not be in the spec
+                                        if (matchingController.hasHiddenAnnotation()) {
+                                            System.out.printf("  ⚠️  Skipping hidden endpoint %s %s (should not be in spec)%n",
+                                                methodName.toUpperCase(), fullPath);
+                                            return;
+                                        }
+                                        
+                                        boolean controllerRequiresEC = matchingController.hasRequiresSecondaryStorage();
+                                        boolean hasExtension = hasEventuallyConsistentExtension(methodObjectNode);
+                                        
+                                        if (!hasExtension) {
+                                            // Missing extension - add it based on controller annotation
+                                            methodObjectNode.put("x-eventually-consistent", controllerRequiresEC);
+                                            patchedCount[0]++;
+                                            String consistencyType = controllerRequiresEC ? "eventually consistent" : "strongly consistent";
+                                            System.out.printf("  ✅ Added x-eventually-consistent: %s to %s %s%n",
+                                                controllerRequiresEC, methodName.toUpperCase(), fullPath);
+                                        } else {
+                                            // Extension exists - check if it matches controller
+                                            JsonNode extension = methodObjectNode.get("x-eventually-consistent");
+                                            if (extension.isBoolean()) {
+                                                boolean extensionValue = extension.booleanValue();
+                                                if (extensionValue != controllerRequiresEC) {
+                                                    // Fix incorrect extension
+                                                    methodObjectNode.put("x-eventually-consistent", controllerRequiresEC);
+                                                    patchedCount[0]++;
+                                                    String consistencyType = controllerRequiresEC ? "eventually consistent" : "strongly consistent";
+                                                    System.out.printf("  🔧 Corrected x-eventually-consistent: %s for %s %s%n",
+                                                        controllerRequiresEC, methodName.toUpperCase(), fullPath);
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        // No matching controller - default to strongly consistent
+                                        if (!hasEventuallyConsistentExtension(methodObjectNode)) {
+                                            methodObjectNode.put("x-eventually-consistent", false);
+                                            patchedCount[0]++;
+                                            System.out.printf("  ✅ Added x-eventually-consistent: false (default) to %s %s%n",
+                                                methodName.toUpperCase(), fullPath);
+                                        }
                                     }
                                 }
                             }
