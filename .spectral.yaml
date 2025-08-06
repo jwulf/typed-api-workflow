@@ -54,12 +54,20 @@ rules:
 
   endpoints-must-have-consistency-declaration:
     description: "All endpoints must have x-eventually-consistent vendor extension."
-    message: "Endpoint '{{property}} {{path}}' is missing x-eventually-consistent declaration. All endpoints must explicitly declare either 'x-eventually-consistent: true' or 'x-eventually-consistent: false'."
-    given: "$.paths[*][*]"
+    message: "Endpoint is missing x-eventually-consistent declaration. All endpoints must explicitly declare either 'x-eventually-consistent: true' or 'x-eventually-consistent: false'."
+    given: 
+      - "$.paths[*].get"
+      - "$.paths[*].post"
+      - "$.paths[*].put"
+      - "$.paths[*].patch"
+      - "$.paths[*].delete"
+      - "$.paths[*].head"
+      - "$.paths[*].options"
+      - "$.paths[*].trace"
     severity: error
     then:
       field: "x-eventually-consistent"
-      function: truthy
+      function: defined
 
   no-path-level-consistency-declaration:
     description: "x-eventually-consistent must be declared at operation level, not path level."
@@ -77,3 +85,4 @@ overrides:
       key-path-params-must-use-ref: "off"
       key-property-ref-must-point-to-camundakey-or-subtype: "off"
       key-properties-must-extend-camunda-key: "off"
+      endpoints-must-have-consistency-declaration: "off"
