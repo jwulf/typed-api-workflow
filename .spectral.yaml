@@ -52,6 +52,23 @@ rules:
           - "x-semantic-type"
           - "x-flatten-union"
 
+  endpoints-must-have-consistency-declaration:
+    description: "All endpoints must have x-eventually-consistent vendor extension."
+    message: "Endpoint '{{property}} {{path}}' is missing x-eventually-consistent declaration. All endpoints must explicitly declare either 'x-eventually-consistent: true' or 'x-eventually-consistent: false'."
+    given: "$.paths[*][*]"
+    severity: error
+    then:
+      field: "x-eventually-consistent"
+      function: truthy
+
+  no-path-level-consistency-declaration:
+    description: "x-eventually-consistent must be declared at operation level, not path level."
+    message: "Path has x-eventually-consistent declared at path level. This extension should only be declared at the individual operation level (get, post, put, etc.) to ensure proper granularity and avoid inheritance issues."
+    given: "$.paths[*]['x-eventually-consistent']"
+    severity: error
+    then:
+      function: falsy
+
 overrides:
   - files:
       - "rest-api.yaml"
