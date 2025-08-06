@@ -53,7 +53,7 @@ public class CamundaKeyFlattener {
             }
         }
 
-        // Step 2: Flatten union schemas marked with x-flatten-union
+        // Step 2: Flatten union schemas marked with x-polymorphic-schema
         flattenUnionSchemas(schemas);
 
         // Step 3: Rewrite descendants as simple string type
@@ -79,7 +79,7 @@ public class CamundaKeyFlattener {
     }
 
     /**
-     * Flattens schemas marked with x-flatten-union vendor extension.
+     * Flattens schemas marked with x-polymorphic-schema vendor extension.
      * Merges all properties from oneOf variants into a single schema.
      */
     private static void flattenUnionSchemas(JsonNode schemas) {
@@ -87,11 +87,11 @@ public class CamundaKeyFlattener {
         
         List<String> schemasToFlatten = new ArrayList<>();
         
-        // Find all schemas with x-flatten-union extension
+        // Find all schemas with x-polymorphic-schema extension
         for (Iterator<String> it = schemas.fieldNames(); it.hasNext(); ) {
             String schemaName = it.next();
             JsonNode schema = schemas.get(schemaName);
-            if (schema.has("x-flatten-union") && schema.get("x-polymorphic-schema").asBoolean()) {
+            if (schema.has("x-polymorphic-schema") && schema.get("x-polymorphic-schema").asBoolean()) {
                 schemasToFlatten.add(schemaName);
             }
         }
@@ -99,17 +99,17 @@ public class CamundaKeyFlattener {
         // Flatten each marked schema
         for (String schemaName : schemasToFlatten) {
             ObjectNode schema = (ObjectNode) schemas.get(schemaName);
-            flattenUnionSchema(schema);
+            flattenUnionSchema(schema, schemas);
         }
     }
 
     /**
      * Flattens a single union schema by merging all oneOf variants.
      */
-    private static void flattenUnionSchema(ObjectNode schema) {
+    private static void flattenUnionSchema(ObjectNode schema, JsonNode allSchemas) {
         JsonNode oneOfNode = schema.get("oneOf");
         if (oneOfNode == null || !oneOfNode.isArray()) {
-            throw new RuntimeException("Schema marked with x-flatten-union must have oneOf property");
+            throw new RuntimeException("Schema marked with x-polymorphic-schema must have oneOf property");
         }
         
         ObjectNode flattenedProperties = schema.objectNode();
@@ -117,9 +117,10 @@ public class CamundaKeyFlattener {
         
         // Collect all properties from all variants
         for (JsonNode variant : oneOfNode) {
-            if (!variant.has("properties")) continue;
+            JsonNode variantSchema = resolveSchemaReference(variant, allSchemas);
+            if (variantSchema == null || !variantSchema.has("properties")) continue;
             
-            JsonNode properties = variant.get("properties");
+            JsonNode properties = variantSchema.get("properties");
             if (!properties.isObject()) continue;
             
             for (Iterator<String> it = properties.fieldNames(); it.hasNext(); ) {
@@ -161,6 +162,20 @@ public class CamundaKeyFlattener {
         
         // Remove required arrays as per requirements (make all properties optional)
         // Note: We intentionally don't set any required properties
+    }
+
+    /**
+     * Resolves a schema reference (either $ref or direct schema)
+     */
+    private static JsonNode resolveSchemaReference(JsonNode schema, JsonNode allSchemas) {
+        if (schema.has("$ref")) {
+            String ref = schema.get("$ref").asText();
+            if (ref.startsWith("#/components/schemas/")) {
+                String schemaName = ref.substring("#/components/schemas/".length());
+                return allSchemas.get(schemaName);
+            }
+        }
+        return schema; // Direct schema, not a reference
     }
 
     /**
