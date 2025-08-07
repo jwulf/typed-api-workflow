@@ -85,6 +85,25 @@ export class TypeScriptEventualEnhancer {
   }
 
   /**
+   * Update TypeScript API files with eventually consistent decorators
+   */
+  private updateTypeScriptApiFiles(apiDir: string, operations: Map<string, EventuallyConsistentOperation>): number {
+    let updatedFiles = 0;
+    const files = fs.readdirSync(apiDir).filter(file => file.endsWith('.ts'));
+    
+    console.log(`    → Found ${files.length} TypeScript API files`);
+    
+    for (const file of files) {
+      const filePath = path.join(apiDir, file);
+      if (this.updateApiFile(filePath, operations)) {
+        updatedFiles++;
+      }
+    }
+    
+    return updatedFiles;
+  }
+
+  /**
    * Copy EventuallyConsistentDecorator.ts to ergonomics directory
    */
   private copyEventuallyConsistentDecorator(sdkPath: string): void {
@@ -96,13 +115,14 @@ export class TypeScriptEventualEnhancer {
     }
     
     // Copy the decorator file from the tools directory
-    const sourceDecoratorPath = path.join(__dirname, 'ergonomics', 'EventuallyConsistentDecorator.ts');
+    const sourceDecoratorPath = path.join(__dirname, '..', '..', '..', 'ergonomics', 'typescript', 'EventuallyConsistentDecorator.ts');
     const targetDecoratorPath = path.join(ergonomicsDir, 'EventuallyConsistentDecorator.ts');
     
     if (fs.existsSync(sourceDecoratorPath)) {
       fs.copyFileSync(sourceDecoratorPath, targetDecoratorPath);
+      console.log(`  ✓ Copied EventuallyConsistentDecorator.ts to ${ergonomicsDir}`);
     } else {
-      console.warn(`  ! EventuallyConsistentDecorator.ts not found at ${sourceDecoratorPath}`);
+      throw new Error(`EventuallyConsistentDecorator.ts not found at ${sourceDecoratorPath}`);
     }
   }
 
@@ -136,17 +156,9 @@ export class TypeScriptEventualEnhancer {
     }
   }
 
-  private updateTypeScriptApiFiles(
-    apiDir: string, 
-    operations: Map<string, EventuallyConsistentOperation>
-  ): number {
-    const files = fs.readdirSync(apiDir).filter(f => f.endsWith('.ts'));
-    let updatedFiles = 0;
-
-    for (const file of files) {
-      const filePath = path.join(apiDir, file);
-      
-      // Add the file to the project
+  private updateApiFile(filePath: string, operations: Map<string, EventuallyConsistentOperation>): boolean {
+    try {
+      console.log(`      → Processing ${path.basename(filePath)}`);
       const sourceFile = this.project.addSourceFileAtPath(filePath);
       let fileModified = false;
 
@@ -154,6 +166,8 @@ export class TypeScriptEventualEnhancer {
         // Find all method declarations
         const methods = sourceFile.getDescendantsOfKind(SyntaxKind.MethodDeclaration);
         const eventuallyConsistentMethods: MethodDeclaration[] = [];
+        
+        console.log(`        → Found ${methods.length} methods in ${path.basename(filePath)}`);
 
         for (const method of methods) {
           const methodName = method.getName();
@@ -162,8 +176,11 @@ export class TypeScriptEventualEnhancer {
           const operation = operations.get(methodName);
           if (!operation) continue;
 
+          console.log(`        → Found eventually consistent method: ${methodName}`);
+
           // Check if method already has our decorator
           if (this.hasEventuallyConsistentDecorator(method)) {
+            console.log(`        → Method ${methodName} already has decorator, skipping`);
             continue;
           }
 
@@ -172,6 +189,7 @@ export class TypeScriptEventualEnhancer {
           
           // Add decorator if requested
           if (this.addEventuallyProperty) {
+            console.log(`        → Adding decorator to ${methodName}`);
             this.addEventuallyConsistentDecorator(method);
             eventuallyConsistentMethods.push(method);
           }
@@ -184,23 +202,26 @@ export class TypeScriptEventualEnhancer {
           this.addDecoratorImport(sourceFile);
           
           // Save the file
+          console.log(`        → Saving ${path.basename(filePath)} with ${eventuallyConsistentMethods.length} enhanced methods`);
           sourceFile.saveSync();
-          updatedFiles++;
+          return true;
         } else if (fileModified) {
           // Save the file even if just JSDoc was added
           sourceFile.saveSync();
-          updatedFiles++;
+          return true;
         }
 
       } catch (error) {
-        console.warn(`  ! Error processing ${file}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.warn(`  ! Error processing ${path.basename(filePath)}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       } finally {
         // Remove from project to avoid memory leaks
         sourceFile.forget();
       }
+    } catch (error) {
+      console.warn(`  ! Error loading ${path.basename(filePath)}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 
-    return updatedFiles;
+    return false;
   }
 
   /**
