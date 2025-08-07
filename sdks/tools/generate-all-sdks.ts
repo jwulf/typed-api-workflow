@@ -10,7 +10,7 @@ import { SdkEnhancementOrchestrator } from './enhancements/SdkEnhancementOrchest
 import { SemanticTypeEnhancer } from './enhancements/SemanticTypeEnhancer';
 import { EventuallyConsistentEnhancer } from './enhancements/EventuallyConsistentEnhancer';
 import { TypeScriptPolymorphicSchemaEnhancer } from './enhancements/typescript/TypeScriptPolymorphicSchemaEnhancer';
-import { TypeScriptCamundaKeyFiltersToTypes } from './enhancements/typescript/TypeScriptSemanticFilterEnhancer';
+import { TypeScriptCamundaKeyFiltersToTypes } from './enhancements/typescript/TypeScriptCamundaKeyFiltersToTypes';
 // import { TypeScriptFilterPropertyEnhancer } from './enhancements/typescript/TypeScriptFilterPropertyEnhancer'; // DISABLED: Conflicts with semantic filter enhancer
 
 import { PostBuildOrchestrator } from './post-build/PostBuildOrchestrator';

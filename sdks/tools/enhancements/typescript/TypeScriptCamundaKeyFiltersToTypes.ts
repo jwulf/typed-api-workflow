@@ -84,6 +84,12 @@ export class TypeScriptCamundaKeyFiltersToTypes extends SdkEnhancementStrategy {
         // Fix inline class fields that inherit semantic union fields
         this.fixInlineClassFields(sdkPath);
         
+        // NEW: Fix attributeTypeMap for union fields to enable proper serialization
+        this.fixAttributeTypeMapsForUnionFields(sdkPath, semanticUnionFields);
+        
+        // NEW: Add union type serialization support to ObjectSerializer
+        this.addUnionSerializationSupport(sdkPath);
+        
         console.log('  ✓ All semantic union fields fixed');
     }
 
@@ -674,5 +680,242 @@ export class TypeScriptCamundaKeyFiltersToTypes extends SdkEnhancementStrategy {
         // For filter property classes, just convert the first letter to lowercase
         // since OpenAPI Generator uses camelCase for file names
         return str.charAt(0).toLowerCase() + str.slice(1);
+    }
+
+    private fixAttributeTypeMapsForUnionFields(sdkPath: string, semanticUnionFields: Array<{
+        className: string;
+        fieldName: string;
+        semanticType: string;
+        filterPropertyType: string;
+    }>): void {
+        console.log('  → Fixing attributeTypeMap entries for union fields...');
+        
+        const modelDir = path.join(sdkPath, 'model');
+        if (!fs.existsSync(modelDir)) return;
+
+        // Group fields by class name for efficient processing
+        const fieldsByClass = new Map<string, Array<{fieldName: string, semanticType: string, filterPropertyType: string}>>();
+        for (const field of semanticUnionFields) {
+            if (!fieldsByClass.has(field.className)) {
+                fieldsByClass.set(field.className, []);
+            }
+            fieldsByClass.get(field.className)!.push({
+                fieldName: field.fieldName,
+                semanticType: field.semanticType,
+                filterPropertyType: field.filterPropertyType
+            });
+        }
+
+        // Fix each class file
+        for (const [className, fields] of fieldsByClass) {
+            this.fixClassAttributeTypeMap(sdkPath, className, fields);
+        }
+
+        // Also fix main filter classes that inherit these union fields
+        this.fixMainFilterClassAttributeTypeMaps(sdkPath);
+    }
+
+    private fixClassAttributeTypeMap(sdkPath: string, className: string, fields: Array<{fieldName: string, semanticType: string, filterPropertyType: string}>): void {
+        const fileName = this.camelCaseToSnakeCase(className) + '.ts';
+        const filePath = path.join(sdkPath, 'model', fileName);
+        
+        if (!fs.existsSync(filePath)) return;
+
+        let content = fs.readFileSync(filePath, 'utf8');
+        let hasChanges = false;
+
+        for (const field of fields) {
+            // Update attributeTypeMap entry for union field
+            // Change from: "type": "FilterPropertyType"
+            // To: "type": "SemanticType | FilterPropertyType"
+            const oldTypePattern = new RegExp(
+                `("name":\\s*"${field.fieldName}"[^}]*"type":\\s*)"${field.filterPropertyType}"`,
+                'g'
+            );
+            
+            const newType = `"${field.semanticType} | ${field.filterPropertyType}"`;
+            
+            if (oldTypePattern.test(content)) {
+                content = content.replace(oldTypePattern, `$1${newType}`);
+                hasChanges = true;
+                console.log(`    ✓ Fixed attributeTypeMap for ${className}.${field.fieldName}`);
+            }
+        }
+
+        if (hasChanges) {
+            fs.writeFileSync(filePath, content);
+        }
+    }
+
+    private fixMainFilterClassAttributeTypeMaps(sdkPath: string): void {
+        const modelDir = path.join(sdkPath, 'model');
+        const files = fs.readdirSync(modelDir);
+        
+        // Target main filter classes
+        const mainFilterFiles = files.filter(file => {
+            return file.endsWith('.ts') && (
+                (file.includes('Filter.ts') && 
+                 !file.startsWith('base') &&
+                 !file.includes('FilterProperty') &&
+                 !file.includes('advanced')) ||
+                (file.includes('FilterFields.ts') && 
+                 !file.startsWith('base') &&
+                 !file.includes('FilterProperty'))
+            );
+        });
+
+        for (const fileName of mainFilterFiles) {
+            this.fixMainFilterAttributeTypeMap(sdkPath, fileName);
+        }
+    }
+
+    private fixMainFilterAttributeTypeMap(sdkPath: string, fileName: string): void {
+        const filePath = path.join(sdkPath, 'model', fileName);
+        let content = fs.readFileSync(filePath, 'utf8');
+        let hasChanges = false;
+
+        // Fix attributeTypeMap entries that reference inline classes
+        // Change from: "type": "BaseProcessInstanceFilterFieldsProcessInstanceKey"
+        // To: "type": "ProcessInstanceKey | ProcessInstanceKeyFilterProperty"
+        
+        const inlineClassPatterns = [
+            {
+                from: /"type":\s*"BaseProcessInstanceFilterFieldsProcessInstanceKey"/g,
+                to: '"type": "ProcessInstanceKey | ProcessInstanceKeyFilterProperty"'
+            },
+            {
+                from: /"type":\s*"BaseProcessInstanceFilterFieldsParentProcessInstanceKey"/g,
+                to: '"type": "ProcessInstanceKey | ProcessInstanceKeyFilterProperty"'
+            },
+            {
+                from: /"type":\s*"BaseProcessInstanceFilterFieldsParentElementInstanceKey"/g,
+                to: '"type": "ElementInstanceKey | ElementInstanceKeyFilterProperty"'
+            }
+        ];
+
+        for (const pattern of inlineClassPatterns) {
+            if (pattern.from.test(content)) {
+                content = content.replace(pattern.from, pattern.to);
+                hasChanges = true;
+            }
+        }
+
+        if (hasChanges) {
+            fs.writeFileSync(filePath, content);
+            console.log(`    ✓ Fixed attributeTypeMap for ${fileName}`);
+        }
+    }
+
+    private addUnionSerializationSupport(sdkPath: string): void {
+        console.log('  → Adding union type serialization support to ObjectSerializer...');
+        
+        const modelsFilePath = path.join(sdkPath, 'model', 'models.ts');
+        if (!fs.existsSync(modelsFilePath)) {
+            console.log('    → models.ts not found, skipping serialization enhancement');
+            return;
+        }
+
+        let content = fs.readFileSync(modelsFilePath, 'utf8');
+        
+        // Check if union serialization support already exists
+        if (content.includes('// Union type serialization support')) {
+            console.log('    → Union serialization support already exists');
+            return;
+        }
+
+        // Add union type detection and serialization logic
+        const unionSerializationCode = this.generateUnionSerializationCode();
+        
+        // Insert before the serialize method
+        const serializeMethodMatch = content.match(/(public static serialize\(data: any, type: string\): any \{)/);
+        if (serializeMethodMatch) {
+            const insertIndex = content.indexOf(serializeMethodMatch[0]);
+            content = content.slice(0, insertIndex) + unionSerializationCode + '\n\n    ' + content.slice(insertIndex);
+            
+            // Now update the serialize method to handle union types
+            content = this.updateSerializeMethod(content);
+            
+            // Update the deserialize method to handle union types  
+            content = this.updateDeserializeMethod(content);
+            
+            fs.writeFileSync(modelsFilePath, content);
+            console.log('    ✓ Added union type serialization support to ObjectSerializer');
+        } else {
+            console.log('    → Could not find serialize method, skipping union serialization enhancement');
+        }
+    }
+
+    private generateUnionSerializationCode(): string {
+        return `    // Union type serialization support
+    private static isUnionType(type: string): boolean {
+        return type.includes(' | ');
+    }
+
+    private static serializeUnionType(data: any, type: string): any {
+        const unionTypes = type.split(' | ').map(t => t.trim());
+        
+        // If data is a string and one of the union types is a semantic type (ends with 'Key')
+        const semanticType = unionTypes.find(t => t.endsWith('Key'));
+        const filterPropertyType = unionTypes.find(t => t.endsWith('FilterProperty'));
+        
+        if (typeof data === 'string' && semanticType) {
+            // Data is a semantic type - serialize as string
+            return data;
+        } else if (typeof data === 'object' && data !== null && filterPropertyType) {
+            // Data is a filter property object - serialize using the filter property type
+            return ObjectSerializer.serialize(data, filterPropertyType);
+        } else if (semanticType && filterPropertyType) {
+            // Default to filter property type for backward compatibility
+            return ObjectSerializer.serialize(data, filterPropertyType);
+        }
+        
+        // Fallback to first type in union
+        return ObjectSerializer.serialize(data, unionTypes[0]);
+    }
+
+    private static deserializeUnionType(data: any, type: string): any {
+        const unionTypes = type.split(' | ').map(t => t.trim());
+        
+        // If data is a string and one of the union types is a semantic type
+        const semanticType = unionTypes.find(t => t.endsWith('Key'));
+        const filterPropertyType = unionTypes.find(t => t.endsWith('FilterProperty'));
+        
+        if (typeof data === 'string' && semanticType) {
+            // Data is a string - deserialize as semantic type
+            return ObjectSerializer.deserialize(data, semanticType);
+        } else if (typeof data === 'object' && data !== null && filterPropertyType) {
+            // Data is an object - deserialize as filter property
+            return ObjectSerializer.deserialize(data, filterPropertyType);
+        }
+        
+        // Fallback to first type in union
+        return ObjectSerializer.deserialize(data, unionTypes[0]);
+    }`;
+    }
+
+    private updateSerializeMethod(content: string): string {
+        // Find the serialize method and add union type handling at the beginning
+        const serializeMethodRegex = /(public static serialize\(data: any, type: string\): any \{\s*)/;
+        const unionCheckCode = `
+        // Handle union types
+        if (ObjectSerializer.isUnionType(type)) {
+            return ObjectSerializer.serializeUnionType(data, type);
+        }
+        `;
+        
+        return content.replace(serializeMethodRegex, `$1${unionCheckCode}`);
+    }
+
+    private updateDeserializeMethod(content: string): string {
+        // Find the deserialize method and add union type handling at the beginning
+        const deserializeMethodRegex = /(public static deserialize\(data: any, type: string\): any \{\s*)/;
+        const unionCheckCode = `
+        // Handle union types
+        if (ObjectSerializer.isUnionType(type)) {
+            return ObjectSerializer.deserializeUnionType(data, type);
+        }
+        `;
+        
+        return content.replace(deserializeMethodRegex, `$1${unionCheckCode}`);
     }
 }
