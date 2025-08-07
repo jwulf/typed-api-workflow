@@ -1,8 +1,5 @@
 // Import only the APIs we want to test, avoiding problematic models
-import { UserTaskApi, ProcessInstanceApi, ClusterApi, ResourceApi } from '../../generated/typescript/api/apis'
-import { ProcessInstanceCreationInstruction } from '../../generated/typescript/model/processInstanceCreationInstruction'
-import { ProcessInstanceCreationInstructionByKey } from '../../generated/typescript/model/processInstanceCreationInstructionByKey'
-import { ProcessInstanceCreationInstructionById } from '../../generated/typescript/model/processInstanceCreationInstructionById'
+import { UserTaskApi, ProcessInstanceApi, ClusterApi } from '../../generated/typescript/api/apis'
 import { SearchQueryPageRequest } from '../../generated/typescript/model/searchQueryPageRequest'
 import { OffsetPagination } from '../../generated/typescript/model/offsetPagination'
 import { CursorForwardPagination } from '../../generated/typescript/model/cursorForwardPagination'
@@ -196,4 +193,10 @@ test('Acceptance criteria for AdvancedFilters typing', () => {
     const case2: ProcessInstanceSearchQuery = {filter: { processInstanceKey: { $in: [processInstanceKey] }}}
     expect(case1).toBeDefined()
     expect(case2).toBeDefined()
+})
+
+// DO NOT MODIFY - acceptance criteria
+test('Has eventually consistent methods', () => {
+    const processInstanceApi = new ProcessInstanceApi();
+    expect(typeof processInstanceApi.searchProcessInstanceIncidents.eventually).toBe('function');
 })

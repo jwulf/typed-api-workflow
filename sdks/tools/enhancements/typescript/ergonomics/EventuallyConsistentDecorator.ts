@@ -4,18 +4,24 @@
 
 // Type definitions for the eventually property
 export interface EventuallyConsistentOptions<T> {
+	/* Timeout for this operation in milliseconds */
   timeout?: number;
+	/** How often should we poll? Defaults to 500ms */
   pollingInterval?: number;
+  /** An optional predicate to match the result */
   predicate?: (result: T) => boolean;
 }
 
+/**
+ * Deal with eventual consistency of the data store by polling until we get results, or reach a timeout.
+ */
 export type EventuallyConsistentMethod<T extends (...args: any[]) => any> = T & {
-  eventually: (options?: EventuallyConsistentOptions<Awaited<ReturnType<T>>>) => ReturnType<T>;
+  eventually: (...args: [...Parameters<T>, EventuallyConsistentOptions<Awaited<ReturnType<T>>>?]) => ReturnType<T>;
 };
 
 // Method decorator that adds eventually consistent behavior
 export function eventuallyconsistent(target: any, propertyKey: string, descriptor?: PropertyDescriptor): any {
-  console.log('Decorator called on', target.constructor.name, propertyKey);
+  console.log('Adding eventually to', target.constructor.name, propertyKey);
   
   // Handle case where descriptor is not provided (getter/setter or property)
   if (!descriptor) {
@@ -38,29 +44,32 @@ export function eventuallyconsistent(target: any, propertyKey: string, descripto
   
   return {
     get: function(this: any) {
-      console.log('Getter called on instance:', this);
       const instance = this;
       
       // Create a bound method for this instance
       const boundMethod = function(...args: any[]) {
-        console.log('Bound method called with args:', args);
         return originalMethod.apply(instance, args);
       };
       
       // Add eventually to the bound method
-      (boundMethod as any).eventually = function(options: EventuallyConsistentOptions<any> = {}): any {
-        console.log('Eventually called with bound instance:', instance);
+      (boundMethod as any).eventually = function(...args: any[]): any {
+        // Extract eventually options from last parameter if it's an options object
+        const lastArg = args[args.length - 1];
+        const isEventuallyOptions = lastArg && typeof lastArg === 'object' && 
+          (lastArg.timeout !== undefined || lastArg.pollingInterval !== undefined || lastArg.predicate !== undefined);
+        
+        const methodArgs = isEventuallyOptions ? args.slice(0, -1) : args;
+        const eventuallyOptions = isEventuallyOptions ? lastArg : {};
         
         const {
           timeout = 30000,
           pollingInterval = 1000,
           predicate = defaultPredicate
-        } = options;
+        } = eventuallyOptions;
         
         return PollingOperation({
           operation: (): any => {
-            console.log('Operation called with bound instance:', instance);
-            return originalMethod.apply(instance, []);
+            return originalMethod.apply(instance, methodArgs);
           },
           timeout,
           pollingInterval,

@@ -1,12 +1,4 @@
-import { ProcessInstanceApi } from '../../generated/typescript/api/apis'
 import { eventuallyconsistent } from '../../tools/enhancements/typescript/ergonomics/EventuallyConsistentDecorator';
-
-// DO NOT MODIFY - This is the acceptance criteria for the feature
-test('Has eventually consistent methods', () => {
-    const processInstanceApi = new ProcessInstanceApi();
-    console.log((processInstanceApi.searchProcessInstanceIncidents as any).eventually.toString())
-    expect(typeof (processInstanceApi.searchProcessInstanceIncidents as any).eventually).toBe('function');
-})
 
 // DO NOT MODIFY - This is the acceptance criteria for the feature
 test('Eventually consistent decorator works', async () => {
