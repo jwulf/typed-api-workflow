@@ -81,7 +81,183 @@ export class TypeScriptEventualEnhancer {
       return 0;
     }
 
-    return this.updateTypeScriptApiFiles(foundApiDir, operations);
+    const updatedFiles = this.updateTypeScriptApiFiles(foundApiDir, operations);
+
+    // Generate eventuality types and factory function
+    this.generateEventualityTypes(sdkPath, operations);
+    this.copyWithEventualityFactory(sdkPath);
+    this.updateMainIndex(sdkPath);
+
+    return updatedFiles;
+  }
+
+  /**
+   * Generate EventualityTypes.ts with enhanced type definitions
+   */
+  private generateEventualityTypes(sdkPath: string, operations: Map<string, EventuallyConsistentOperation>): void {
+    const eventualityTypesPath = path.join(sdkPath, 'EventualityTypes.ts');
+    
+    // Group operations by API class
+    const apiClasses = new Map<string, string[]>();
+    
+    for (const [operationId, operation] of operations) {
+      // Extract API class name from operation path or use heuristics
+      const apiClassName = this.getApiClassNameFromOperation(operation);
+      if (!apiClasses.has(apiClassName)) {
+        apiClasses.set(apiClassName, []);
+      }
+      apiClasses.get(apiClassName)!.push(operationId);
+    }
+
+    let content = `/**
+ * Enhanced type definitions for eventually consistent API methods
+ * Auto-generated - do not edit manually
+ */
+
+import type { EventuallyConsistentMethod } from './ergonomics/EventuallyConsistentDecorator';
+`;
+
+    // Add imports for each API class
+    for (const apiClassName of apiClasses.keys()) {
+      const fileName = this.getApiFileName(apiClassName);
+      content += `import type { ${apiClassName} } from './api/${fileName}';\n`;
+    }
+
+    content += '\n';
+
+    // Generate enhanced type for each API class
+    for (const [apiClassName, methodNames] of apiClasses) {
+      content += `export type ${apiClassName}WithEventuality = ${apiClassName} & {\n`;
+      
+      for (const methodName of methodNames) {
+        content += `  ${methodName}: ${apiClassName}['${methodName}'] & EventuallyConsistentMethod<${apiClassName}['${methodName}']>;\n`;
+      }
+      
+      content += '};\n\n';
+    }
+
+    fs.writeFileSync(eventualityTypesPath, content, 'utf8');
+    console.log(`  ✓ Generated EventualityTypes.ts with ${apiClasses.size} enhanced API classes`);
+  }
+
+  /**
+   * Copy WithEventuality factory function from source
+   */
+  private copyWithEventualityFactory(sdkPath: string): void {
+    const sourceFactoryPath = path.join(__dirname, '..', '..', '..', 'ergonomics', 'typescript', 'WithEventuality.ts');
+    const targetFactoryPath = path.join(sdkPath, 'ergonomics', 'WithEventuality.ts');
+    
+    if (fs.existsSync(sourceFactoryPath)) {
+      // Read the source file
+      let content = fs.readFileSync(sourceFactoryPath, 'utf8');
+      
+      // Add warning header
+      const warningHeader = `// GENERATED FILE - DO NOT EDIT
+// This file is auto-generated from the source template.
+// Manual changes will be overwritten during the next SDK generation.
+
+`;
+      
+      // Prepend warning to content
+      content = warningHeader + content;
+      
+      // Write to target with warning
+      fs.writeFileSync(targetFactoryPath, content, 'utf8');
+      console.log(`  ✓ Copied WithEventuality.ts to ${path.relative(sdkPath, targetFactoryPath)}`);
+    } else {
+      throw new Error(`WithEventuality.ts not found at ${sourceFactoryPath}`);
+    }
+  }
+
+  /**
+   * Update main api.ts to export eventuality utilities
+   */
+  private updateMainIndex(sdkPath: string): void {
+    const indexPath = path.join(sdkPath, 'api.ts');
+    
+    if (!fs.existsSync(indexPath)) {
+      console.log(`  ! api.ts not found at ${indexPath}`);
+      return;
+    }
+
+    let content = fs.readFileSync(indexPath, 'utf8');
+    
+    // Check if exports already exist
+    if (content.includes('WithEventuality') || content.includes('EventualityTypes')) {
+      console.log(`  → Eventuality exports already present in api.ts`);
+      return;
+    }
+
+    // Add exports at the end
+    content += `
+// Eventuality enhancements
+export { WithEventuality } from './ergonomics/WithEventuality';
+export type * from './EventualityTypes';
+`;
+
+    fs.writeFileSync(indexPath, content, 'utf8');
+    console.log(`  ✓ Updated api.ts with eventuality exports`);
+  }
+
+  /**
+   * Extract API class name from operation metadata
+   */
+  private getApiClassNameFromOperation(operation: EventuallyConsistentOperation): string {
+    // Use the path to determine the API class
+    // Map from path segments to actual API class names (singular)
+    const pathParts = operation.path.split('/').filter(part => part.length > 0);
+    
+    if (pathParts.length === 0) return 'DefaultApi';
+    
+    const resourceName = pathParts[0];
+    
+    // Mapping from plural path segments to singular API class names
+    const pathToClassMapping: Record<string, string> = {
+      'jobs': 'JobApi',
+      'tenants': 'TenantApi',
+      'user-tasks': 'UserTaskApi',
+      'variables': 'VariableApi',
+      'process-definitions': 'ProcessDefinitionApi',
+      'process-instances': 'ProcessInstanceApi',
+      'element-instances': 'ElementInstanceApi',
+      'decision-definitions': 'DecisionDefinitionApi',
+      'decision-requirements': 'DecisionRequirementsApi',
+      'decision-instances': 'DecisionInstanceApi',
+      'authorizations': 'AuthorizationApi',
+      'roles': 'RoleApi',
+      'groups': 'GroupApi',
+      'mapping-rules': 'MappingRuleApi',
+      'message-subscriptions': 'MessageSubscriptionApi',
+      'users': 'UserApi',
+      'setup': 'SetupApi',
+      'incidents': 'IncidentApi',
+      'metrics': 'SystemApi',
+      'batch-operations': 'BatchOperationApi',
+      'batch-operation-items': 'BatchOperationApi',  // batch operation items are part of BatchOperationApi
+      'messages': 'MessageApi'
+    };
+    
+    // Use mapping if available, otherwise generate from resource name
+    if (pathToClassMapping[resourceName]) {
+      return pathToClassMapping[resourceName];
+    }
+    
+    // Convert kebab-case to PascalCase and add Api suffix (fallback)
+    const className = resourceName
+      .split('-')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join('') + 'Api';
+    
+    return className;
+  }
+
+  /**
+   * Convert API class name to file name
+   */
+  private getApiFileName(apiClassName: string): string {
+    // Convert PascalCase to camelCase
+    // ProcessInstanceApi -> processInstanceApi
+    return apiClassName.charAt(0).toLowerCase() + apiClassName.slice(1);
   }
 
   /**

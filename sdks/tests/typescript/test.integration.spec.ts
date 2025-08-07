@@ -1,11 +1,11 @@
-import {ProcessInstanceApi, ResourceApi} from '../../generated/typescript/api'
+import {ProcessInstanceApi, ResourceApi, WithEventuality} from '../../generated/typescript'
 import { ProcessInstanceSearchQuery } from '../../generated/typescript/model/processInstanceSearchQuery'
 import * as fs from 'fs'
 import * as path from 'path'
 
 // This test needs a running broker on localhost
 test("It all just works...", async () => {
-    const processApi = new ProcessInstanceApi();
+    const processApi = WithEventuality(new ProcessInstanceApi());
     const resourceApi = new ResourceApi();
     
     // Load the test BPMN file
@@ -66,7 +66,7 @@ test("It all just works...", async () => {
 
     await new Promise((res => setTimeout(() => res, 1000)))
 
-    const searchResponse = await processApi.searchProcessInstances({filter: { processInstanceKey: processInstance.processInstanceKey}})
+    const searchResponse = await processApi.searchProcessInstances.eventually({filter: { processInstanceKey: processInstance.processInstanceKey}})
     const searchResults = searchResponse.body
     
     console.log(`Found ${searchResults.items?.length || 0} process instances`)
