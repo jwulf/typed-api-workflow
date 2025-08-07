@@ -15,41 +15,33 @@ export interface EventuallyConsistentOptions<T> {
 /**
  * Deal with eventual consistency of the data store by polling until we get results, or reach a timeout.
  */
-export type EventuallyConsistentMethod<T extends (...args: any[]) => any> = T & {
+export type EventuallyConsistentMethod<T extends (...args: any[]) => any> = {
   eventually: (...args: [...Parameters<T>, EventuallyConsistentOptions<Awaited<ReturnType<T>>>?]) => ReturnType<T>;
 };
 
 // Method decorator that adds eventually consistent behavior
-export function eventuallyconsistent(target: any, propertyKey: string, descriptor?: PropertyDescriptor): any {
+export function eventuallyconsistent<T extends (...args: any[]) => any>(
+  target: any, 
+  propertyKey: string, 
+  descriptor: TypedPropertyDescriptor<T>
+): any {
   console.log('Adding eventually to', target.constructor.name, propertyKey);
   
-  // Handle case where descriptor is not provided (getter/setter or property)
-  if (!descriptor) {
-    descriptor = Object.getOwnPropertyDescriptor(target, propertyKey) || {
-      value: target[propertyKey],
-      writable: true,
-      enumerable: true,
-      configurable: true
-    };
-  }
-
   const originalMethod = descriptor.value;
   
   if (typeof originalMethod !== 'function') {
     throw new Error(`@eventuallyconsistent can only be applied to methods, got ${typeof originalMethod}`);
   }
 
-  // Define a property descriptor that creates bound methods for each instance
-  const originalDescriptor = descriptor;
-  
+  // Return a property descriptor that creates bound methods for each instance
   return {
-    get: function(this: any) {
+    get: function(this: any): T {
       const instance = this;
       
       // Create a bound method for this instance
       const boundMethod = function(...args: any[]) {
         return originalMethod.apply(instance, args);
-      };
+      } as T;
       
       // Add eventually to the bound method
       (boundMethod as any).eventually = function(...args: any[]): any {
@@ -77,13 +69,11 @@ export function eventuallyconsistent(target: any, propertyKey: string, descripto
         });
       };
       
-      return boundMethod;
+      return boundMethod as T;
     },
-    enumerable: originalDescriptor.enumerable !== false,
-    configurable: originalDescriptor.configurable !== false
+    enumerable: descriptor.enumerable !== false,
+    configurable: descriptor.configurable !== false
   };
-
-  return descriptor;
 }
 
 function defaultPredicate<T extends { items: Array<unknown> }>(

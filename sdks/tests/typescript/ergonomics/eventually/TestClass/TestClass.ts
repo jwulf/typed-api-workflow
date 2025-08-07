@@ -5,8 +5,6 @@ export class Test {
     }
     @eventuallyconsistent
     async method(param: string) {
-        console.log(param, this.count) 
-        console.log(JSON.stringify(this.toString(), null, 2))
         this.count++;
         return this.count == this.times ? { items: [param] } : { items: [] };
     }
