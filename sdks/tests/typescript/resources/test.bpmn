@@ -1,43 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_0a5f83p" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Zeebe Modeler" exporterVersion="0.7.0-alpha.2">
-  <bpmn:process id="await-outcome" name="await-outcome" isExecutable="true">
-    <bpmn:startEvent id="StartEvent_1">
-      <bpmn:outgoing>SequenceFlow_0xqfx4k</bpmn:outgoing>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" id="Definitions_1vwghmj" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.27.0">
+  <bpmn:process id="hello-world-complete-rest" name="Hello World (Complete)" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Start&#10;&#10;">
+      <bpmn:outgoing>SequenceFlow_0fp53hs</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:intermediateCatchEvent id="IntermediateCatchEvent_1y9tvcp" name="Wait 1s">
-      <bpmn:incoming>SequenceFlow_0xqfx4k</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0cji6zj</bpmn:outgoing>
-      <bpmn:timerEventDefinition>
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT1S</bpmn:timeDuration>
-      </bpmn:timerEventDefinition>
-    </bpmn:intermediateCatchEvent>
-    <bpmn:endEvent id="EndEvent_0icsew0">
-      <bpmn:incoming>SequenceFlow_0cji6zj</bpmn:incoming>
+    <bpmn:serviceTask id="ServiceTask_0g6tf5f" name="Say Hello World">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="console-log-complete-rest" retries="100" />
+        <zeebe:taskHeaders>
+          <zeebe:header key="message" value="Hello World" />
+        </zeebe:taskHeaders>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0fp53hs</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_112zghv</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0fp53hs" sourceRef="StartEvent_1" targetRef="ServiceTask_0g6tf5f" />
+    <bpmn:endEvent id="EndEvent_16r84dr" name="End">
+      <bpmn:incoming>SequenceFlow_112zghv</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_0cji6zj" sourceRef="IntermediateCatchEvent_1y9tvcp" targetRef="EndEvent_0icsew0" />
-    <bpmn:sequenceFlow id="SequenceFlow_0xqfx4k" sourceRef="StartEvent_1" targetRef="IntermediateCatchEvent_1y9tvcp" />
+    <bpmn:sequenceFlow id="SequenceFlow_112zghv" sourceRef="ServiceTask_0g6tf5f" targetRef="EndEvent_16r84dr" />
   </bpmn:process>
+  <bpmn:message id="Message_0remzna" name="Waiting For A Train That Never Arrives">
+    <bpmn:extensionElements>
+      <zeebe:subscription correlationKey="=none" />
+    </bpmn:extensionElements>
+  </bpmn:message>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="await-outcome">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="hello-world-complete-rest">
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
-        <dc:Bounds x="179" y="79" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="IntermediateCatchEvent_1y9tvcp_di" bpmnElement="IntermediateCatchEvent_1y9tvcp">
-        <dc:Bounds x="282" y="79" width="36" height="36" />
+        <dc:Bounds x="173" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="283" y="122" width="37" height="14" />
+          <dc:Bounds x="179" y="145" width="24" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="EndEvent_0icsew0_di" bpmnElement="EndEvent_0icsew0">
-        <dc:Bounds x="372" y="79" width="36" height="36" />
+      <bpmndi:BPMNShape id="ServiceTask_0g6tf5f_di" bpmnElement="ServiceTask_0g6tf5f">
+        <dc:Bounds x="302" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0cji6zj_di" bpmnElement="SequenceFlow_0cji6zj">
-        <di:waypoint x="318" y="97" />
-        <di:waypoint x="372" y="97" />
+      <bpmndi:BPMNShape id="EndEvent_16r84dr_di" bpmnElement="EndEvent_16r84dr">
+        <dc:Bounds x="512" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="520" y="145" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0fp53hs_di" bpmnElement="SequenceFlow_0fp53hs">
+        <di:waypoint x="209" y="120" />
+        <di:waypoint x="302" y="120" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0xqfx4k_di" bpmnElement="SequenceFlow_0xqfx4k">
-        <di:waypoint x="215" y="97" />
-        <di:waypoint x="282" y="97" />
+      <bpmndi:BPMNEdge id="SequenceFlow_112zghv_di" bpmnElement="SequenceFlow_112zghv">
+        <di:waypoint x="402" y="120" />
+        <di:waypoint x="512" y="120" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

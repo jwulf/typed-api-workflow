@@ -1,6 +1,6 @@
 import { SdkEnhancementStrategy } from "./SdkEnhancementOrchestrator";
 import { OpenAPIV3 } from 'openapi-types';
-import { TypeScriptSemanticTypeEnhancer, SemanticType } from './typescript/TypeScriptSemanticTypeEnhancer';
+import { TypeScriptCamundaKeysToTypes, SemanticType } from './typescript/TypeScriptCamundaKeysToTypes';
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -16,12 +16,12 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
     php: this.enhancePHP,
   }
   semanticTypes: Map<string, SemanticType>;
-  private typeScriptEnhancer: TypeScriptSemanticTypeEnhancer;
+  private typeScriptEnhancer: TypeScriptCamundaKeysToTypes;
 
   constructor(spec: OpenAPIV3.Document, sdks: SdkDefinitions) {
     super(spec, sdks);
     this.semanticTypes = this.extractSemanticTypes();
-    this.typeScriptEnhancer = new TypeScriptSemanticTypeEnhancer(this.semanticTypes);
+    this.typeScriptEnhancer = new TypeScriptCamundaKeysToTypes(this.semanticTypes);
     console.log(`Found ${this.semanticTypes.size} semantic types:`, Array.from(this.semanticTypes.keys()));
   }
 

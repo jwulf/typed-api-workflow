@@ -5,6 +5,9 @@ import { OpenAPIV3 } from 'openapi-types';
 import { SdkDefinitions } from "../../sdks";
 
 /**
+ * This deals with the discriminated mutually exclusive schemas like createProcessInstanceRequest
+ */
+/**
  * Generates proper TypeScript union types for polymorphic schemas
  * This enhancer addresses known issues with the OpenAPI TypeScript generator:
  * 1. Invalid "extends any" class declarations from additionalProperties: true
@@ -18,7 +21,7 @@ import { SdkDefinitions } from "../../sdks";
  * Note: Semantic type import fixes are handled by the SemanticTypeEnhancer
  */
 export class TypeScriptPolymorphicSchemaEnhancer extends SdkEnhancementStrategy {
-    name = 'typescript-polymorphic-schema';
+    name = 'TypeScriptPolymorphicSchemaEnhancer';
     sdkEnhancementStrategies = {
         typescript: this.enhanceTypeScript,
     }

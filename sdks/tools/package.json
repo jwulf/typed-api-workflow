@@ -6,7 +6,8 @@
   "scripts": {
     "generate": "./generate-all-sdks.sh",
     "enhance": "node enhance-semantic-types.js rest-api.domain.yaml ./sdks",
-    "build": "npm run generate"
+    "build": "npm run generate",
+    "test": "npm run --prefix ../tests/typescript test"
   },
   "dependencies": {
     "js-yaml": "^4.1.0"

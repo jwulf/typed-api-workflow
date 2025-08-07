@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Project, SyntaxKind, MethodDeclaration, Node } from 'ts-morph';
+import { Project, SyntaxKind, MethodDeclaration, Node, ClassDeclaration } from 'ts-morph';
 
 export interface EventuallyConsistentOperation {
   operationId: string;
@@ -10,24 +10,40 @@ export interface EventuallyConsistentOperation {
   description: string;
 }
 
+/**
+ * This adds a JSDoc comment and a decorator to all eventually consistent methods.
+ */
+
 export class TypeScriptEventualEnhancer {
+  name = 'TypeScriptEventualEnhancer'
   private project: Project;
   private eventuallyConsistentComment: string;
+  private addEventuallyProperty: boolean;
 
-  constructor(eventuallyConsistentComment: string) {
+  constructor(eventuallyConsistentComment: string, addEventuallyProperty: boolean = true) {
     this.eventuallyConsistentComment = eventuallyConsistentComment;
+    this.addEventuallyProperty = addEventuallyProperty;
     this.project = new Project({
-      // Don't emit files, we'll handle that manually
       compilerOptions: {
         target: 99, // Latest
         module: 99, // Latest
       },
-      useInMemoryFileSystem: false, // Work with real files
+      useInMemoryFileSystem: false,
     });
   }
 
   /**
-   * Enhance TypeScript API files with eventually consistent documentation
+   * Clean up resources (for compatibility with original interface)
+   */
+  dispose(): void {
+    // ts-morph project cleanup is automatic, but we can be explicit
+    if (this.project) {
+      // The project will be garbage collected
+    }
+  }
+
+  /**
+   * Enhance TypeScript API files with eventually consistent decorators
    */
   enhanceTypeScriptFiles(
     sdkPath: string, 
@@ -37,6 +53,12 @@ export class TypeScriptEventualEnhancer {
       console.log(`  ! TypeScript SDK not found: ${sdkPath}`);
       return 0;
     }
+
+    // Update tsconfig.json to enable decorators
+    this.updateTsConfig(sdkPath);
+
+    // Copy the EventuallyConsistentDecorator to ergonomics directory
+    this.copyEventuallyConsistentDecorator(sdkPath);
 
     // Try multiple possible API directory structures
     const possibleApiDirs = [
@@ -62,6 +84,58 @@ export class TypeScriptEventualEnhancer {
     return this.updateTypeScriptApiFiles(foundApiDir, operations);
   }
 
+  /**
+   * Copy EventuallyConsistentDecorator.ts to ergonomics directory
+   */
+  private copyEventuallyConsistentDecorator(sdkPath: string): void {
+    const ergonomicsDir = path.join(sdkPath, 'ergonomics');
+    
+    // Create ergonomics directory if it doesn't exist
+    if (!fs.existsSync(ergonomicsDir)) {
+      fs.mkdirSync(ergonomicsDir, { recursive: true });
+    }
+    
+    // Copy the decorator file from the tools directory
+    const sourceDecoratorPath = path.join(__dirname, 'ergonomics', 'EventuallyConsistentDecorator.ts');
+    const targetDecoratorPath = path.join(ergonomicsDir, 'EventuallyConsistentDecorator.ts');
+    
+    if (fs.existsSync(sourceDecoratorPath)) {
+      fs.copyFileSync(sourceDecoratorPath, targetDecoratorPath);
+    } else {
+      console.warn(`  ! EventuallyConsistentDecorator.ts not found at ${sourceDecoratorPath}`);
+    }
+  }
+
+  /**
+   * Update sdk tsconfig.json to enable experimental decorators
+   */
+  private updateTsConfig(sdkPath: string): void {
+    const tsconfigPath = path.join(sdkPath, 'tsconfig.json');
+    
+    if (!fs.existsSync(tsconfigPath)) {
+      console.log(`  ! TypeScript config not found: ${tsconfigPath}`);
+      return;
+    }
+
+    try {
+      const tsconfigContent = fs.readFileSync(tsconfigPath, 'utf8');
+      const tsconfig = JSON.parse(tsconfigContent);
+
+      if (!tsconfig.compilerOptions) {
+        tsconfig.compilerOptions = {};
+      }
+
+      // Add decorator support
+      tsconfig.compilerOptions.experimentalDecorators = true;
+      tsconfig.compilerOptions.emitDecoratorMetadata = true;
+
+      fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 4), 'utf8');
+      console.log(`  ✓ Updated tsconfig.json to enable decorators`);
+    } catch (error) {
+      console.warn(`  ! Error updating tsconfig.json: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   private updateTypeScriptApiFiles(
     apiDir: string, 
     operations: Map<string, EventuallyConsistentOperation>
@@ -79,6 +153,7 @@ export class TypeScriptEventualEnhancer {
       try {
         // Find all method declarations
         const methods = sourceFile.getDescendantsOfKind(SyntaxKind.MethodDeclaration);
+        const eventuallyConsistentMethods: MethodDeclaration[] = [];
 
         for (const method of methods) {
           const methodName = method.getName();
@@ -87,18 +162,32 @@ export class TypeScriptEventualEnhancer {
           const operation = operations.get(methodName);
           if (!operation) continue;
 
-          // Check if method already has our comment
-          if (this.hasEventuallyConsistentComment(method)) {
+          // Check if method already has our decorator
+          if (this.hasEventuallyConsistentDecorator(method)) {
             continue;
           }
 
-          // Add JSDoc comment
+          // Add JSDoc comment (keep for documentation)
           this.addJSDocComment(method);
+          
+          // Add decorator if requested
+          if (this.addEventuallyProperty) {
+            this.addEventuallyConsistentDecorator(method);
+            eventuallyConsistentMethods.push(method);
+          }
+          
           fileModified = true;
         }
 
-        if (fileModified) {
+        if (fileModified && this.addEventuallyProperty && eventuallyConsistentMethods.length > 0) {
+          // Add import for the decorator
+          this.addDecoratorImport(sourceFile);
+          
           // Save the file
+          sourceFile.saveSync();
+          updatedFiles++;
+        } else if (fileModified) {
+          // Save the file even if just JSDoc was added
           sourceFile.saveSync();
           updatedFiles++;
         }
@@ -112,6 +201,40 @@ export class TypeScriptEventualEnhancer {
     }
 
     return updatedFiles;
+  }
+
+  /**
+   * Check if a method already has the @eventuallyconsistent decorator
+   */
+  private hasEventuallyConsistentDecorator(method: MethodDeclaration): boolean {
+    const decorators = method.getDecorators();
+    return decorators.some(decorator => decorator.getName() === 'eventuallyconsistent');
+  }
+
+  /**
+   * Add @eventuallyconsistent decorator to a method
+   */
+  private addEventuallyConsistentDecorator(method: MethodDeclaration): void {
+    method.addDecorator({
+      name: 'eventuallyconsistent'
+    });
+  }
+
+  /**
+   * Add import for the decorator from ergonomics directory
+   */
+  private addDecoratorImport(sourceFile: any): void {
+    const imports = sourceFile.getImportDeclarations();
+    const hasDecoratorImport = imports.some((imp: any) => 
+      imp.getModuleSpecifierValue().includes('EventuallyConsistentDecorator')
+    );
+    
+    if (!hasDecoratorImport) {
+      sourceFile.addImportDeclaration({
+        moduleSpecifier: '../ergonomics/EventuallyConsistentDecorator',
+        namedImports: ['eventuallyconsistent']
+      });
+    }
   }
 
   /**
@@ -179,61 +302,50 @@ export class TypeScriptEventualEnhancer {
       const afterTag = jsdocText.substring(insertPoint);
       
       // Clean up the beforeTag text - remove any trailing stars or extra content, but preserve description
-      const beforeTagLines = beforeTag.split('\n');
-      for (let i = 0; i < beforeTagLines.length; i++) {
-        const line = beforeTagLines[i];
-        // If this line has content after the * and /, clean only trailing stars
-        if (line.includes('*') && !line.trim().endsWith('/**') && !line.trim().endsWith('*/')) {
-          // Remove trailing stars but preserve actual content
-          beforeTagLines[i] = line.replace(/\s*\*+\s*$/, '');
-        }
-      }
+      const cleanedBeforeTag = this.cleanJSDocText(beforeTag);
       
-      const cleanedBeforeTag = beforeTagLines.join('\n');
-      
-      // Add our comment with proper spacing - add blank line before our comment
-      updatedText = cleanedBeforeTag + `\n${indent}*\n${indent}* ${this.eventuallyConsistentComment}\n${indent}*\n` + afterTag;
+      updatedText = cleanedBeforeTag + 
+        `${indent}*\n${indent}* ${this.eventuallyConsistentComment}\n${indent}*\n${indent}` +
+        afterTag;
     } else {
-      // No tags found, insert before closing */
+      // Insert before the closing */
       const beforeClosing = jsdocText.substring(0, closingIndex);
       const afterClosing = jsdocText.substring(closingIndex);
       
-      updatedText = beforeClosing + `\n${indent}* ${this.eventuallyConsistentComment}\n${indent}` + afterClosing;
+      // Clean up the beforeClosing text
+      const cleanedBeforeClosing = this.cleanJSDocText(beforeClosing);
+      
+      updatedText = cleanedBeforeClosing + 
+        `${indent}*\n${indent}* ${this.eventuallyConsistentComment}\n${indent}*\n${indent}` +
+        afterClosing;
     }
     
-    // Replace the JSDoc
     jsDoc.replaceWithText(updatedText);
   }
 
   /**
-   * Create new JSDoc comment for a method
+   * Clean JSDoc text by removing trailing content after the main description
    */
-  private createNewJSDoc(method: MethodDeclaration): void {
-    // Get the indentation by looking at the method's leading trivia
-    const methodText = method.getFullText();
-    const methodStart = method.getStart();
-    const beforeMethodText = method.getSourceFile().getFullText().substring(0, methodStart);
+  private cleanJSDocText(text: string): string {
+    // Remove any trailing whitespace, asterisks, or newlines at the end
+    let cleaned = text.replace(/(\s*\*\s*)*\s*$/, '');
     
-    // Find the last newline before the method to determine indentation
-    const lines = beforeMethodText.split('\n');
-    const lastLine = lines[lines.length - 1];
+    // Ensure it ends with proper formatting
+    if (!cleaned.endsWith('*')) {
+      cleaned += '*';
+    }
     
-    // Extract indentation from the last line
-    const indentMatch = lastLine.match(/^(\s*)/);
-    const indent = indentMatch ? indentMatch[1] : '';
-    
-    // Create JSDoc comment
-    const jsDocComment = `${indent}/**\n${indent} * ${this.eventuallyConsistentComment}\n${indent} */\n`;
-    
-    // Insert before the method
-    method.insertText(0, jsDocComment);
+    return cleaned;
   }
 
   /**
-   * Clean up the project
+   * Create new JSDoc comment
    */
-  dispose(): void {
-    // Remove all source files to free memory
-    this.project.getSourceFiles().forEach((sf) => sf.forget());
+  private createNewJSDoc(method: MethodDeclaration): void {
+    const jsDocText = `/**
+     * ${this.eventuallyConsistentComment}
+     */`;
+    
+    method.insertText(0, jsDocText + '\n    ');
   }
 }

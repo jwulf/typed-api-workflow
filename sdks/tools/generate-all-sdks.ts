@@ -10,6 +10,8 @@ import { SdkEnhancementOrchestrator } from './enhancements/SdkEnhancementOrchest
 import { SemanticTypeEnhancer } from './enhancements/SemanticTypeEnhancer';
 import { EventuallyConsistentEnhancer } from './enhancements/EventuallyConsistentEnhancer';
 import { TypeScriptPolymorphicSchemaEnhancer } from './enhancements/typescript/TypeScriptPolymorphicSchemaEnhancer';
+import { TypeScriptCamundaKeyFiltersToTypes } from './enhancements/typescript/TypeScriptSemanticFilterEnhancer';
+// import { TypeScriptFilterPropertyEnhancer } from './enhancements/typescript/TypeScriptFilterPropertyEnhancer'; // DISABLED: Conflicts with semantic filter enhancer
 
 import { PostBuildOrchestrator } from './post-build/PostBuildOrchestrator';
 import { TypeScriptPostBuildStrategy } from './post-build/typescript/TypeScriptPostBuildStrategy';
@@ -19,6 +21,8 @@ const enhancementStrategies = [
   SemanticTypeEnhancer, // Enhance semantic types with validation
   EventuallyConsistentEnhancer, // Enhance eventually consistent operations
   TypeScriptPolymorphicSchemaEnhancer, // Fix TypeScript code generation issues
+  TypeScriptCamundaKeyFiltersToTypes, // Fix union types for semantic filter fields
+  // TypeScriptFilterPropertyEnhancer, // Fix filter property union types - DISABLED: Conflicts with semantic filter enhancer
 ]
 
 // Post-build tasks for generated SDKs

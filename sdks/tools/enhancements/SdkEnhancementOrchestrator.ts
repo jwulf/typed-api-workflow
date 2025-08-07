@@ -48,7 +48,7 @@ export class SdkEnhancementOrchestrator {
     console.log('');
     console.log('✅ Enhanced Features:');
     console.log('   🏷️  Semantic types with validation');
-    console.log('   📝 Eventually consistent endpoint documentation');
+    console.log('   📝 Eventually consistent endpoint support');
     console.log('');
     
     // List enhanced SDKs

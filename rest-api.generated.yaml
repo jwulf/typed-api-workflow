@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-08-06 17:51:14
+# File generated at: 2025-08-06 18:32:20
 
 ---
 openapi: "3.0.3"
@@ -9265,13 +9265,27 @@ components:
           - $ref: "#/components/schemas/SearchQueryPageRequest"
           type: "object"
     SearchQueryPageRequest:
-      x-polymorphic-schema: true
+      type: "object"
       description: "Pagination criteria. Can use offset-based pagination (from/limit)\
         \ OR cursor-based pagination (after/before + limit), but not both."
-      oneOf:
-      - $ref: "#/components/schemas/OffsetPagination"
-      - $ref: "#/components/schemas/CursorForwardPagination"
-      - $ref: "#/components/schemas/CursorBackwardPagination"
+      properties:
+        from:
+          description: "The index of items to start searching from."
+          type: "integer"
+          format: "int32"
+        limit:
+          description: "The maximum number of items to return in one request."
+          type: "integer"
+          format: "int32"
+          default: 100
+        after:
+          description: "Use the `endCursor` value from the previous response to fetch\
+            \ the next page of results."
+          type: "string"
+        before:
+          description: "Use the `startCursor` value from the previous response to\
+            \ fetch the previous page of results."
+          type: "string"
     OffsetPagination:
       type: "object"
       title: "Offset-based pagination"
@@ -10090,12 +10104,69 @@ components:
         operationReference:
           $ref: "#/components/schemas/OperationReference"
     ProcessInstanceCreationInstruction:
-      x-polymorphic-schema: true
+      type: "object"
       description: "Instructions for creating a process instance. The process definition\
         \ can be specified\neither by ID or by key.\n"
-      oneOf:
-      - $ref: "#/components/schemas/ProcessInstanceCreationInstructionById"
-      - $ref: "#/components/schemas/ProcessInstanceCreationInstructionByKey"
+      properties:
+        processDefinitionId:
+          description: "The BPMN process ID of the process definition to start an\
+            \ instance of.\n"
+          type: "string"
+        processDefinitionVersion:
+          description: "The version of the process. By default, the latest version\
+            \ of the process is used.\n"
+          type: "integer"
+          format: "int32"
+          default: -1
+        variables:
+          description: "JSON object that will instantiate the variables for the root\
+            \ variable scope\nof the process instance.\n"
+          type: "object"
+          additionalProperties: true
+        tenantId:
+          description: "The tenant ID of the process definition."
+          type: "string"
+        operationReference:
+          $ref: "#/components/schemas/OperationReference"
+        startInstructions:
+          description: "List of start instructions. By default, the process instance\
+            \ will start at\nthe start event. If provided, the process instance will\
+            \ apply start instructions\nafter it has been created.\n"
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ProcessInstanceCreationStartInstruction"
+        runtimeInstructions:
+          description: "Runtime instructions (alpha). List of instructions that affect\
+            \ the runtime behavior of\nthe process instance. Refer to specific instruction\
+            \ types for more details.\n\nThis parameter is an alpha feature and may\
+            \ be subject to change\nin future releases.\n"
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ProcessInstanceCreationRuntimeInstruction"
+        awaitCompletion:
+          description: "Wait for the process instance to complete. If the process\
+            \ instance completion does\nnot occur within the requestTimeout, the request\
+            \ will be closed. This can lead to a 504\nresponse status. Disabled by\
+            \ default.\n"
+          type: "boolean"
+          default: false
+        fetchVariables:
+          description: "List of variables by name to be included in the response when\
+            \ awaitCompletion is set to true.\nIf empty, all visible variables in\
+            \ the root scope will be returned.\n"
+          type: "array"
+          items:
+            type: "string"
+        requestTimeout:
+          description: "Timeout (in ms) the request waits for the process to complete.\
+            \ By default or\nwhen set to 0, the generic request timeout configured\
+            \ in the cluster is applied.\n"
+          type: "integer"
+          format: "int64"
+        processDefinitionKey:
+          type: "string"
+          description: "The unique key identifying the process definition, for example,\
+            \ returned for a process in the\ndeploy resources endpoint.\n"
     ProcessInstanceCreationInstructionById:
       type: "object"
       title: "Process creation by ID"

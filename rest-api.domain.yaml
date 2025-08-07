@@ -5940,16 +5940,19 @@ components:
           type: "boolean"
         variableKey:
           description: "The key for this variable."
-          allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+          oneOf:
+            - $ref: "#/components/schemas/VariableKey"
+            - $ref: "#/components/schemas/VariableKeyFilterProperty"
         scopeKey:
           description: "The key of the scope of this variable."
-          allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+          oneOf:
+            - $ref: "#/components/schemas/ScopeKey"
+            - $ref: "#/components/schemas/ScopeKeyFilterProperty"
         processInstanceKey:
           description: "The key of the process instance of this variable."
-          allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+          oneOf:
+            - $ref: "#/components/schemas/ProcessInstanceKey"
+            - $ref: "#/components/schemas/ProcessInstanceKeyFilterProperty"
     VariableSearchQueryResult:
       description: "Variable search query response."
       type: "object"
@@ -6380,6 +6383,200 @@ components:
           title: "Exact match"
           description: "Matches the value exactly."
         - $ref: "#/components/schemas/AdvancedDateTimeFilter"
+    AdvancedProcessDefinitionKeyFilter:
+      title: "Advanced filter"
+      description: "Advanced ProcessDefinitionKey filter."
+      type: "object"
+      properties:
+        $eq:
+          $ref: "#/components/schemas/ProcessDefinitionKey"
+        $neq:
+          $ref: "#/components/schemas/ProcessDefinitionKey"
+        $exists:
+          description: "Checks if the current property exists."
+          type: "boolean"
+        $in:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ProcessDefinitionKey"
+        $notIn:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ProcessDefinitionKey"
+    AdvancedProcessInstanceKeyFilter:
+      title: "Advanced filter"
+      description: "Advanced ProcessInstanceKey filter."
+      type: "object"
+      properties:
+        $eq:
+          $ref: "#/components/schemas/ProcessInstanceKey"
+        $neq:
+          $ref: "#/components/schemas/ProcessInstanceKey"
+        $exists:
+          description: "Checks if the current property exists."
+          type: "boolean"
+        $in:
+          description: "Checks if the property matches any of the provided values."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ProcessInstanceKey"
+        $notIn:
+          description: "Checks if the property matches none of the provided values."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ProcessInstanceKey"
+    AdvancedElementInstanceKeyFilter:
+      title: "Advanced filter"
+      description: "Advanced ElementInstanceKey filter."
+      type: "object"
+      properties:
+        $eq:
+          $ref: "#/components/schemas/ElementInstanceKey"
+        $neq:
+          $ref: "#/components/schemas/ElementInstanceKey"
+        $exists:
+          description: "Checks if the current property exists."
+          type: "boolean"
+        $in:
+          description: "Checks if the property matches any of the provided values."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ElementInstanceKey"
+        $notIn:
+          description: "Checks if the property matches none of the provided values."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ElementInstanceKey"
+    ProcessDefinitionKeyFilterProperty:
+      description: "ProcessDefinitionKey property with advanced search capabilities."
+      type: "object"
+      oneOf:
+        - $ref: "#/components/schemas/ProcessDefinitionKey"
+        - $ref: "#/components/schemas/AdvancedProcessDefinitionKeyFilter"
+    ProcessInstanceKeyFilterProperty:
+      description: "ProcessInstanceKey property with advanced search capabilities."
+      type: "object"
+      oneOf:
+        - $ref: "#/components/schemas/ProcessInstanceKey"
+        - $ref: "#/components/schemas/AdvancedProcessInstanceKeyFilter"
+    ElementInstanceKeyFilterProperty:
+      description: "ElementInstanceKey property with advanced search capabilities."
+      type: "object"
+      oneOf:
+        - $ref: "#/components/schemas/ElementInstanceKey"
+        - $ref: "#/components/schemas/AdvancedElementInstanceKeyFilter"
+    AdvancedVariableKeyFilter:
+      title: "Advanced filter"
+      description: "Advanced VariableKey filter."
+      type: "object"
+      properties:
+        $eq:
+          $ref: "#/components/schemas/VariableKey"
+        $neq:
+          $ref: "#/components/schemas/VariableKey"
+        $exists:
+          description: "Checks if the current property exists."
+          type: "boolean"
+        $in:
+          description: "Checks if the property matches any of the provided values."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/VariableKey"
+        $notIn:
+          description: "Checks if the property matches none of the provided values."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/VariableKey"
+    AdvancedScopeKeyFilter:
+      title: "Advanced filter"
+      description: "Advanced ScopeKey filter."
+      type: "object"
+      properties:
+        $eq:
+          $ref: "#/components/schemas/ScopeKey"
+        $neq:
+          $ref: "#/components/schemas/ScopeKey"
+        $exists:
+          description: "Checks if the current property exists."
+          type: "boolean"
+        $in:
+          description: "Checks if the property matches any of the provided values."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ScopeKey"
+        $notIn:
+          description: "Checks if the property matches none of the provided values."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ScopeKey"
+    VariableKeyFilterProperty:
+      description: "VariableKey property with advanced search capabilities."
+      type: "object"
+      oneOf:
+        - $ref: "#/components/schemas/VariableKey"
+        - $ref: "#/components/schemas/AdvancedVariableKeyFilter"
+    ScopeKeyFilterProperty:
+      description: "ScopeKey property with advanced search capabilities."
+      type: "object"
+      oneOf:
+        - $ref: "#/components/schemas/ScopeKey"
+        - $ref: "#/components/schemas/AdvancedScopeKeyFilter"
+    AdvancedMessageSubscriptionKeyFilter:
+      title: "Advanced filter"
+      description: "Advanced MessageSubscriptionKey filter."
+      type: "object"
+      properties:
+        $eq:
+          $ref: "#/components/schemas/MessageSubscriptionKey"
+        $neq:
+          $ref: "#/components/schemas/MessageSubscriptionKey"
+        $exists:
+          description: "Checks if the current property exists."
+          type: "boolean"
+        $in:
+          description: "Checks if the property matches any of the provided values."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/MessageSubscriptionKey"
+        $notIn:
+          description: "Checks if the property matches none of the provided values."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/MessageSubscriptionKey"
+    MessageSubscriptionKeyFilterProperty:
+      description: "MessageSubscriptionKey property with advanced search capabilities."
+      type: "object"
+      oneOf:
+        - $ref: "#/components/schemas/MessageSubscriptionKey"
+        - $ref: "#/components/schemas/AdvancedMessageSubscriptionKeyFilter"
+    AdvancedJobKeyFilter:
+      title: "Advanced filter"
+      description: "Advanced JobKey filter."
+      type: "object"
+      properties:
+        $eq:
+          $ref: "#/components/schemas/JobKey"
+        $neq:
+          $ref: "#/components/schemas/JobKey"
+        $exists:
+          description: "Checks if the current property exists."
+          type: "boolean"
+        $in:
+          description: "Checks if the property matches any of the provided values."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/JobKey"
+        $notIn:
+          description: "Checks if the property matches none of the provided values."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/JobKey"
+    JobKeyFilterProperty:
+      description: "JobKey property with advanced search capabilities."
+      type: "object"
+      oneOf:
+        - $ref: "#/components/schemas/JobKey"
+        - $ref: "#/components/schemas/AdvancedJobKeyFilter"
     BaseProcessInstanceFilterFields:
       description: "Base process instance search filter."
       type: "object"
@@ -6410,16 +6607,19 @@ components:
             $ref: "#/components/schemas/VariableValueFilterProperty"
         processInstanceKey:
           description: "The key of this process instance."
-          allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+          oneOf:
+            - $ref: "#/components/schemas/ProcessInstanceKey"
+            - $ref: "#/components/schemas/ProcessInstanceKeyFilterProperty"
         parentProcessInstanceKey:
           description: "The parent process instance key."
-          allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+          oneOf:
+            - $ref: "#/components/schemas/ProcessInstanceKey"
+            - $ref: "#/components/schemas/ProcessInstanceKeyFilterProperty"
         parentElementInstanceKey:
           description: "The parent element instance key."
-          allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+          oneOf:
+            - $ref: "#/components/schemas/ElementInstanceKey"
+            - $ref: "#/components/schemas/ElementInstanceKeyFilterProperty"
         batchOperationId:
           description: "The batch operation ID."
           allOf:
@@ -6501,8 +6701,9 @@ components:
             - $ref: "#/components/schemas/StringFilterProperty"
         processDefinitionKey:
           description: "The process definition key."
-          allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+          oneOf:
+            - $ref: "#/components/schemas/ProcessDefinitionKey"
+            - $ref: "#/components/schemas/ProcessDefinitionKeyFilterProperty"
     ProcessInstanceFilter:
       description: "Process instance search filter."
       allOf:
@@ -7228,7 +7429,7 @@ components:
           description: "The message subscription key associated with this message\
             \ subscription."
           allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+            - $ref: "#/components/schemas/MessageSubscriptionKeyFilterProperty"
         processDefinitionId:
           description: "The process definition ID associated with this message subscription."
           allOf:
@@ -7236,11 +7437,11 @@ components:
         processDefinitionKey:
           description: "The process definition key associated with this message subscription."
           allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+            - $ref: "#/components/schemas/ProcessDefinitionKeyFilterProperty"
         processInstanceKey:
           description: "The process instance key associated with this message subscription."
           allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+            - $ref: "#/components/schemas/ProcessInstanceKeyFilterProperty"
         elementId:
           description: "The element ID associated with this message subscription."
           allOf:
@@ -7248,7 +7449,7 @@ components:
         elementInstanceKey:
           description: "The element instance key associated with this message subscription."
           allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+            - $ref: "#/components/schemas/ElementInstanceKeyFilterProperty"
         messageSubscriptionType:
           description: "The message subscription type."
           allOf:
@@ -9101,8 +9302,9 @@ components:
             - $ref: "#/components/schemas/StringFilterProperty"
         elementInstanceKey:
           description: "The element instance key associated with the job."
-          allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+          oneOf:
+            - $ref: "#/components/schemas/ElementInstanceKey"
+            - $ref: "#/components/schemas/ElementInstanceKeyFilterProperty"
         endTime:
           description: "When the job ended."
           allOf:
@@ -9124,8 +9326,9 @@ components:
           type: "boolean"
         jobKey:
           description: "The key, a unique identifier for the job."
-          allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+          oneOf:
+            - $ref: "#/components/schemas/JobKey"
+            - $ref: "#/components/schemas/JobKeyFilterProperty"
         kind:
           description: "The kind of the job."
           allOf:
@@ -9140,12 +9343,14 @@ components:
             - $ref: "#/components/schemas/StringFilterProperty"
         processDefinitionKey:
           description: "The process definition key associated with the job."
-          allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+          oneOf:
+            - $ref: "#/components/schemas/ProcessDefinitionKey"
+            - $ref: "#/components/schemas/ProcessDefinitionKeyFilterProperty"
         processInstanceKey:
           description: "The process instance key associated with the job."
-          allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+          oneOf:
+            - $ref: "#/components/schemas/ProcessInstanceKey"
+            - $ref: "#/components/schemas/ProcessInstanceKeyFilterProperty"
         retries:
           description: "The number of retries left."
           allOf:

@@ -10,7 +10,11 @@ export interface SemanticType {
   maxLength?: number;
 }
 
-export class TypeScriptSemanticTypeEnhancer {
+/**
+ * Converts CamundaKeys into nominal types.
+ */
+export class TypeScriptCamundaKeysToTypes {
+  name = 'TypeScriptCamundaKeysToTypes'
   private semanticTypes: Map<string, SemanticType>;
 
   constructor(semanticTypes: Map<string, SemanticType>) {
@@ -284,18 +288,38 @@ export class TypeScriptSemanticTypeEnhancer {
       return;
     }
 
-    // Add import for semantic types at the top
+    // Add or merge import for semantic types at the top
     const semanticTypeNames = Array.from(this.semanticTypes.keys());
-    const semanticTypeImports = semanticTypeNames.join(', ');
-    const importStatement = `import { ${semanticTypeImports} } from '../semanticTypes';\n`;
     
-    // Insert import after existing imports
-    const importMatch = content.match(/^(import.*?\n)+/m);
-    if (importMatch && importMatch.index !== undefined) {
-      const lastImportIndex = importMatch.index + importMatch[0].length;
-      content = content.slice(0, lastImportIndex) + importStatement + content.slice(lastImportIndex);
+    // Check if semantic types import already exists and merge if needed
+    const existingImportRegex = /import\s*\{\s*([^}]+)\s*\}\s*from\s*['"]\.\.\/semanticTypes['"]/;
+    const existingMatch = content.match(existingImportRegex);
+    
+    if (existingMatch) {
+      // Parse existing imports
+      const existingImports = existingMatch[1]
+        .split(',')
+        .map(imp => imp.trim())
+        .filter(imp => imp.length > 0);
+      
+      // Merge with new semantic types (remove duplicates)
+      const allImports = [...new Set([...existingImports, ...semanticTypeNames])];
+      const mergedImportStatement = `import { ${allImports.join(', ')} } from '../semanticTypes';`;
+      
+      // Replace the existing import
+      content = content.replace(existingImportRegex, mergedImportStatement + '\n');
     } else {
-      content = importStatement + content;
+      // Insert new import after existing imports
+      const semanticTypeImports = semanticTypeNames.join(', ');
+      const importStatement = `import { ${semanticTypeImports} } from '../semanticTypes';\n`;
+      
+      const importMatch = content.match(/^(import.*?\n)+/m);
+      if (importMatch && importMatch.index !== undefined) {
+        const lastImportIndex = importMatch.index + importMatch[0].length;
+        content = content.slice(0, lastImportIndex) + importStatement + content.slice(lastImportIndex);
+      } else {
+        content = importStatement + content;
+      }
     }
 
     // Enhance serialize method
