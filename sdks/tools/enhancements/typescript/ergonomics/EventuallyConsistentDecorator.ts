@@ -3,14 +3,20 @@
  */
 
 // Type definitions for the eventually property
+export interface EventuallyConsistentOptions<T> {
+  timeout?: number;
+  pollingInterval?: number;
+  predicate?: (result: T) => boolean;
+}
+
 export type EventuallyConsistentMethod<T extends (...args: any[]) => any> = T & {
-  eventually: (...args: Parameters<T>) => {
-    timeout: (ms: number) => ReturnType<T>;
-  };
+  eventually: (options?: EventuallyConsistentOptions<Awaited<ReturnType<T>>>) => ReturnType<T>;
 };
 
 // Method decorator that adds eventually consistent behavior
 export function eventuallyconsistent(target: any, propertyKey: string, descriptor?: PropertyDescriptor): any {
+  console.log('Decorator called on', target.constructor.name, propertyKey);
+  
   // Handle case where descriptor is not provided (getter/setter or property)
   if (!descriptor) {
     descriptor = Object.getOwnPropertyDescriptor(target, propertyKey) || {
@@ -26,47 +32,61 @@ export function eventuallyconsistent(target: any, propertyKey: string, descripto
   if (typeof originalMethod !== 'function') {
     throw new Error(`@eventuallyconsistent can only be applied to methods, got ${typeof originalMethod}`);
   }
-  
-  // Create enhanced method that preserves original behavior
-  const enhancedMethod = function(this: any, ...args: any[]) {
-    return originalMethod.apply(this, args);
-  };
-  
-  // Add the eventually property to the method
-  enhancedMethod.eventually = (...args: any[]) => ({
-    timeout: (ms: number = 30000) => {
-      return PollingOperation({
-        operation:
-        () => originalMethod.apply(target, args),
-        timeout: ms
-      })
-    }
-  });
 
-  descriptor.value = enhancedMethod
+  // Define a property descriptor that creates bound methods for each instance
+  const originalDescriptor = descriptor;
   
-// If we had to create the descriptor, define the property
-  if (!Object.getOwnPropertyDescriptor(target, propertyKey)) {
-    Object.defineProperty(target, propertyKey, descriptor);
-  }
-  
+  return {
+    get: function(this: any) {
+      console.log('Getter called on instance:', this);
+      const instance = this;
+      
+      // Create a bound method for this instance
+      const boundMethod = function(...args: any[]) {
+        console.log('Bound method called with args:', args);
+        return originalMethod.apply(instance, args);
+      };
+      
+      // Add eventually to the bound method
+      (boundMethod as any).eventually = function(options: EventuallyConsistentOptions<any> = {}): any {
+        console.log('Eventually called with bound instance:', instance);
+        
+        const {
+          timeout = 30000,
+          pollingInterval = 1000,
+          predicate = defaultPredicate
+        } = options;
+        
+        return PollingOperation({
+          operation: (): any => {
+            console.log('Operation called with bound instance:', instance);
+            return originalMethod.apply(instance, []);
+          },
+          timeout,
+          pollingInterval,
+          predicate
+        });
+      };
+      
+      return boundMethod;
+    },
+    enumerable: originalDescriptor.enumerable !== false,
+    configurable: originalDescriptor.configurable !== false
+  };
+
   return descriptor;
 }
 
 function defaultPredicate<T extends { items: Array<unknown> }>(
 	result: T
 ): boolean {
-	return (
-		result !== null &&
-		result !== undefined &&
-		result.items &&
-		result.items.length > 0
-	)
+	return result.items?.length > 0;
 }
+
 interface PollingOperationOptionsBase<T> {
 	operation: () => Promise<T>
 	/** how often to poll in ms - defaults to 1000 */
-	interval?: number
+	pollingInterval?: number
 	/** when to timeout - defaults to 30000 */
 	timeout?: number
 }
@@ -137,7 +157,7 @@ class PredicateError<T> extends Error {
 		| PollingOperationOptionsWithPredicate<T>
 		| PollingOperationOptionsWithoutPredicate<T & { items: Array<unknown> }>
 ): Promise<T> {
-	const interval = options.interval || 1000
+	const pollingInterval = options.pollingInterval || 1000
 	const timeout = options.timeout || 30000
 	const operation = options.operation
 	// Use default predicate if no predicate provided, otherwise use provided predicate
@@ -158,7 +178,7 @@ class PredicateError<T> extends Error {
 				resolve(result)
 			} catch (error) {
 				if (Date.now() - startTime < timeout) {
-					setTimeout(poll, interval)
+					setTimeout(poll, pollingInterval)
 				} else {
 					reject(error)
 				}
