@@ -1,4 +1,4 @@
-import { eventuallyconsistent, EventuallyConsistentMethod } from "../../../../../generated/typescript/ergonomics/EventuallyConsistentDecorator";
+import { eventuallyconsistent  } from "../../../../../ergonomics/typescript/EventuallyConsistentDecorator";
 
 export class Test {
     constructor(public times: number, public count = 0) {
