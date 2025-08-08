@@ -74,10 +74,10 @@ export function eventuallyconsistent<T extends (...args: any[]) => any>(
   };
 }
 
-function defaultPredicate<T extends { items: Array<unknown> }>(
+function defaultPredicate<T extends { body: { items: Array<unknown> } }>(
 	result: T
 ): boolean {
-	return result.items?.length > 0;
+	return result.body?.items?.length > 0;
 }
 
 interface PollingOperationOptionsBase<T> {

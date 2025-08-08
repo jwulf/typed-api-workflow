@@ -6,6 +6,6 @@ export class Test {
     @eventuallyconsistent
     async method(param: string) {
         this.count++;
-        return this.count == this.times ? { items: [param] } : { items: [] };
+        return this.count == this.times ? { body: { items: [param] } } : { body: { items: [] } };
     }
 }

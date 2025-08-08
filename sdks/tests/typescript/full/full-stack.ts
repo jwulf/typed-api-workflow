@@ -1,11 +1,11 @@
-import {ProcessInstanceApi, ResourceApi, WithEventuality, ProcessInstanceSearchQuery} from '../../../generated/typescript/'
+import {ProcessInstanceApi, ResourceApi, WithEventuality, ProcessInstanceSearchQuery, ObjectSerializer, WithTracing} from '../../../generated/typescript/dist/api'
 import * as fs from 'fs'
 import * as path from 'path'
 
 // This test needs a running broker on localhost
 main()
 async function main() {
-    const processApi = WithEventuality(new ProcessInstanceApi());
+    const processApi = WithTracing(WithEventuality(new ProcessInstanceApi()));
     const resourceApi = new ResourceApi();
     
     // Load the test BPMN file
@@ -47,12 +47,12 @@ async function main() {
             processDefinitionKey: processDefinition.processDefinitionKey
         }
     }
-    
-    console.log('Search query:', JSON.stringify(searchQuery, null, 2))
 
-    await new Promise((res => setTimeout(() => res, 1000)))
+    console.log('Search query:', JSON.stringify(ObjectSerializer.serialize(searchQuery, 'ProcessInstanceSearchQuery'), null, 2))
 
-    const searchResponse = await processApi.searchProcessInstances.eventually({filter: { processInstanceKey: processInstance.processInstanceKey}})
+    // await new Promise((res => setTimeout(() => res(null), 1000)))
+
+    const searchResponse = await processApi.searchProcessInstances({filter: { processInstanceKey: processInstance.processInstanceKey}})
     const searchResults = searchResponse.body
     
     console.log(`Found ${searchResults.items?.length || 0} process instances`)

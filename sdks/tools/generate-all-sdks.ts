@@ -9,6 +9,7 @@ import { SdkDefinition, sdks, SupportedSdk } from './sdks';
 import { SdkEnhancementOrchestrator } from './enhancements/SdkEnhancementOrchestrator';
 import { SemanticTypeEnhancer } from './enhancements/SemanticTypeEnhancer';
 import { EventuallyConsistentEnhancer } from './enhancements/EventuallyConsistentEnhancer';
+import { TracingEnhancer } from './enhancements/TracingEnhancer';
 import { TypeScriptPolymorphicSchemaEnhancer } from './enhancements/typescript/TypeScriptPolymorphicSchemaEnhancer';
 import { TypeScriptCamundaKeyFiltersToTypes } from './enhancements/typescript/TypeScriptCamundaKeyFiltersToTypes';
 // import { TypeScriptFilterPropertyEnhancer } from './enhancements/typescript/TypeScriptFilterPropertyEnhancer'; // DISABLED: Conflicts with semantic filter enhancer
@@ -20,6 +21,7 @@ import { TypeScriptPostBuildStrategy } from './post-build/typescript/TypeScriptP
 const enhancementStrategies = [
   SemanticTypeEnhancer, // Enhance semantic types with validation
   EventuallyConsistentEnhancer, // Enhance eventually consistent operations
+  TracingEnhancer, // Add OpenTelemetry tracing support
   TypeScriptPolymorphicSchemaEnhancer, // Fix TypeScript code generation issues
   TypeScriptCamundaKeyFiltersToTypes, // Fix union types for semantic filter fields
   // TypeScriptFilterPropertyEnhancer, // Fix filter property union types - DISABLED: Conflicts with semantic filter enhancer
