@@ -10024,12 +10024,12 @@ components:
         decisionDefinitionKey:
           description: "The key of the decision."
           allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+            - $ref: "#/components/schemas/DecisionDefinitionKey"
         elementInstanceKey:
           description: "The key of the element instance this decision instance is\
             \ linked to."
           allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+            - $ref: "#/components/schemas/ElementInstanceKey"
     DecisionInstanceSearchQueryResult:
       type: "object"
       allOf:
@@ -11087,7 +11087,7 @@ components:
         processInstanceKey:
           description: "The process instance key of the processed item."
           allOf:
-            - $ref: "#/components/schemas/BasicStringFilterProperty"
+            - $ref: "#/components/schemas/ProcessInstanceKey"
         state:
           type: "string"
           description: "The state of the batch operation."
