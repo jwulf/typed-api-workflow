@@ -1,6 +1,9 @@
 # ignore generated SDKs
 sdks/generated
 
+#
+spec-tools/semantic-types-coverage/dist
+
 # ignore checkouts of camunda and camunda-docs in root only
 /camunda
 /camunda-docs
