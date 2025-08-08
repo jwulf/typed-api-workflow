@@ -1,0 +1,354 @@
+{
+  "timestamp": "2025-08-07T23:57:28.168Z",
+  "specFile": "/Users/jwulf/workspace/openapi-camunda-key-flattener/rest-api.domain.yaml",
+  "summary": {
+    "totalIssues": 38,
+    "errorCount": 27,
+    "warningCount": 11,
+    "semanticKeysFound": 18,
+    "semanticKeysList": [
+      "ProcessInstanceKey",
+      "DeploymentKey",
+      "UserTaskKey",
+      "ProcessDefinitionKey",
+      "ElementInstanceKey",
+      "FormKey",
+      "VariableKey",
+      "ScopeKey",
+      "IncidentKey",
+      "JobKey",
+      "MessageSubscriptionKey",
+      "MessageCorrelationKey",
+      "DecisionDefinitionKey",
+      "DecisionRequirementsKey",
+      "AuthorizationKey",
+      "MessageKey",
+      "DecisionInstanceKey",
+      "SignalKey"
+    ]
+  },
+  "findings": {
+    "missingFilterProperties": [
+      "DeploymentKeyFilterProperty",
+      "UserTaskKeyFilterProperty",
+      "FormKeyFilterProperty",
+      "IncidentKeyFilterProperty",
+      "MessageCorrelationKeyFilterProperty",
+      "DecisionDefinitionKeyFilterProperty",
+      "DecisionRequirementsKeyFilterProperty",
+      "AuthorizationKeyFilterProperty",
+      "MessageKeyFilterProperty",
+      "DecisionInstanceKeyFilterProperty",
+      "SignalKeyFilterProperty"
+    ],
+    "missingAdvancedFilters": [
+      "AdvancedDeploymentKeyFilter",
+      "AdvancedUserTaskKeyFilter",
+      "AdvancedFormKeyFilter",
+      "AdvancedIncidentKeyFilter",
+      "AdvancedMessageCorrelationKeyFilter",
+      "AdvancedDecisionDefinitionKeyFilter",
+      "AdvancedDecisionRequirementsKeyFilter",
+      "AdvancedAuthorizationKeyFilter",
+      "AdvancedMessageKeyFilter",
+      "AdvancedDecisionInstanceKeyFilter",
+      "AdvancedSignalKeyFilter"
+    ],
+    "inconsistentUsages": [
+      "DecisionInstanceFilter.decisionDefinitionKey",
+      "DecisionInstanceFilter.elementInstanceKey",
+      "BatchOperationFilter.batchOperationKey",
+      "BatchOperationItemFilter.batchOperationKey",
+      "BatchOperationItemFilter.processInstanceKey"
+    ]
+  },
+  "issues": [
+    {
+      "type": "missing-filter-property",
+      "severity": "error",
+      "message": "Missing filter property schema: DeploymentKeyFilterProperty",
+      "location": "components.schemas.DeploymentKeyFilterProperty",
+      "schemaName": "DeploymentKeyFilterProperty"
+    },
+    {
+      "type": "missing-filter-property",
+      "severity": "error",
+      "message": "Missing filter property schema: UserTaskKeyFilterProperty",
+      "location": "components.schemas.UserTaskKeyFilterProperty",
+      "schemaName": "UserTaskKeyFilterProperty"
+    },
+    {
+      "type": "missing-filter-property",
+      "severity": "error",
+      "message": "Missing filter property schema: FormKeyFilterProperty",
+      "location": "components.schemas.FormKeyFilterProperty",
+      "schemaName": "FormKeyFilterProperty"
+    },
+    {
+      "type": "missing-filter-property",
+      "severity": "error",
+      "message": "Missing filter property schema: IncidentKeyFilterProperty",
+      "location": "components.schemas.IncidentKeyFilterProperty",
+      "schemaName": "IncidentKeyFilterProperty"
+    },
+    {
+      "type": "missing-filter-property",
+      "severity": "error",
+      "message": "Missing filter property schema: MessageCorrelationKeyFilterProperty",
+      "location": "components.schemas.MessageCorrelationKeyFilterProperty",
+      "schemaName": "MessageCorrelationKeyFilterProperty"
+    },
+    {
+      "type": "missing-filter-property",
+      "severity": "error",
+      "message": "Missing filter property schema: DecisionDefinitionKeyFilterProperty",
+      "location": "components.schemas.DecisionDefinitionKeyFilterProperty",
+      "schemaName": "DecisionDefinitionKeyFilterProperty"
+    },
+    {
+      "type": "missing-filter-property",
+      "severity": "error",
+      "message": "Missing filter property schema: DecisionRequirementsKeyFilterProperty",
+      "location": "components.schemas.DecisionRequirementsKeyFilterProperty",
+      "schemaName": "DecisionRequirementsKeyFilterProperty"
+    },
+    {
+      "type": "missing-filter-property",
+      "severity": "error",
+      "message": "Missing filter property schema: AuthorizationKeyFilterProperty",
+      "location": "components.schemas.AuthorizationKeyFilterProperty",
+      "schemaName": "AuthorizationKeyFilterProperty"
+    },
+    {
+      "type": "missing-filter-property",
+      "severity": "error",
+      "message": "Missing filter property schema: MessageKeyFilterProperty",
+      "location": "components.schemas.MessageKeyFilterProperty",
+      "schemaName": "MessageKeyFilterProperty"
+    },
+    {
+      "type": "missing-filter-property",
+      "severity": "error",
+      "message": "Missing filter property schema: DecisionInstanceKeyFilterProperty",
+      "location": "components.schemas.DecisionInstanceKeyFilterProperty",
+      "schemaName": "DecisionInstanceKeyFilterProperty"
+    },
+    {
+      "type": "missing-filter-property",
+      "severity": "error",
+      "message": "Missing filter property schema: SignalKeyFilterProperty",
+      "location": "components.schemas.SignalKeyFilterProperty",
+      "schemaName": "SignalKeyFilterProperty"
+    },
+    {
+      "type": "missing-advanced-filter",
+      "severity": "error",
+      "message": "Missing advanced filter schema: AdvancedDeploymentKeyFilter",
+      "location": "components.schemas.AdvancedDeploymentKeyFilter",
+      "schemaName": "AdvancedDeploymentKeyFilter"
+    },
+    {
+      "type": "missing-advanced-filter",
+      "severity": "error",
+      "message": "Missing advanced filter schema: AdvancedUserTaskKeyFilter",
+      "location": "components.schemas.AdvancedUserTaskKeyFilter",
+      "schemaName": "AdvancedUserTaskKeyFilter"
+    },
+    {
+      "type": "missing-advanced-filter",
+      "severity": "error",
+      "message": "Missing advanced filter schema: AdvancedFormKeyFilter",
+      "location": "components.schemas.AdvancedFormKeyFilter",
+      "schemaName": "AdvancedFormKeyFilter"
+    },
+    {
+      "type": "missing-advanced-filter",
+      "severity": "error",
+      "message": "Missing advanced filter schema: AdvancedIncidentKeyFilter",
+      "location": "components.schemas.AdvancedIncidentKeyFilter",
+      "schemaName": "AdvancedIncidentKeyFilter"
+    },
+    {
+      "type": "missing-advanced-filter",
+      "severity": "error",
+      "message": "Missing advanced filter schema: AdvancedMessageCorrelationKeyFilter",
+      "location": "components.schemas.AdvancedMessageCorrelationKeyFilter",
+      "schemaName": "AdvancedMessageCorrelationKeyFilter"
+    },
+    {
+      "type": "missing-advanced-filter",
+      "severity": "error",
+      "message": "Missing advanced filter schema: AdvancedDecisionDefinitionKeyFilter",
+      "location": "components.schemas.AdvancedDecisionDefinitionKeyFilter",
+      "schemaName": "AdvancedDecisionDefinitionKeyFilter"
+    },
+    {
+      "type": "missing-advanced-filter",
+      "severity": "error",
+      "message": "Missing advanced filter schema: AdvancedDecisionRequirementsKeyFilter",
+      "location": "components.schemas.AdvancedDecisionRequirementsKeyFilter",
+      "schemaName": "AdvancedDecisionRequirementsKeyFilter"
+    },
+    {
+      "type": "missing-advanced-filter",
+      "severity": "error",
+      "message": "Missing advanced filter schema: AdvancedAuthorizationKeyFilter",
+      "location": "components.schemas.AdvancedAuthorizationKeyFilter",
+      "schemaName": "AdvancedAuthorizationKeyFilter"
+    },
+    {
+      "type": "missing-advanced-filter",
+      "severity": "error",
+      "message": "Missing advanced filter schema: AdvancedMessageKeyFilter",
+      "location": "components.schemas.AdvancedMessageKeyFilter",
+      "schemaName": "AdvancedMessageKeyFilter"
+    },
+    {
+      "type": "missing-advanced-filter",
+      "severity": "error",
+      "message": "Missing advanced filter schema: AdvancedDecisionInstanceKeyFilter",
+      "location": "components.schemas.AdvancedDecisionInstanceKeyFilter",
+      "schemaName": "AdvancedDecisionInstanceKeyFilter"
+    },
+    {
+      "type": "missing-advanced-filter",
+      "severity": "error",
+      "message": "Missing advanced filter schema: AdvancedSignalKeyFilter",
+      "location": "components.schemas.AdvancedSignalKeyFilter",
+      "schemaName": "AdvancedSignalKeyFilter"
+    },
+    {
+      "type": "inconsistent-key-usage",
+      "severity": "error",
+      "message": "Property decisionDefinitionKey in DecisionInstanceFilter uses BasicStringFilterProperty but should use semantic key type",
+      "location": "components.schemas.DecisionInstanceFilter.properties.decisionDefinitionKey",
+      "lineNumber": 2586,
+      "schemaName": "DecisionInstanceFilter",
+      "propertyName": "decisionDefinitionKey"
+    },
+    {
+      "type": "inconsistent-key-usage",
+      "severity": "error",
+      "message": "Property elementInstanceKey in DecisionInstanceFilter uses BasicStringFilterProperty but should use semantic key type",
+      "location": "components.schemas.DecisionInstanceFilter.properties.elementInstanceKey",
+      "lineNumber": 9979,
+      "schemaName": "DecisionInstanceFilter",
+      "propertyName": "elementInstanceKey"
+    },
+    {
+      "type": "inconsistent-key-usage",
+      "severity": "error",
+      "message": "Property batchOperationKey in BatchOperationFilter uses BasicStringFilterProperty but should use semantic key type",
+      "location": "components.schemas.BatchOperationFilter.properties.batchOperationKey",
+      "lineNumber": 10953,
+      "schemaName": "BatchOperationFilter",
+      "propertyName": "batchOperationKey"
+    },
+    {
+      "type": "inconsistent-key-usage",
+      "severity": "error",
+      "message": "Property batchOperationKey in BatchOperationItemFilter uses BasicStringFilterProperty but should use semantic key type",
+      "location": "components.schemas.BatchOperationItemFilter.properties.batchOperationKey",
+      "lineNumber": 11075,
+      "schemaName": "BatchOperationItemFilter",
+      "propertyName": "batchOperationKey"
+    },
+    {
+      "type": "inconsistent-key-usage",
+      "severity": "error",
+      "message": "Property processInstanceKey in BatchOperationItemFilter uses BasicStringFilterProperty but should use semantic key type",
+      "location": "components.schemas.BatchOperationItemFilter.properties.processInstanceKey",
+      "lineNumber": 11075,
+      "schemaName": "BatchOperationItemFilter",
+      "propertyName": "processInstanceKey"
+    },
+    {
+      "type": "orphaned-semantic-key",
+      "severity": "warning",
+      "message": "Semantic key DeploymentKey is defined but not used in any filter properties",
+      "location": "components.schemas.DeploymentKey",
+      "lineNumber": 5344,
+      "schemaName": "DeploymentKey"
+    },
+    {
+      "type": "orphaned-semantic-key",
+      "severity": "warning",
+      "message": "Semantic key UserTaskKey is defined but not used in any filter properties",
+      "location": "components.schemas.UserTaskKey",
+      "lineNumber": 5350,
+      "schemaName": "UserTaskKey"
+    },
+    {
+      "type": "orphaned-semantic-key",
+      "severity": "warning",
+      "message": "Semantic key FormKey is defined but not used in any filter properties",
+      "location": "components.schemas.FormKey",
+      "lineNumber": 5370,
+      "schemaName": "FormKey"
+    },
+    {
+      "type": "orphaned-semantic-key",
+      "severity": "warning",
+      "message": "Semantic key IncidentKey is defined but not used in any filter properties",
+      "location": "components.schemas.IncidentKey",
+      "lineNumber": 5397,
+      "schemaName": "IncidentKey"
+    },
+    {
+      "type": "orphaned-semantic-key",
+      "severity": "warning",
+      "message": "Semantic key MessageCorrelationKey is defined but not used in any filter properties",
+      "location": "components.schemas.MessageCorrelationKey",
+      "lineNumber": 5416,
+      "schemaName": "MessageCorrelationKey"
+    },
+    {
+      "type": "orphaned-semantic-key",
+      "severity": "warning",
+      "message": "Semantic key DecisionDefinitionKey is defined but not used in any filter properties",
+      "location": "components.schemas.DecisionDefinitionKey",
+      "lineNumber": 5423,
+      "schemaName": "DecisionDefinitionKey"
+    },
+    {
+      "type": "orphaned-semantic-key",
+      "severity": "warning",
+      "message": "Semantic key DecisionRequirementsKey is defined but not used in any filter properties",
+      "location": "components.schemas.DecisionRequirementsKey",
+      "lineNumber": 5430,
+      "schemaName": "DecisionRequirementsKey"
+    },
+    {
+      "type": "orphaned-semantic-key",
+      "severity": "warning",
+      "message": "Semantic key AuthorizationKey is defined but not used in any filter properties",
+      "location": "components.schemas.AuthorizationKey",
+      "lineNumber": 5437,
+      "schemaName": "AuthorizationKey"
+    },
+    {
+      "type": "orphaned-semantic-key",
+      "severity": "warning",
+      "message": "Semantic key MessageKey is defined but not used in any filter properties",
+      "location": "components.schemas.MessageKey",
+      "lineNumber": 5444,
+      "schemaName": "MessageKey"
+    },
+    {
+      "type": "orphaned-semantic-key",
+      "severity": "warning",
+      "message": "Semantic key DecisionInstanceKey is defined but not used in any filter properties",
+      "location": "components.schemas.DecisionInstanceKey",
+      "lineNumber": 5450,
+      "schemaName": "DecisionInstanceKey"
+    },
+    {
+      "type": "orphaned-semantic-key",
+      "severity": "warning",
+      "message": "Semantic key SignalKey is defined but not used in any filter properties",
+      "location": "components.schemas.SignalKey",
+      "lineNumber": 5457,
+      "schemaName": "SignalKey"
+    }
+  ]
+}

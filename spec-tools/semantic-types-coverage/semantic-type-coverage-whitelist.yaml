@@ -1,0 +1,50 @@
+# semantic-type-coverage-whitelist.yaml
+# Configuration file for semantic type coverage validation tool
+# 
+# This file defines exceptions and allowed usages for semantic type validation.
+# Use this to whitelist legitimate cases where semantic types are not used.
+
+allowed_basic_string_usage:
+  - "tenantId"          # Not a semantic key type - represents tenant identifier
+  - "batchOperationId"  # Different from batchOperationKey - legacy ID format
+  - "processDefinitionId" # ID vs Key distinction - IDs are strings, Keys are semantic
+  - "elementId"         # Different from elementInstanceKey - element definition ID
+  - "decisionDefinitionId" # ID vs Key distinction
+  - "decisionInstanceId"  # Instance ID vs Key distinction
+  - "processInstanceId"   # Instance ID for legacy compatibility
+
+legacy_compatibility_exceptions:
+  # - "DecisionInstanceFilter.decisionDefinitionKey"  # Known legacy usage - to be migrated
+  # - "DecisionInstanceFilter.elementInstanceKey"     # Known legacy usage - to be migrated
+  # - "BatchOperationFilter.batchOperationKey"        # Complex key type - needs semantic enhancement
+  # - "BatchOperationItemFilter.batchOperationKey"    # Complex key type - needs semantic enhancement
+  # - "BatchOperationItemFilter.itemKey"              # Generic item key - complex typing needed
+  # - "BatchOperationItemFilter.processInstanceKey"   # Should be semantic but missing
+
+missing_semantic_types_by_design:
+  - "UserTaskStateFilterProperty" # Uses ENUM
+  - "ResourceKey"       # Composite type using oneOf, not pure CamundaKey descendant
+  - "BatchOperationKey" # Uses oneOf with CamundaKey and UUID format
+  - "VariableValueFilterProperty" # Not semantic keyed
+  - "IntegerFilterProperty" # For obvious reasons
+  - "StringFilterProperty" # ibid
+  - "LikeFilterProperty" # arbitrary string match
+  - "ProcessInstanceStateFilterProperty" # ENUM
+  - "ElementInstanceStateFilterProperty" # ENUM
+  - "DateTimeFilterProperty" # Date time
+  - "MessageSubscriptionTypeFilterProperty" #ENUM
+  - "JobStateFilterProperty" #ENUM
+  - "JobKindFilterProperty" # ENUM
+  - "JobListenerEventTypeFilterProperty" #ENUM
+  - "BatchOperationTypeFilterProperty" #ENUM
+  - "BatchOperationStateFilterProperty" #ENUM
+  - "BatchOperationItemStateFilterProperty" #ENUM
+
+path_parameter_exceptions:
+  
+
+# Planned enhancements - types that need semantic filter properties
+pending_semantic_enhancements:
+  - "DecisionDefinitionKey"     # Needs DecisionDefinitionKeyFilterProperty
+  - "DecisionInstanceKey"       # Needs DecisionInstanceKeyFilterProperty
+  - "BatchOperationKey"         # Needs BatchOperationKeyFilterProperty (if unified)

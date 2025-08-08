@@ -1,0 +1,31 @@
+{
+  "name": "semantic-types-coverage",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "bin": {
+    "semantic-types-coverage": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "npm run build && node dist/index.js --verbose --whitelist semantic-type-coverage-whitelist.yaml",
+    "validate": "npm run test",
+    "clean": "rm -rf dist/"
+  },
+  "keywords": ["openapi", "semantic-types", "validation"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "description": "Tool to validate semantic type coverage in OpenAPI specifications",
+  "dependencies": {
+    "yaml": "^2.3.4",
+    "commander": "^11.1.0",
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0"
+  }
+}
