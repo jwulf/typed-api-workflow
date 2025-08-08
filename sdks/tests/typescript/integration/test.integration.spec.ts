@@ -1,5 +1,4 @@
-import {ProcessInstanceApi, ResourceApi, WithEventuality} from '../../generated/typescript'
-import { ProcessInstanceSearchQuery } from '../../generated/typescript/model/processInstanceSearchQuery'
+import {ProcessInstanceApi, ResourceApi, WithEventuality, ProcessInstanceSearchQuery} from '../../../generated/typescript/'
 import * as fs from 'fs'
 import * as path from 'path'
 

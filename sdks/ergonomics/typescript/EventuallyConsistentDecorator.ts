@@ -24,9 +24,7 @@ export function eventuallyconsistent<T extends (...args: any[]) => any>(
   target: any, 
   propertyKey: string, 
   descriptor: TypedPropertyDescriptor<T>
-): any {
-  console.log('Adding eventually to', target.constructor.name, propertyKey);
-  
+): any {  
   const originalMethod = descriptor.value;
   
   if (typeof originalMethod !== 'function') {

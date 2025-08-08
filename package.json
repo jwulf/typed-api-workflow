@@ -30,7 +30,8 @@
     "postbuild:sdks": "echo '✅ SDKs generated in ./sdks/generated' && npm run sdks:list",
     "watch:spec": "nodemon --watch rest-api.domain.yaml --exec 'npm run build:sdks'",
     "test:sdks": "npm run sdks:install && cd sdks/tools && npm run test",
-    "test:typescript": "cd sdks/tests/typescript && npm test"
+    "test:typescript": "cd sdks/tests/typescript && npm test",
+    "test:ts:integration": "cd sdks/tests/typescript && npx jest integration"
   },
   "keywords": [],
   "author": "",

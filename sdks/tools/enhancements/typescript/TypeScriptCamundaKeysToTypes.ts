@@ -367,13 +367,28 @@ export class TypeScriptCamundaKeysToTypes {
   }
 
   updateTypeScriptIndex(sdkPath: string) {
-    const indexPath = path.join(sdkPath, 'index.ts');
-    if (fs.existsSync(indexPath)) {
-      let content = fs.readFileSync(indexPath, 'utf8');
-      if (!content.includes('semanticTypes')) {
-        content += '\nexport * from "./semanticTypes";\n';
-        fs.writeFileSync(indexPath, content);
-        console.log(`  ✓ Updated index.ts`);
+    // Check for both index.ts and api.ts (OpenAPI Generator uses api.ts)
+    const possibleEntryFiles = ['index.ts', 'api.ts'];
+    
+    for (const entryFile of possibleEntryFiles) {
+      const entryPath = path.join(sdkPath, entryFile);
+      if (fs.existsSync(entryPath)) {
+        let content = fs.readFileSync(entryPath, 'utf8');
+        if (!content.includes('semanticTypes')) {
+          // Add semantic types export
+          const exportLine = '\n// Semantic types for nominal typing\nexport * from \'./semanticTypes\';\n';
+          
+          // For api.ts, insert after model exports but before eventuality enhancements
+          if (entryFile === 'api.ts' && content.includes('// Eventuality enhancements')) {
+            content = content.replace('// Eventuality enhancements', `${exportLine}\n// Eventuality enhancements`);
+          } else {
+            // For index.ts or if no eventuality section found, append at the end
+            content += exportLine;
+          }
+          
+          fs.writeFileSync(entryPath, content);
+          console.log(`  ✓ Updated ${entryFile} to export semantic types`);
+        }
       }
     }
   }
