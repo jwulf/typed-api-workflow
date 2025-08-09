@@ -6,9 +6,7 @@ import { SdkDefinitions } from '../../sdks';
 
 /**
  * Fixes OneOf union types that were incorrectly generated as separate classes
- * due to OpenAPI Generator bug #20304: allOf + $ref + sibling properties issue.
- * 
- * See: https://github.com/OpenAPITools/openapi-generator/issues/20304
+ * due to an OpenAPI Generator issue (it affects multiple generators, including docs - see TODO.md in the repo root).
  * 
  * The bug causes oneOf unions like:
  * oneOf:
@@ -21,7 +19,7 @@ import { SdkDefinitions } from '../../sdks';
  * This enhancer detects the incorrectly generated classes by their naming pattern and 
  * cross-references with the original YAML specification to restore the correct union types.
  * 
- * TODO: Remove this enhancer when OpenAPI Generator bug #20304 is fixed and released.
+ * TODO: Remove this enhancer when OpenAPI Generator is fixed.
  */
 export class TypeScriptOneOfUnionEnhancer extends SdkEnhancementStrategy {
     name = 'typescript-oneOf-union-enhancer';
