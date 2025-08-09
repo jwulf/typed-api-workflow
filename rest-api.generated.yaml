@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-08-08 12:30:00
+# File generated at: 2025-08-09 18:30:38
 
 ---
 openapi: "3.0.3"
@@ -5848,14 +5848,17 @@ components:
           description: "Whether the value is truncated or not."
           type: "boolean"
         variableKey:
-          description: "VariableKey property with advanced search capabilities."
-          type: "string"
+          description: "The key for this variable."
+          allOf:
+          - $ref: "#/components/schemas/StringFilterProperty"
         scopeKey:
-          description: "ScopeKey property with advanced search capabilities."
-          type: "string"
+          description: "The key of the scope of this variable."
+          allOf:
+          - $ref: "#/components/schemas/StringFilterProperty"
         processInstanceKey:
-          description: "ProcessInstanceKey property with advanced search capabilities."
-          type: "string"
+          description: "The key of the process instance of this variable."
+          allOf:
+          - $ref: "#/components/schemas/BasicStringFilterProperty"
     VariableSearchQueryResult:
       description: "Variable search query response."
       type: "object"
@@ -6281,179 +6284,6 @@ components:
         title: "Exact match"
         description: "Matches the value exactly."
       - $ref: "#/components/schemas/AdvancedDateTimeFilter"
-    AdvancedProcessDefinitionKeyFilter:
-      title: "Advanced filter"
-      description: "Advanced ProcessDefinitionKey filter."
-      type: "object"
-      properties:
-        $eq:
-          type: "string"
-        $neq:
-          type: "string"
-        $exists:
-          description: "Checks if the current property exists."
-          type: "boolean"
-        $in:
-          type: "array"
-          items:
-            type: "string"
-        $notIn:
-          type: "array"
-          items:
-            type: "string"
-    AdvancedProcessInstanceKeyFilter:
-      title: "Advanced filter"
-      description: "Advanced ProcessInstanceKey filter."
-      type: "object"
-      properties:
-        $eq:
-          type: "string"
-        $neq:
-          type: "string"
-        $exists:
-          description: "Checks if the current property exists."
-          type: "boolean"
-        $in:
-          description: "Checks if the property matches any of the provided values."
-          type: "array"
-          items:
-            type: "string"
-        $notIn:
-          description: "Checks if the property matches none of the provided values."
-          type: "array"
-          items:
-            type: "string"
-    AdvancedElementInstanceKeyFilter:
-      title: "Advanced filter"
-      description: "Advanced ElementInstanceKey filter."
-      type: "object"
-      properties:
-        $eq:
-          type: "string"
-        $neq:
-          type: "string"
-        $exists:
-          description: "Checks if the current property exists."
-          type: "boolean"
-        $in:
-          description: "Checks if the property matches any of the provided values."
-          type: "array"
-          items:
-            type: "string"
-        $notIn:
-          description: "Checks if the property matches none of the provided values."
-          type: "array"
-          items:
-            type: "string"
-    ProcessDefinitionKeyFilterProperty:
-      type: "string"
-      description: "ProcessDefinitionKey property with advanced search capabilities."
-    ProcessInstanceKeyFilterProperty:
-      type: "string"
-      description: "ProcessInstanceKey property with advanced search capabilities."
-    ElementInstanceKeyFilterProperty:
-      type: "string"
-      description: "ElementInstanceKey property with advanced search capabilities."
-    AdvancedVariableKeyFilter:
-      title: "Advanced filter"
-      description: "Advanced VariableKey filter."
-      type: "object"
-      properties:
-        $eq:
-          type: "string"
-        $neq:
-          type: "string"
-        $exists:
-          description: "Checks if the current property exists."
-          type: "boolean"
-        $in:
-          description: "Checks if the property matches any of the provided values."
-          type: "array"
-          items:
-            type: "string"
-        $notIn:
-          description: "Checks if the property matches none of the provided values."
-          type: "array"
-          items:
-            type: "string"
-    AdvancedScopeKeyFilter:
-      title: "Advanced filter"
-      description: "Advanced ScopeKey filter."
-      type: "object"
-      properties:
-        $eq:
-          type: "string"
-        $neq:
-          type: "string"
-        $exists:
-          description: "Checks if the current property exists."
-          type: "boolean"
-        $in:
-          description: "Checks if the property matches any of the provided values."
-          type: "array"
-          items:
-            type: "string"
-        $notIn:
-          description: "Checks if the property matches none of the provided values."
-          type: "array"
-          items:
-            type: "string"
-    VariableKeyFilterProperty:
-      type: "string"
-      description: "VariableKey property with advanced search capabilities."
-    ScopeKeyFilterProperty:
-      type: "string"
-      description: "ScopeKey property with advanced search capabilities."
-    AdvancedMessageSubscriptionKeyFilter:
-      title: "Advanced filter"
-      description: "Advanced MessageSubscriptionKey filter."
-      type: "object"
-      properties:
-        $eq:
-          type: "string"
-        $neq:
-          type: "string"
-        $exists:
-          description: "Checks if the current property exists."
-          type: "boolean"
-        $in:
-          description: "Checks if the property matches any of the provided values."
-          type: "array"
-          items:
-            type: "string"
-        $notIn:
-          description: "Checks if the property matches none of the provided values."
-          type: "array"
-          items:
-            type: "string"
-    MessageSubscriptionKeyFilterProperty:
-      type: "string"
-      description: "MessageSubscriptionKey property with advanced search capabilities."
-    AdvancedJobKeyFilter:
-      title: "Advanced filter"
-      description: "Advanced JobKey filter."
-      type: "object"
-      properties:
-        $eq:
-          type: "string"
-        $neq:
-          type: "string"
-        $exists:
-          description: "Checks if the current property exists."
-          type: "boolean"
-        $in:
-          description: "Checks if the property matches any of the provided values."
-          type: "array"
-          items:
-            type: "string"
-        $notIn:
-          description: "Checks if the property matches none of the provided values."
-          type: "array"
-          items:
-            type: "string"
-    JobKeyFilterProperty:
-      type: "string"
-      description: "JobKey property with advanced search capabilities."
     BaseProcessInstanceFilterFields:
       description: "Base process instance search filter."
       type: "object"
@@ -6483,14 +6313,17 @@ components:
           items:
             $ref: "#/components/schemas/VariableValueFilterProperty"
         processInstanceKey:
-          description: "ProcessInstanceKey property with advanced search capabilities."
-          type: "string"
+          description: "The key of this process instance."
+          allOf:
+          - $ref: "#/components/schemas/BasicStringFilterProperty"
         parentProcessInstanceKey:
-          description: "ProcessInstanceKey property with advanced search capabilities."
-          type: "string"
+          description: "The parent process instance key."
+          allOf:
+          - $ref: "#/components/schemas/BasicStringFilterProperty"
         parentElementInstanceKey:
-          description: "ElementInstanceKey property with advanced search capabilities."
-          type: "string"
+          description: "The parent element instance key."
+          allOf:
+          - $ref: "#/components/schemas/BasicStringFilterProperty"
         batchOperationId:
           description: "The batch operation ID."
           allOf:
@@ -6570,8 +6403,9 @@ components:
           allOf:
           - $ref: "#/components/schemas/StringFilterProperty"
         processDefinitionKey:
-          description: "ProcessDefinitionKey property with advanced search capabilities."
-          type: "string"
+          description: "The process definition key."
+          allOf:
+          - $ref: "#/components/schemas/BasicStringFilterProperty"
     ProcessInstanceFilter:
       description: "Process instance search filter."
       allOf:
@@ -7260,24 +7094,24 @@ components:
       type: "object"
       properties:
         messageSubscriptionKey:
-          description: "MessageSubscriptionKey property with advanced search capabilities."
+          description: "Advanced MessageSubscriptionKey filter."
           type: "string"
         processDefinitionId:
           description: "The process definition ID associated with this message subscription."
           allOf:
           - $ref: "#/components/schemas/StringFilterProperty"
         processDefinitionKey:
-          description: "ProcessDefinitionKey property with advanced search capabilities."
+          description: "Advanced ProcessDefinitionKey filter."
           type: "string"
         processInstanceKey:
-          description: "ProcessInstanceKey property with advanced search capabilities."
+          description: "Advanced ProcessInstanceKey filter."
           type: "string"
         elementId:
           description: "The element ID associated with this message subscription."
           allOf:
           - $ref: "#/components/schemas/StringFilterProperty"
         elementInstanceKey:
-          description: "ElementInstanceKey property with advanced search capabilities."
+          description: "Advanced ElementInstanceKey filter."
           type: "string"
         messageSubscriptionType:
           description: "The message subscription type."
@@ -9113,8 +8947,9 @@ components:
           allOf:
           - $ref: "#/components/schemas/StringFilterProperty"
         elementInstanceKey:
-          description: "ElementInstanceKey property with advanced search capabilities."
-          type: "string"
+          description: "The element instance key associated with the job."
+          allOf:
+          - $ref: "#/components/schemas/BasicStringFilterProperty"
         endTime:
           description: "When the job ended."
           allOf:
@@ -9135,8 +8970,9 @@ components:
           description: "Indicates whether the user task listener denies the work."
           type: "boolean"
         jobKey:
-          description: "JobKey property with advanced search capabilities."
-          type: "string"
+          description: "The key, a unique identifier for the job."
+          allOf:
+          - $ref: "#/components/schemas/StringFilterProperty"
         kind:
           description: "The kind of the job."
           allOf:
@@ -9150,11 +8986,13 @@ components:
           allOf:
           - $ref: "#/components/schemas/StringFilterProperty"
         processDefinitionKey:
-          description: "ProcessDefinitionKey property with advanced search capabilities."
-          type: "string"
+          description: "The process definition key associated with the job."
+          allOf:
+          - $ref: "#/components/schemas/BasicStringFilterProperty"
         processInstanceKey:
-          description: "ProcessInstanceKey property with advanced search capabilities."
-          type: "string"
+          description: "The process instance key associated with the job."
+          allOf:
+          - $ref: "#/components/schemas/BasicStringFilterProperty"
         retries:
           description: "The number of retries left."
           allOf:
