@@ -230,7 +230,8 @@ export class TypeScriptOneOfUnionEnhancer extends SdkEnhancementStrategy {
     }
 
     /**
-     * Phase 3: Verify these predicted classes actually exist in the generated SDK.
+     * Phase 3: Verify these predicted classes actually exist in the generated SDK, 
+     * or check if the oneOf issue is embedded directly in parent classes.
      */
     private validatePredictedClasses(sdkPath: string, predictions: PredictedGeneratedClass[]): OneOfIssue[] {
         const confirmedIssues: OneOfIssue[] = [];
@@ -275,10 +276,82 @@ export class TypeScriptOneOfUnionEnhancer extends SdkEnhancementStrategy {
                 }
             } else {
                 console.log(`    ℹ️  Predicted class not found (might be correctly generated): ${prediction.predictedClassName}`);
+                
+                // Check if the oneOf issue is embedded directly in the parent class
+                const embeddedIssue = this.checkEmbeddedOneOfIssue(sdkPath, prediction.originalPattern);
+                if (embeddedIssue) {
+                    confirmedIssues.push(embeddedIssue);
+                }
             }
         }
         
         return confirmedIssues;
+    }
+
+    /**
+     * Check if a oneOf issue is embedded directly in the parent class file
+     * instead of being generated as a separate class.
+     */
+    private checkEmbeddedOneOfIssue(sdkPath: string, pattern: ProblematicOneOfPattern): OneOfIssue | null {
+        const modelsDir = path.join(sdkPath, 'model');
+        const parentFileName = this.camelCase(pattern.parentSchemaName);
+        const parentFilePath = path.join(modelsDir, `${parentFileName}.ts`);
+        
+        if (!fs.existsSync(parentFilePath)) {
+            return null;
+        }
+        
+        const content = fs.readFileSync(parentFilePath, 'utf8');
+        
+        // Look for the property with incorrect oneOf typing
+        // We need to find something like: 'processDefinitionKey'?: AdvancedProcessDefinitionKeyFilter | null;
+        // but it should be: 'processDefinitionKey'?: ProcessDefinitionKey | AdvancedProcessDefinitionKeyFilter;
+        
+        const semanticTypeName = this.extractSemanticTypeFromPattern(pattern);
+        if (!semanticTypeName) return null;
+        
+        const advancedFilterName = `Advanced${semanticTypeName}Filter`;
+        
+        // Check if the property exists with only the advanced filter type (missing the semantic type)
+        const propertyRegex = new RegExp(`'${pattern.propertyName}'\\?:\\s*${advancedFilterName}(?:\\s*\\|\\s*null)?;`);
+        const propertyMatch = content.match(propertyRegex);
+        
+        if (propertyMatch) {
+            console.log(`    ✅ Confirmed embedded issue: ${pattern.parentSchemaName}.${pattern.propertyName} has wrong type (missing ${semanticTypeName})`);
+            
+            return {
+                className: pattern.parentSchemaName,
+                filePath: parentFilePath,
+                content,
+                pattern: {
+                    className: pattern.parentSchemaName,
+                    parentClassName: pattern.parentSchemaName,
+                    propertyName: pattern.propertyName
+                },
+                originalSpec: {
+                    propertyName: pattern.propertyName,
+                    unionTypes: pattern.unionTypes,
+                    description: pattern.description
+                },
+                isEmbedded: true  // Flag to indicate this is an embedded issue
+            };
+        }
+        
+        return null;
+    }
+
+    /**
+     * Extract the semantic type name from a oneOf pattern.
+     * E.g., ProcessDefinitionKey from unionTypes like ["ProcessDefinitionKey", "AdvancedProcessDefinitionKeyFilter"]
+     */
+    private extractSemanticTypeFromPattern(pattern: ProblematicOneOfPattern): string | null {
+        // Look for the semantic type (should not contain "Advanced" and "Filter")
+        for (const unionType of pattern.unionTypes) {
+            if (!unionType.includes('Advanced') && !unionType.includes('Filter')) {
+                return unionType;
+            }
+        }
+        return null;
     }
 
     /**
@@ -298,14 +371,103 @@ export class TypeScriptOneOfUnionEnhancer extends SdkEnhancementStrategy {
     private fixOneOfIssue(sdkPath: string, issue: OneOfIssue): void {
         console.log(`    🔧 Fixing ${issue.className} -> ${issue.originalSpec.unionTypes.join(' | ')}`);
         
-        // Delete the problematic file
-        fs.unlinkSync(issue.filePath);
+        if (issue.isEmbedded) {
+            // For embedded issues, fix the property type directly in the parent class
+            this.fixEmbeddedOneOfProperty(issue);
+        } else {
+            // For separate class issues, delete the problematic file and update imports
+            fs.unlinkSync(issue.filePath);
+            this.removeFromModelsExports(sdkPath, issue.className);
+            this.updateImports(sdkPath, issue);
+            
+            // Also fix any parent files that reference this deleted class
+            this.fixParentReferencesToDeletedClass(sdkPath, issue);
+        }
+    }
+
+    /**
+     * Fix a oneOf issue that's embedded directly in a parent class file.
+     */
+    private fixEmbeddedOneOfProperty(issue: OneOfIssue): void {
+        const semanticTypeName = this.extractSemanticTypeFromSpec(issue.originalSpec);
+        if (!semanticTypeName) {
+            console.log(`    ⚠️  Could not determine semantic type for ${issue.pattern.propertyName}`);
+            return;
+        }
         
-        // Remove the export from models.ts
-        this.removeFromModelsExports(sdkPath, issue.className);
+        const advancedFilterName = `Advanced${semanticTypeName}Filter`;
+        const correctUnionType = `${semanticTypeName} | ${advancedFilterName}`;
         
-        // Update any files that import this type to use the union type directly
-        this.updateImports(sdkPath, issue);
+        let content = issue.content;
+        
+        // Find and replace the property type
+        // Pattern: 'propertyName'?: AdvancedTypeFilter | null;
+        // Replace with: 'propertyName'?: SemanticType | AdvancedTypeFilter;
+        const propertyRegex = new RegExp(
+            `('${issue.pattern.propertyName}'\\?:\\s*)${advancedFilterName}(\\s*\\|\\s*null)?;`,
+            'g'
+        );
+        
+        content = content.replace(propertyRegex, `$1${correctUnionType};`);
+        
+        // Also ensure the semantic type is imported
+        content = this.addSemanticTypeImport(content, semanticTypeName);
+        
+        fs.writeFileSync(issue.filePath, content);
+        console.log(`    ✓ Fixed embedded property ${issue.pattern.propertyName} in ${issue.className}`);
+    }
+
+    /**
+     * Extract semantic type name from the original spec unionTypes.
+     */
+    private extractSemanticTypeFromSpec(spec: OneOfSpec): string | null {
+        for (const unionType of spec.unionTypes) {
+            if (!unionType.includes('Advanced') && !unionType.includes('Filter')) {
+                return unionType;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Fix parent files that reference a deleted problematic class.
+     * This handles cases where BaseProcessInstanceFilterFieldsProcessInstanceKey class is deleted
+     * but ProcessInstanceFilter still references it in property types.
+     */
+    private fixParentReferencesToDeletedClass(sdkPath: string, issue: OneOfIssue): void {
+        const modelsDir = path.join(sdkPath, 'model');
+        const files = fs.readdirSync(modelsDir).filter(f => f.endsWith('.ts'));
+        
+        const semanticTypeName = this.extractSemanticTypeFromSpec(issue.originalSpec);
+        if (!semanticTypeName) {
+            console.log(`    ⚠️  Could not determine semantic type for deleted class ${issue.className}`);
+            return;
+        }
+        
+        const advancedFilterName = `Advanced${semanticTypeName}Filter`;
+        const correctUnionType = `${semanticTypeName} | ${advancedFilterName}`;
+        
+        for (const file of files) {
+            const filePath = path.join(modelsDir, file);
+            let content = fs.readFileSync(filePath, 'utf8');
+            
+            // Look for property types that reference the deleted class
+            const propertyRegex = new RegExp(`('[^']*'\\?:\\s*)${issue.className}(\\s*;)`, 'g');
+            const hasReferences = propertyRegex.test(content);
+            
+            if (hasReferences) {
+                // Reset regex for replacement
+                const replaceRegex = new RegExp(`('[^']*'\\?:\\s*)${issue.className}(\\s*;)`, 'g');
+                content = content.replace(replaceRegex, `$1${correctUnionType}$2`);
+                
+                // Add necessary imports
+                content = this.addSemanticTypeImport(content, semanticTypeName);
+                content = this.addAdvancedFilterImport(content, advancedFilterName);
+                
+                fs.writeFileSync(filePath, content);
+                console.log(`    ✓ Fixed references to deleted class ${issue.className} in ${file}`);
+            }
+        }
     }
 
     private removeFromModelsExports(sdkPath: string, className: string): void {
@@ -337,6 +499,20 @@ export class TypeScriptOneOfUnionEnhancer extends SdkEnhancementStrategy {
                 content = content.replace(importRegex, '');
                 hasChanges = true;
             }
+            
+            // Also remove specific import of the deleted class from any import statement
+            const classImportRegex = new RegExp(`import\\s*{([^}]*)}\\s*from\\s*'[^']*';`, 'g');
+            content = content.replace(classImportRegex, (match, imports) => {
+                const importList = imports.split(',').map((imp: string) => imp.trim()).filter((imp: string) => imp !== issue.className);
+                if (importList.length === 0) {
+                    hasChanges = true;
+                    return ''; // Remove the entire import if no imports left
+                } else if (importList.length !== imports.split(',').length) {
+                    hasChanges = true;
+                    return match.replace(`{${imports}}`, `{${importList.join(', ')}}`);
+                }
+                return match;
+            });
             
             // For models.ts, also remove the export entry
             if (file === 'models.ts') {
@@ -636,4 +812,5 @@ interface OneOfIssue {
     content: string;
     pattern: OneOfBugPattern;
     originalSpec: OneOfSpec;
+    isEmbedded?: boolean;  // True if the issue is embedded in the parent class rather than a separate file
 }

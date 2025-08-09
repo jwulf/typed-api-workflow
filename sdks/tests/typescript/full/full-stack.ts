@@ -2,7 +2,7 @@
 import './tracing';
 import { tracer } from './tracing';
 
-import {ProcessInstanceApi, ResourceApi, WithEventuality, ProcessInstanceSearchQuery, ObjectSerializer, WithTracing} from '../../../generated/typescript/dist/api'
+import {ProcessInstanceApi, ResourceApi, WithEventuality, ProcessInstanceSearchQuery, ObjectSerializer, WithTracing, ProcessDefinitionKey} from '../../../generated/typescript'
 import * as fs from 'fs'
 import * as path from 'path'
 import { trace, SpanStatusCode } from '@opentelemetry/api';
@@ -40,9 +40,9 @@ async function main() {
         if (!deployment.deployments || deployment.deployments.length === 0) {
             throw new Error('No deployments found in response');
         }
-        
-        const processDefinition = deployment.deployments[0].processDefinition
-        
+
+        const processDefinition = deployment.deployments[0].processDefinition!;
+
         if (!processDefinition) {
             throw new Error('No process definition found in deployment');
         }
@@ -60,12 +60,13 @@ async function main() {
     }
     
     console.log(`Created process instance: ${processInstance.processInstanceKey}`)
-    
+
+    const processDefinitionKey: ProcessDefinitionKey = processDefinition.processDefinitionKey!;
     // Search for the process instance we just created
     console.log('Searching for process instances...')
     const searchQuery: ProcessInstanceSearchQuery = {
         filter: {
-            processDefinitionKey: processDefinition.processDefinitionKey
+            processDefinitionKey: processDefinitionKey
         }
     }
 

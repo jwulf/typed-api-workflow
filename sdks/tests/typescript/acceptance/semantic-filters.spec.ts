@@ -34,3 +34,13 @@ test('Acceptance criteria for AdvancedFilters typing', () => {
     expect(case1).toBeDefined()
     expect(case2).toBeDefined()
 })
+
+test('Additional acceptance criteria for AdvancedFilters typing', () => {
+    const processDefinitionKey: ProcessDefinitionKey = ProcessDefinitionKey.create("234321234");
+    const searchQuery: ProcessInstanceSearchQuery = {
+        filter: {
+            processDefinitionKey: processDefinitionKey
+        }
+    }
+    expect(searchQuery).toBeDefined()
+})
