@@ -1,9 +1,4 @@
-import { UserTaskApi, ProcessInstanceApi, ClusterApi,  } from '../../../generated/typescript'
-import { SearchQueryPageRequest } from '../../../generated/typescript/'
-import { OffsetPagination } from '../../../generated/typescript'
-import { CursorForwardPagination } from '../../../generated/typescript'
-import { CursorBackwardPagination } from '../../../generated/typescript'
-import { WithEventuality } from '../../../generated/typescript'
+import { UserTaskApi, ProcessInstanceApi, ClusterApi, CursorBackwardPagination, CursorForwardPagination, OffsetPagination, SearchQueryPageRequest, WithEventuality,  } from '../../../generated/typescript'
 
 test('it works!', () => {
     expect(true).toBe(true);

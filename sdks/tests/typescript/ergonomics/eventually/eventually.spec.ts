@@ -8,4 +8,3 @@ test('Eventually consistent decorator works', async () => {
     expect(test.count).toBe(2)
     expect(res.body.items[0]).toBe('my-parameter')
 })
-
