@@ -5,7 +5,7 @@ On requests with advanced filters, the simple strings are not inheriting the sem
 
 The same issue manifests in the TypeScript SDK. 
 
-This is a limitation in OpenAPI generator at a core level. We should contribute the fix to this upstream because it currently impacts both docs and SDKs, and will impact code gen of the controllers and Java client. 
+This is a limitation in OpenAPI generator at a core level (the TS SDK and docs use different generators, so it must be in a lower shared dependency, and not package-specific). We should contribute the fix to this upstream because it currently impacts both docs and SDKs, and will impact code gen of the controllers and Java client. 
 
 In the meantime, we are working around this by patching the SDK generation in post-processing, reading the input specification to identify instances of the schema that triggers the bug, and then restoring the lost semantic typing in the generated SDK. 
 
