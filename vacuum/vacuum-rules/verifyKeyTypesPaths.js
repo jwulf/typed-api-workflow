@@ -7,6 +7,7 @@ function runRule(input) {
   } = input;
 
   if (/Key$/.test(name) && type !== "string") {
+    console.log(`${name} parameter must be of type string`);
     return [
       {
         message: `\`${name}\` parameter must be of type \`string\`.`,

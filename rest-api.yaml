@@ -7384,6 +7384,7 @@ components:
         - USER
         - ROLE
         - USAGE_METRIC
+        - DOCUMENT
     OwnerTypeEnum:
       description: The type of the owner of permissions.
       enum:
@@ -10606,7 +10607,6 @@ components:
         - COMPLETED
         - PARTIALLY_COMPLETED
         - CANCELED
-        - INCOMPLETED
     BatchOperationItemSearchQuerySortRequest:
       type: object
       properties:
@@ -10724,7 +10724,6 @@ components:
             - COMPLETED
             - PARTIALLY_COMPLETED
             - CANCELED
-            - INCOMPLETED
         batchOperationType:
           $ref: "#/components/schemas/BatchOperationTypeEnum"
         startDate:

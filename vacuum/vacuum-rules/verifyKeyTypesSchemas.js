@@ -10,6 +10,7 @@ function runRule(input) {
       );
     })
     .map(([name]) => {
+      console.log(`\`${name}\` property must be of type \`string\` or \`BasicStringFilterProperty\`.`);
       return {
         message: `\`${name}\` property must be of type \`string\` or \`BasicStringFilterProperty\`.`,
       };

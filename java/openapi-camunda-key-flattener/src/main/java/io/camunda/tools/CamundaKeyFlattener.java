@@ -49,42 +49,32 @@ public class CamundaKeyFlattener {
             for (Iterator<String> it = schemas.fieldNames(); it.hasNext(); ) {
                 String name = it.next();
                 if (isDescendantOfCamundaKey(name, schemas, new HashSet<>())) {
-                    // Exclude filter properties from being treated as CamundaKey descendants
-                    // They will be handled separately in the filter transformation
-                    if (!isFilterPropertySchema(name)) {
-                        camundaKeyDescendants.add(name);
-                    } else {
-                        System.out.println("Excluding filter property schema: " + name);
-                    }
+                    camundaKeyDescendants.add(name);
                 }
             }
         }
 
         System.out.println("Found CamundaKey descendants: " + camundaKeyDescendants);
 
-        // Step 2: Transform filter properties BEFORE flattening semantic types
-        transformFilterProperties(root, camundaKeyDescendants, schemas);
-
-        // Step 3: Flatten union schemas marked with x-polymorphic-schema
+        // Step 2: Flatten union schemas marked with x-polymorphic-schema
         flattenUnionSchemas(schemas);
 
-        // Step 4: Rewrite descendants as simple string type
+        // Step 3: Rewrite descendants as simple string type
         for (String keyName : camundaKeyDescendants) {
             ObjectNode schemaNode = (ObjectNode) schemas.get(keyName);
             retainDescriptionAndReplaceWithString(schemaNode);
         }
 
-        // Step 5: Replace references and types throughout the spec
-        Set<String> removedFilterSchemas = getRemovedFilterSchemaNames(schemas);
-        replaceRefs(root, camundaKeyDescendants, removedFilterSchemas, root.at("/components/schemas"));
+        // Step 4: Replace references and types throughout the spec
+        replaceRefs(root, camundaKeyDescendants, new HashSet<>(), root.at("/components/schemas"));
 
-        // Step 6: Clean up orphaned filter schemas
-        cleanupOrphanedFilterSchemas(schemas, camundaKeyDescendants);
+        // Step 4.5: Fix Advanced Key Filter descriptions
+        fixAdvancedKeyFilterDescriptions(root.at("/components/schemas"));
 
-        // Step 7: Inject metadata
+        // Step 5: Inject metadata
         injectMetadata(root);
 
-        // Step 8: Write with dynamic header comment
+        // Step 6: Write with dynamic header comment
         String headerComment = generateHeaderComment();
         try (FileWriter writer = new FileWriter(output)) {
             writer.write(headerComment);
@@ -92,133 +82,6 @@ public class CamundaKeyFlattener {
         }
 
         System.out.println("Finished writing to " + OUTPUT_FILE);
-    }
-
-    /**
-     * Transforms filter properties that combine semantic keys with filter capabilities.
-     * Converts oneOf structures like [ProcessInstanceKey, ProcessInstanceKeyFilterProperty] 
-     * to allOf structures with backward-compatible filter types.
-     */
-    private static void transformFilterProperties(JsonNode root, Set<String> keyNames, JsonNode schemas) {
-        System.out.println("Starting filter property transformation...");
-        System.out.println("CamundaKey descendants: " + keyNames);
-        transformFilterPropertiesRecursive(root, keyNames, schemas);
-        System.out.println("Finished filter property transformation");
-    }
-
-    private static void transformFilterPropertiesRecursive(JsonNode node, Set<String> keyNames, JsonNode schemas) {
-        if (node.isObject()) {
-            ObjectNode obj = (ObjectNode) node;
-            
-            // Check for oneOf with filter property pattern
-            if (obj.has("oneOf")) {
-                ArrayNode oneOfArray = (ArrayNode) obj.get("oneOf");
-                String semanticKeyRef = null;
-                String filterPropertyRef = null;
-                JsonNode preservedDescription = obj.get("description");
-                
-                // Analyze oneOf variants
-                for (JsonNode variant : oneOfArray) {
-                    if (variant.has("$ref")) {
-                        String ref = variant.get("$ref").asText();
-                        String refName = extractSchemaName(ref);
-                        
-                        if (keyNames.contains(refName)) {
-                            semanticKeyRef = refName;
-                        } else if (refName.endsWith("FilterProperty")) {
-                            filterPropertyRef = refName;
-                        }
-                    }
-                }
-                
-                // If we found both semantic key and filter property
-                if (semanticKeyRef != null && filterPropertyRef != null) {
-                    String backwardCompatibleFilter = mapToBackwardCompatibleFilter(filterPropertyRef);
-                    
-                    if (backwardCompatibleFilter != null) {
-                        System.out.println("Transforming filter property: " + semanticKeyRef + " + " + filterPropertyRef + " -> " + backwardCompatibleFilter);
-                        
-                        // Replace with allOf structure
-                        obj.remove("oneOf");
-                        ArrayNode allOfArray = obj.putArray("allOf");
-                        ObjectNode refNode = allOfArray.addObject();
-                        refNode.put("$ref", "#/components/schemas/" + backwardCompatibleFilter);
-                        
-                        // Preserve description if it exists
-                        if (preservedDescription != null) {
-                            obj.set("description", preservedDescription);
-                        }
-                        return;
-                    }
-                }
-            }
-        }
-        
-        // Recurse into child nodes
-        if (node.isObject()) {
-            node.fields().forEachRemaining(entry -> 
-                transformFilterPropertiesRecursive(entry.getValue(), keyNames, schemas));
-        } else if (node.isArray()) {
-            for (JsonNode child : node) {
-                transformFilterPropertiesRecursive(child, keyNames, schemas);
-            }
-        }
-    }
-
-    /**
-     * Extracts schema name from a $ref string like "#/components/schemas/ProcessInstanceKey"
-     */
-    private static String extractSchemaName(String ref) {
-        if (ref.startsWith("#/components/schemas/")) {
-            return ref.substring("#/components/schemas/".length());
-        }
-        return ref;
-    }
-
-    /**
-     * Maps semantic key filter properties to their backward-compatible equivalents
-     */
-    private static String mapToBackwardCompatibleFilter(String filterPropertyName) {
-        Map<String, String> filterMapping = Map.of(
-            "ProcessInstanceKeyFilterProperty", "BasicStringFilterProperty",
-            "ProcessDefinitionKeyFilterProperty", "BasicStringFilterProperty", 
-            "ElementInstanceKeyFilterProperty", "BasicStringFilterProperty",
-            "VariableKeyFilterProperty", "StringFilterProperty",
-            "ScopeKeyFilterProperty", "StringFilterProperty",
-            "MessageSubscriptionKeyFilterProperty", "StringFilterProperty",
-            "JobKeyFilterProperty", "StringFilterProperty",
-            "UserTaskKeyFilterProperty", "StringFilterProperty",
-            "FormKeyFilterProperty", "StringFilterProperty",
-            "IncidentKeyFilterProperty", "StringFilterProperty"
-        );
-        
-        return filterMapping.get(filterPropertyName);
-    }
-
-    /**
-     * Removes orphaned filter property schemas that are no longer needed after transformation
-     */
-    private static void cleanupOrphanedFilterSchemas(JsonNode schemas, Set<String> keyNames) {
-        if (schemas == null || !schemas.isObject()) return;
-        
-        List<String> schemasToRemove = new ArrayList<>();
-        
-        for (Iterator<String> it = schemas.fieldNames(); it.hasNext(); ) {
-            String schemaName = it.next();
-            
-            // Remove only semantic key filter property schemas
-            if (isSemanticKeyFilterProperty(schemaName)) {
-                schemasToRemove.add(schemaName);
-                System.out.println("Marking for removal: " + schemaName);
-            }
-        }
-        
-        // Remove orphaned schemas
-        ObjectNode schemasObj = (ObjectNode) schemas;
-        for (String schemaName : schemasToRemove) {
-            schemasObj.remove(schemaName);
-            System.out.println("Removed orphaned schema: " + schemaName);
-        }
     }
 
     /**
@@ -330,6 +193,104 @@ public class CamundaKeyFlattener {
         return prop1.equals(prop2);
     }
 
+    /**
+     * Checks if a oneOf array represents a CamundaKey filter pattern:
+     * oneOf: [$ref to CamundaKey descendant, AdvancedXxxKeyFilter] where XxxKeyFilter matches the CamundaKey type
+     */
+    private static boolean isKeyFilterOneOfPattern(ArrayNode oneOfArray, Set<String> keyNames) {
+        if (oneOfArray.size() != 2) return false;
+        
+        String keyTypeName = null;
+        boolean hasAdvancedKeyFilter = false;
+        
+        for (JsonNode item : oneOfArray) {
+            // Check for reference to CamundaKey descendant (e.g., $ref: "#/components/schemas/VariableKey")
+            if (item.has("$ref")) {
+                String ref = item.get("$ref").asText();
+                if (ref.startsWith("#/components/schemas/")) {
+                    String referencedType = ref.substring("#/components/schemas/".length());
+                    
+                    // Check if this is a CamundaKey descendant
+                    if (keyNames.contains(referencedType)) {
+                        keyTypeName = referencedType;
+                    }
+                    // Check if this is an AdvancedXxxKeyFilter
+                    else if (ref.startsWith("#/components/schemas/Advanced") && ref.endsWith("KeyFilter")) {
+                        String filterKeyType = ref.substring("#/components/schemas/Advanced".length(), 
+                                                           ref.length() - "Filter".length());
+                        if (keyNames.contains(filterKeyType)) {
+                            hasAdvancedKeyFilter = true;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return keyTypeName != null && hasAdvancedKeyFilter;
+    }
+
+    /**
+     * Checks if an allOf array represents a CamundaKey filter pattern:
+     * allOf: [AdvancedXxxKeyFilter] where XxxKeyFilter matches a CamundaKey descendant type
+     */
+    private static boolean isKeyFilterAllOfPattern(ArrayNode allOfArray, Set<String> keyNames) {
+        if (allOfArray.size() != 1) return false;
+        
+        JsonNode item = allOfArray.get(0);
+        if (item.has("$ref")) {
+            String ref = item.get("$ref").asText();
+            if (ref.startsWith("#/components/schemas/Advanced") && ref.endsWith("KeyFilter")) {
+                String filterKeyType = ref.substring("#/components/schemas/Advanced".length(), 
+                                                   ref.length() - "Filter".length());
+                return keyNames.contains(filterKeyType);
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Checks if a oneOf array represents a string default with CamundaKey pattern:
+     * oneOf: [string with default, CamundaKey descendant reference]
+     */
+    private static boolean isStringDefaultWithCamundaKeyPattern(ArrayNode oneOfArray, Set<String> keyNames) {
+        if (oneOfArray.size() != 2) return false;
+        
+        boolean hasStringWithDefault = false;
+        boolean hasCamundaKeyRef = false;
+        
+        for (JsonNode item : oneOfArray) {
+            // Check for string type with default
+            if (item.has("type") && "string".equals(item.get("type").asText()) && item.has("default")) {
+                hasStringWithDefault = true;
+            }
+            // Check for reference to CamundaKey descendant
+            else if (item.has("$ref")) {
+                String ref = item.get("$ref").asText();
+                if (ref.startsWith("#/components/schemas/")) {
+                    String referencedType = ref.substring("#/components/schemas/".length());
+                    if (keyNames.contains(referencedType)) {
+                        hasCamundaKeyRef = true;
+                    }
+                }
+            }
+        }
+        
+        return hasStringWithDefault && hasCamundaKeyRef;
+    }
+
+    /**
+     * Finds the string option in a oneOf array
+     */
+    private static JsonNode findStringOptionInOneOf(ArrayNode oneOfArray) {
+        for (JsonNode item : oneOfArray) {
+            if (item.has("type") && "string".equals(item.get("type").asText())) {
+                return item;
+            }
+        }
+        return null;
+    }
+
      private static void replaceRefs(JsonNode node, Set<String> keyNames, Set<String> removedFilterSchemas, JsonNode schemasRoot) {
         if (node.isObject()) {
             ObjectNode obj = (ObjectNode) node;
@@ -342,7 +303,7 @@ public class CamundaKeyFlattener {
                 for (String keyName : keyNames) {
                     if (ref.equals("#/components/schemas/" + keyName)) {
                         JsonNode referencedSchema = schemasRoot != null ? schemasRoot.get(keyName) : null;
-                        JsonNode description = referencedSchema != null ? referencedSchema.get("description") : null;
+                        JsonNode description = extractDescriptionFromSchema(referencedSchema);
 
                         obj.removeAll();
                         obj.put("type", "string");
@@ -364,10 +325,71 @@ public class CamundaKeyFlattener {
                 }
             }
 
-            // allOf / oneOf / anyOf flattening
-            for (String composite : List.of("allOf", "oneOf", "anyOf")) {
+            // Handle oneOf patterns for CamundaKey filter properties
+            if (obj.has("oneOf")) {
+                ArrayNode oneOfArray = (ArrayNode) obj.get("oneOf");
+                if (isKeyFilterOneOfPattern(oneOfArray, keyNames)) {
+                    // Transform oneOf [CamundaKey descendant, AdvancedXxxKeyFilter] to allOf [BasicStringFilterProperty]
+                    JsonNode description = obj.get("description");
+                    obj.removeAll();
+                    if (description != null && !STRIP_DESCRIPTIONS) {
+                        obj.set("description", description);
+                    }
+                    ArrayNode allOfArray = obj.putArray("allOf");
+                    ObjectNode ref = allOfArray.addObject();
+                    ref.put("$ref", "#/components/schemas/BasicStringFilterProperty");
+                    return;
+                } else if (isStringDefaultWithCamundaKeyPattern(oneOfArray, keyNames)) {
+                    // Transform oneOf [string with default, CamundaKey descendant] to just the string option
+                    JsonNode description = obj.get("description");
+                    JsonNode stringOption = findStringOptionInOneOf(oneOfArray);
+                    
+                    obj.removeAll();
+                    if (description != null && !STRIP_DESCRIPTIONS) {
+                        obj.set("description", description);
+                    }
+                    
+                    // Copy the string option properties
+                    if (stringOption != null) {
+                        Iterator<Map.Entry<String, JsonNode>> fields = stringOption.fields();
+                        while (fields.hasNext()) {
+                            Map.Entry<String, JsonNode> field = fields.next();
+                            obj.set(field.getKey(), field.getValue());
+                        }
+                    } else {
+                        // Fallback to simple string
+                        obj.put("type", "string");
+                    }
+                    return;
+                }
+            }
+
+            // Handle allOf patterns that reference AdvancedXxxKeyFilter for CamundaKey properties
+            if (obj.has("allOf")) {
+                ArrayNode allOfArray = (ArrayNode) obj.get("allOf");
+                if (isKeyFilterAllOfPattern(allOfArray, keyNames)) {
+                    // Transform allOf [AdvancedXxxKeyFilter] to allOf [BasicStringFilterProperty]
+                    JsonNode description = obj.get("description");
+                    obj.removeAll();
+                    if (description != null && !STRIP_DESCRIPTIONS) {
+                        obj.set("description", description);
+                    }
+                    ArrayNode newAllOfArray = obj.putArray("allOf");
+                    ObjectNode ref = newAllOfArray.addObject();
+                    ref.put("$ref", "#/components/schemas/BasicStringFilterProperty");
+                    return;
+                }
+            }
+
+            // allOf / anyOf flattening - only flatten if entire structure is CamundaKey
+            for (String composite : List.of("allOf", "anyOf")) {
                 if (obj.has(composite)) {
                     ArrayNode arrayNode = (ArrayNode) obj.get(composite);
+
+                    // Skip allOf patterns that are already handled by key filter transformation
+                    if ("allOf".equals(composite) && isKeyFilterAllOfPattern(arrayNode, keyNames)) {
+                        continue;
+                    }
 
                     // Look for $ref in one item, and description in another
                     String matchedKey = null;
@@ -432,7 +454,7 @@ public class CamundaKeyFlattener {
     }
 
     private static void retainDescriptionAndReplaceWithString(ObjectNode node) {
-        JsonNode description = node.get("description");
+        JsonNode description = extractDescriptionFromSchema(node);
         ObjectNode newNode = node.removeAll();
         newNode.put("type", "string");
         if (description != null && !STRIP_DESCRIPTIONS) {
@@ -489,34 +511,66 @@ public class CamundaKeyFlattener {
     }
 
     /**
-     * Gets the list of filter property schema names that will be removed
+     * Extracts description from a schema, handling both direct description and allOf structure
      */
-    private static Set<String> getRemovedFilterSchemaNames(JsonNode schemas) {
-        Set<String> removedSchemas = new HashSet<>();
-        if (schemas == null || !schemas.isObject()) return removedSchemas;
+    private static JsonNode extractDescriptionFromSchema(JsonNode schema) {
+        if (schema == null) return null;
+        
+        // Check for direct description
+        JsonNode directDescription = schema.get("description");
+        if (directDescription != null) {
+            return directDescription;
+        }
+        
+        // Check for description in allOf structure
+        JsonNode allOf = schema.get("allOf");
+        if (allOf != null && allOf.isArray()) {
+            for (JsonNode item : allOf) {
+                JsonNode description = item.get("description");
+                if (description != null) {
+                    return description;
+                }
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Fixes Advanced Key Filter schemas by adding missing descriptions to array properties
+     */
+    private static void fixAdvancedKeyFilterDescriptions(JsonNode schemas) {
+        if (schemas == null || !schemas.isObject()) return;
         
         for (Iterator<String> it = schemas.fieldNames(); it.hasNext(); ) {
             String schemaName = it.next();
-            // Only include semantic key filter properties for removal
-            if (isSemanticKeyFilterProperty(schemaName)) {
-                removedSchemas.add(schemaName);
+            
+            // Check if this is an Advanced Key Filter schema
+            if (schemaName.startsWith("Advanced") && schemaName.endsWith("KeyFilter")) {
+                JsonNode schema = schemas.get(schemaName);
+                if (schema.has("properties")) {
+                    ObjectNode properties = (ObjectNode) schema.get("properties");
+                    
+                    // Fix $in property description
+                    if (properties.has("$in")) {
+                        ObjectNode inProperty = (ObjectNode) properties.get("$in");
+                        if (!inProperty.has("description") && inProperty.has("type") && 
+                            "array".equals(inProperty.get("type").asText())) {
+                            inProperty.put("description", "Checks if the property matches any of the provided values.");
+                        }
+                    }
+                    
+                    // Fix $notIn property description
+                    if (properties.has("$notIn")) {
+                        ObjectNode notInProperty = (ObjectNode) properties.get("$notIn");
+                        if (!notInProperty.has("description") && notInProperty.has("type") && 
+                            "array".equals(notInProperty.get("type").asText())) {
+                            notInProperty.put("description", "Checks if the property matches none of the provided values.");
+                        }
+                    }
+                }
             }
         }
-        return removedSchemas;
     }
 
-    /**
-     * Checks if a schema name represents a semantic key filter property that should be removed
-     */
-    private static boolean isSemanticKeyFilterProperty(String name) {
-        return name.endsWith("KeyFilterProperty") ||
-               (name.startsWith("Advanced") && name.contains("KeyFilter"));
-    }
-
-    /**
-     * Checks if a schema name represents a filter property that should be handled separately
-     */
-    private static boolean isFilterPropertySchema(String name) {
-        return isSemanticKeyFilterProperty(name);
-    }
 }

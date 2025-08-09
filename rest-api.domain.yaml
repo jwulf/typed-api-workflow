@@ -5942,17 +5942,17 @@ components:
           description: "The key for this variable."
           oneOf:
             - $ref: "#/components/schemas/VariableKey"
-            - $ref: "#/components/schemas/VariableKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedVariableKeyFilter"
         scopeKey:
           description: "The key of the scope of this variable."
           oneOf:
             - $ref: "#/components/schemas/ScopeKey"
-            - $ref: "#/components/schemas/ScopeKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedScopeKeyFilter"
         processInstanceKey:
           description: "The key of the process instance of this variable."
           oneOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - $ref: "#/components/schemas/ProcessInstanceKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedProcessInstanceKeyFilter"
     VariableSearchQueryResult:
       description: "Variable search query response."
       type: "object"
@@ -6447,24 +6447,6 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/ElementInstanceKey"
-    ProcessDefinitionKeyFilterProperty:
-      description: "ProcessDefinitionKey property with advanced search capabilities."
-      type: "object"
-      oneOf:
-        - $ref: "#/components/schemas/ProcessDefinitionKey"
-        - $ref: "#/components/schemas/AdvancedProcessDefinitionKeyFilter"
-    ProcessInstanceKeyFilterProperty:
-      description: "ProcessInstanceKey property with advanced search capabilities."
-      type: "object"
-      oneOf:
-        - $ref: "#/components/schemas/ProcessInstanceKey"
-        - $ref: "#/components/schemas/AdvancedProcessInstanceKeyFilter"
-    ElementInstanceKeyFilterProperty:
-      description: "ElementInstanceKey property with advanced search capabilities."
-      type: "object"
-      oneOf:
-        - $ref: "#/components/schemas/ElementInstanceKey"
-        - $ref: "#/components/schemas/AdvancedElementInstanceKeyFilter"
     AdvancedVariableKeyFilter:
       title: "Advanced filter"
       description: "Advanced VariableKey filter."
@@ -6509,18 +6491,6 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/ScopeKey"
-    VariableKeyFilterProperty:
-      description: "VariableKey property with advanced search capabilities."
-      type: "object"
-      oneOf:
-        - $ref: "#/components/schemas/VariableKey"
-        - $ref: "#/components/schemas/AdvancedVariableKeyFilter"
-    ScopeKeyFilterProperty:
-      description: "ScopeKey property with advanced search capabilities."
-      type: "object"
-      oneOf:
-        - $ref: "#/components/schemas/ScopeKey"
-        - $ref: "#/components/schemas/AdvancedScopeKeyFilter"
     AdvancedMessageSubscriptionKeyFilter:
       title: "Advanced filter"
       description: "Advanced MessageSubscriptionKey filter."
@@ -6543,12 +6513,6 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/MessageSubscriptionKey"
-    MessageSubscriptionKeyFilterProperty:
-      description: "MessageSubscriptionKey property with advanced search capabilities."
-      type: "object"
-      oneOf:
-        - $ref: "#/components/schemas/MessageSubscriptionKey"
-        - $ref: "#/components/schemas/AdvancedMessageSubscriptionKeyFilter"
     AdvancedJobKeyFilter:
       title: "Advanced filter"
       description: "Advanced JobKey filter."
@@ -6571,12 +6535,6 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/JobKey"
-    JobKeyFilterProperty:
-      description: "JobKey property with advanced search capabilities."
-      type: "object"
-      oneOf:
-        - $ref: "#/components/schemas/JobKey"
-        - $ref: "#/components/schemas/AdvancedJobKeyFilter"
     BaseProcessInstanceFilterFields:
       description: "Base process instance search filter."
       type: "object"
@@ -6609,17 +6567,17 @@ components:
           description: "The key of this process instance."
           oneOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - $ref: "#/components/schemas/ProcessInstanceKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedProcessInstanceKeyFilter"
         parentProcessInstanceKey:
           description: "The parent process instance key."
           oneOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - $ref: "#/components/schemas/ProcessInstanceKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedProcessInstanceKeyFilter"
         parentElementInstanceKey:
           description: "The parent element instance key."
           oneOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
-            - $ref: "#/components/schemas/ElementInstanceKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedElementInstanceKeyFilter"
         batchOperationId:
           description: "The batch operation ID."
           allOf:
@@ -6703,7 +6661,7 @@ components:
           description: "The process definition key."
           oneOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - $ref: "#/components/schemas/ProcessDefinitionKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedProcessDefinitionKeyFilter"
     ProcessInstanceFilter:
       description: "Process instance search filter."
       allOf:
@@ -7429,7 +7387,7 @@ components:
           description: "The message subscription key associated with this message\
             \ subscription."
           allOf:
-            - $ref: "#/components/schemas/MessageSubscriptionKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedMessageSubscriptionKeyFilter"
         processDefinitionId:
           description: "The process definition ID associated with this message subscription."
           allOf:
@@ -7437,11 +7395,11 @@ components:
         processDefinitionKey:
           description: "The process definition key associated with this message subscription."
           allOf:
-            - $ref: "#/components/schemas/ProcessDefinitionKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedProcessDefinitionKeyFilter"
         processInstanceKey:
           description: "The process instance key associated with this message subscription."
           allOf:
-            - $ref: "#/components/schemas/ProcessInstanceKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedProcessInstanceKeyFilter"
         elementId:
           description: "The element ID associated with this message subscription."
           allOf:
@@ -7449,7 +7407,7 @@ components:
         elementInstanceKey:
           description: "The element instance key associated with this message subscription."
           allOf:
-            - $ref: "#/components/schemas/ElementInstanceKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedElementInstanceKeyFilter"
         messageSubscriptionType:
           description: "The message subscription type."
           allOf:
@@ -7699,6 +7657,7 @@ components:
         - "USER"
         - "ROLE"
         - "USAGE_METRIC"
+        - "DOCUMENT"
     OwnerTypeEnum:
       description: "The type of the owner of permissions."
       enum:
@@ -9304,7 +9263,7 @@ components:
           description: "The element instance key associated with the job."
           oneOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
-            - $ref: "#/components/schemas/ElementInstanceKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedElementInstanceKeyFilter"
         endTime:
           description: "When the job ended."
           allOf:
@@ -9328,7 +9287,7 @@ components:
           description: "The key, a unique identifier for the job."
           oneOf:
             - $ref: "#/components/schemas/JobKey"
-            - $ref: "#/components/schemas/JobKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedJobKeyFilter"
         kind:
           description: "The kind of the job."
           allOf:
@@ -9345,12 +9304,12 @@ components:
           description: "The process definition key associated with the job."
           oneOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - $ref: "#/components/schemas/ProcessDefinitionKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedProcessDefinitionKeyFilter"
         processInstanceKey:
           description: "The process instance key associated with the job."
           oneOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - $ref: "#/components/schemas/ProcessInstanceKeyFilterProperty"
+            - $ref: "#/components/schemas/AdvancedProcessInstanceKeyFilter"
         retries:
           description: "The number of retries left."
           allOf:
