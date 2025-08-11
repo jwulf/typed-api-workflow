@@ -1,0 +1,40 @@
+{
+  "scan_metadata" : {
+    "scan_date" : "2025-08-11T11:27:11.174223",
+    "scanner_version" : "1.0.0",
+    "target_directory" : "../../camunda/zeebe/gateway-rest/src/main/java/io/camunda/zeebe/gateway/rest/validator",
+    "files_scanned" : 19,
+    "scan_duration_ms" : 214
+  },
+  "patterns_found" : [ {
+    "file" : "EvaluateDecisionRequestValidator.java",
+    "class" : "EvaluateDecisionRequestValidator",
+    "method" : "validateEvaluateDecisionRequest",
+    "fields" : [ "decisionDefinitionId", "decisionDefinitionKey" ],
+    "validation_type" : "XOR",
+    "line_number" : 26,
+    "confidence" : "LOW",
+    "error_constants" : [ ],
+    "code_snippet" : "// Both null check\nif (request.getDecisionDefinitionId() == null && request.getDecisionDefinitionKey() == null) {\n    violations.add(ERROR_MESSAGE_AT_LEAST_ONE_FIELD.formatted(List.of(\"decisionDefinitionId\", \"decisionDefinitionKey\")));\n}\n\n// Both not null check\nif (request.getDecisionDefinitionId() != null && request.getDecisionDefinitionKey() != null) {\n    violations.add(ERROR_MESSAGE_ONLY_ONE_FIELD.formatted(List.of(\"decisionDefinitionId\", \"decisionDefinitionKey\")));\n}",
+    "schema_name" : "DecisionInstruction"
+  }, {
+    "file" : "ProcessInstanceRequestValidator.java",
+    "class" : "ProcessInstanceRequestValidator",
+    "method" : "validateCreateProcessInstanceRequest",
+    "fields" : [ "processDefinitionId", "processDefinitionKey" ],
+    "validation_type" : "XOR",
+    "line_number" : 39,
+    "confidence" : "LOW",
+    "error_constants" : [ ],
+    "code_snippet" : "// Both null check\nif (request.getProcessDefinitionId() == null && request.getProcessDefinitionKey() == null) {\n    violations.add(ERROR_MESSAGE_AT_LEAST_ONE_FIELD.formatted(List.of(\"processDefinitionId\", \"processDefinitionKey\")));\n}\n\n// Both not null check\nif (request.getProcessDefinitionId() != null && request.getProcessDefinitionKey() != null) {\n    violations.add(ERROR_MESSAGE_ONLY_ONE_FIELD.formatted(List.of(\"processDefinitionId\", \"processDefinitionKey\")));\n}",
+    "schema_name" : "ProcessInstruction"
+  } ],
+  "summary" : {
+    "total_patterns" : 2,
+    "high_confidence" : 0,
+    "medium_confidence" : 0,
+    "low_confidence" : 2,
+    "unique_files" : 2,
+    "unique_schemas" : 2
+  }
+}
