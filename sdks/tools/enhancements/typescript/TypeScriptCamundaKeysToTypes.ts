@@ -55,17 +55,18 @@ export class TypeScriptCamundaKeysToTypes {
       code += `    if (!isValid(value)) {\n`;
       code += `      throw new Error(\`Invalid ${name}: \${value}\`);\n`;
       code += `    }\n`;
-      code += `    return value as unknown as ${name};\n`;
+      code += `    const branded = Object.assign(new String(value), { __type: '${name}' as const });\n`;
+      code += `    return branded as unknown as ${name};\n`;
       code += `  }\n\n`;
       
       code += `  /**\n   * Get the string value of a ${name}\n   */\n`;
       code += `  export function getValue(key: ${name}): string {\n`;
-      code += `    return key as unknown as string;\n`;
+      code += `    return String(key);\n`;
       code += `  }\n\n`;
       
       code += `  /**\n   * Compare two ${name} instances for equality\n   */\n`;
       code += `  export function equals(a: ${name}, b: ${name}): boolean {\n`;
-      code += `    return (a as unknown as string) === (b as unknown as string);\n`;
+      code += `    return String(a) === String(b);\n`;
       code += `  }\n\n`;
       
       code += `  /**\n   * Validate a string value for ${name}\n   */\n`;
@@ -342,7 +343,16 @@ export class TypeScriptCamundaKeysToTypes {
 
   generateSerializeEnhancement(): string {
     const semanticTypeNames = Array.from(this.semanticTypes.keys());
-    let enhancement = '\n        // Semantic type handling - convert branded types to strings for JSON\n';
+    let enhancement = '\n        // Handle union types containing semantic types by checking __type property\n';
+    enhancement += '        else if (type.includes(\'|\') && data && typeof data === \'object\' && data.__type) {\n';
+    enhancement += '            // Check if the actual type of the data is in the union\n';
+    enhancement += '            const unionTypes = type.split(\' | \').map(t => t.trim());\n';
+    enhancement += '            const actualType = data.__type;\n';
+    enhancement += '            if (unionTypes.includes(actualType)) {\n';
+    enhancement += '                return ObjectSerializer.serialize(data, actualType);\n';
+    enhancement += '            }\n';
+    enhancement += '        }\n';
+    enhancement += '        // Semantic type handling - convert branded types to strings for JSON\n';
     
     for (const typeName of semanticTypeNames) {
       enhancement += `        else if (type === "${typeName}") {\n`;

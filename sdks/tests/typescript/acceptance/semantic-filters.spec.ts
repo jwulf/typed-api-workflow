@@ -28,7 +28,7 @@ test.skip("This should NOT compile - raw strings in advanced filters", () => {
     }
 
     const elementInstanceSearchAdvancedFilter: ProcessInstanceSearchQuery = {
-        filter: { parentElementInstanceKey: { $in: [elementInstanceKey]}}
+        filter: { parentElementInstanceKey: { $in: [elementInstanceKey] } }
     }
 
     // This test should never run because the TypeScript should fail to compile
@@ -56,8 +56,14 @@ test('Additional acceptance criteria for AdvancedFilters typing', () => {
         }
     }
     expect(searchQuery).toBeDefined()
-    expect(searchQuery.filter.processDefinitionKey).toBe(processDefinitionKey)
+    expect(processDefinitionKey.__type).toBe('ProcessDefinitionKey')
+    expect(searchQuery.filter.processDefinitionKey).toEqual(processDefinitionKey)
     const serialised = ObjectSerializer.serialize(searchQuery, 'ProcessInstanceSearchQuery')
     expect(serialised.filter.processDefinitionKey).toBe(opaqueValue)
 
+    const processInstanceKey = ProcessInstanceKey.create(opaqueValue)
+    const case2: ProcessInstanceSearchQuery = { filter: { processInstanceKey: { $in: [processInstanceKey] } } }
+    console.log(ProcessDefinitionKey.getValue(processInstanceKey as any))
+
+    expect(processDefinitionKey as any === processInstanceKey).toBe(false) // We have type safety in the IDE, we want to validate runtime safety
 })
