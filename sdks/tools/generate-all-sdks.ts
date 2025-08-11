@@ -11,19 +11,19 @@ import { SemanticTypeEnhancer } from './enhancements/SemanticTypeEnhancer';
 import { EventuallyConsistentEnhancer } from './enhancements/EventuallyConsistentEnhancer';
 import { TracingEnhancer } from './enhancements/TracingEnhancer';
 import { TypeScriptPolymorphicSchemaEnhancer } from './enhancements/typescript/TypeScriptPolymorphicSchemaEnhancer';
-import { TypeScriptOneOfUnionEnhancer } from './enhancements/typescript/TypeScriptOneOfUnionEnhancer';
+import { ASTTypeScriptOneOfUnionEnhancer } from './enhancements/typescript/ASTTypeScriptOneOfUnionEnhancer';
 
 import { PostBuildOrchestrator } from './post-build/PostBuildOrchestrator';
 import { TypeScriptPostBuildStrategy } from './post-build/typescript/TypeScriptPostBuildStrategy';
 
-// Custom post-processing of generated SDKs
+// Custom post-processing of generated SDKs  
 const enhancementStrategies = [
-  SemanticTypeEnhancer, // Enhance semantic types with validation
-  EventuallyConsistentEnhancer, // Enhance eventually consistent operations
-  TracingEnhancer, // Add OpenTelemetry tracing support
-  TypeScriptPolymorphicSchemaEnhancer, // Fix TypeScript code generation issues
-  TypeScriptOneOfUnionEnhancer, // Fix OneOf union types that were generated as separate classes
-]
+    SemanticTypeEnhancer, // Enhance semantic types with validation
+    EventuallyConsistentEnhancer, // Enhance eventually consistent operations  
+    TracingEnhancer, // Add OpenTelemetry tracing support
+    TypeScriptPolymorphicSchemaEnhancer, // Fix TypeScript code generation issues
+    ASTTypeScriptOneOfUnionEnhancer, // Fix OneOf union types using AST transformations
+];
 
 // Post-build tasks for generated SDKs
 const postBuildStrategies = [

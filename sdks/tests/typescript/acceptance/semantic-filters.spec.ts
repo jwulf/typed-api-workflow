@@ -1,4 +1,4 @@
-import { DecisionInstanceFilter, DecisionDefinitionKey, ProcessDefinitionKey, ProcessInstanceFilterFields, ProcessInstanceKey, ProcessInstanceSearchQuery, } from '../../../generated/typescript/'
+import { DecisionInstanceFilter, DecisionDefinitionKey, ProcessDefinitionKey, ProcessInstanceFilterFields, ProcessInstanceKey, ProcessInstanceSearchQuery, ProcessDefinitionSearchQuery, ElementInstanceKey, ElementInstanceSearchQuery, } from '../../../generated/typescript/'
 
 test.skip('can instantiate DecisionInstanceFilter', () => {
     const decisionInstanceFilter = new DecisionInstanceFilter();
@@ -16,9 +16,19 @@ test.skip('can instantiate DecisionInstanceFilter', () => {
 test.skip("This should NOT compile - raw strings in advanced filters", () => {
     const searchQuery2: ProcessInstanceSearchQuery = {
         filter: {
-            // @ts-expect-error - This should fail because we don't allow raw strings in advanced filters
+            // @ts-expect-error - This *should* fail because we don't allow raw strings in advanced filters
             processDefinitionKey: { $in: ["this_shouldn't_work"] }
         }
+    }
+    const elementInstanceKey = ElementInstanceKey.create("213431341")
+    const elementInstanceSearchQuery: ElementInstanceSearchQuery = {
+        filter: {
+            elementInstanceKey
+        }
+    }
+
+    const elementInstanceSearchAdvancedFilter: ProcessInstanceSearchQuery = {
+        filter: { parentElementInstanceKey: { $in: [elementInstanceKey]}}
     }
 
     // This test should never run because the TypeScript should fail to compile

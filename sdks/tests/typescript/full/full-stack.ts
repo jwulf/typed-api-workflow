@@ -51,8 +51,9 @@ async function main() {
 
     // Create a process instance
     const createResponse = await processApi.createProcessInstance({
-        processDefinitionKey: processDefinition?.processDefinitionKey
+        processDefinitionKey: processDefinition.processDefinitionKey,
     })
+
     const processInstance = createResponse.body
     
     if (!processInstance.processInstanceKey) {
@@ -72,9 +73,15 @@ async function main() {
 
     console.log('Search query:', JSON.stringify(ObjectSerializer.serialize(searchQuery, 'ProcessInstanceSearchQuery'), null, 2))
 
-    // await new Promise((res => setTimeout(() => res(null), 1000)))
+    const processInstanceKey = processInstance.processInstanceKey
+    const searchResponse = await processApi
+        .searchProcessInstances
+        .eventually({
+            filter: { 
+                processInstanceKey
+            }
+        }, undefined, {timeout: 3000})
 
-    const searchResponse = await processApi.searchProcessInstances.eventually({filter: { processInstanceKey: processInstance.processInstanceKey}}, undefined, {timeout: 3000})
     const searchResults = searchResponse.body
     
     console.log(`Found ${searchResults.items?.length || 0} process instances`)
