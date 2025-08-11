@@ -54,9 +54,7 @@ export class TypeScriptEventualEnhancer {
       return 0;
     }
 
-    // Update tsconfig.json to enable decorators
-    this.updateTsConfig(sdkPath);
-
+    // Note: tsconfig.json updates are now handled by TypeScriptTsConfigEnhancer
     // Copy the EventuallyConsistentDecorator to ergonomics directory
     this.copyEventuallyConsistentDecorator(sdkPath);
 
@@ -305,32 +303,7 @@ export type * from './EventualityTypes';
   /**
    * Update sdk tsconfig.json to enable experimental decorators
    */
-  private updateTsConfig(sdkPath: string): void {
-    const tsconfigPath = path.join(sdkPath, 'tsconfig.json');
-    
-    if (!fs.existsSync(tsconfigPath)) {
-      console.log(`  ! TypeScript config not found: ${tsconfigPath}`);
-      return;
-    }
-
-    try {
-      const tsconfigContent = fs.readFileSync(tsconfigPath, 'utf8');
-      const tsconfig = JSON.parse(tsconfigContent);
-
-      if (!tsconfig.compilerOptions) {
-        tsconfig.compilerOptions = {};
-      }
-
-      // Add decorator support
-      tsconfig.compilerOptions.experimentalDecorators = true;
-      tsconfig.compilerOptions.emitDecoratorMetadata = true;
-
-      fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 4), 'utf8');
-      console.log(`  ✓ Updated tsconfig.json to enable decorators`);
-    } catch (error) {
-      console.warn(`  ! Error updating tsconfig.json: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
+  // Note: updateTsConfig method removed - now handled by TypeScriptTsConfigEnhancer
 
   private updateApiFile(filePath: string, operations: Map<string, EventuallyConsistentOperation>): boolean {
     try {

@@ -71,8 +71,6 @@ async function main() {
         }
     }
 
-    console.log('Search query:', JSON.stringify(ObjectSerializer.serialize(searchQuery, 'ProcessInstanceSearchQuery'), null, 2))
-
     const processInstanceKey = processInstance.processInstanceKey
 
     const searchResponse = await processApi
@@ -86,21 +84,6 @@ async function main() {
     const searchResults = searchResponse.body
     
     console.log(`Found ${searchResults.items?.length || 0} process instances`)
-    console.log('Search results:', searchResults.items?.map(item => ({
-        processInstanceKey: item.processInstanceKey,
-        processDefinitionKey: item.processDefinitionKey,
-        processDefinitionId: item.processDefinitionId
-    })))
-
-    const searchResponse2 = await processApi.searchProcessInstances({filter: { processInstanceKey: { $in: [processInstance.processInstanceKey!] }}})
-    const searchResults2 = searchResponse2.body
-
-    console.log(`Found ${searchResults2.items?.length || 0} process instances`)
-    console.log('Search results:', searchResults2.items?.map(item => ({
-        processInstanceKey: item.processInstanceKey,
-        processDefinitionKey: item.processDefinitionKey,
-        processDefinitionId: item.processDefinitionId
-    })))
 
     console.log('Integration test completed successfully!')
     

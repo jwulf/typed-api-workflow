@@ -12,11 +12,13 @@ import { EventuallyConsistentEnhancer } from './enhancements/EventuallyConsisten
 import { TracingEnhancer } from './enhancements/TracingEnhancer';
 import { TypeScriptPolymorphicSchemaEnhancer } from './enhancements/typescript/TypeScriptPolymorphicSchemaEnhancer';
 import { ASTTypeScriptOneOfUnionEnhancer } from './enhancements/typescript/ASTTypeScriptOneOfUnionEnhancer';
+import { TypeScriptTsConfigEnhancer } from './enhancements/typescript/TypeScriptTsConfigEnhancer';
 
 import { TypeScriptPostBuildStrategy } from './post-build/typescript/TypeScriptPostBuildStrategy';
 
 // Custom post-processing of generated SDKs  
 const enhancementStrategies = [
+    TypeScriptTsConfigEnhancer, // Update TypeScript configuration (tsconfig.json)
     SemanticTypeEnhancer, // Enhance semantic types with validation
     EventuallyConsistentEnhancer, // Enhance eventually consistent operations  
     TracingEnhancer, // Add OpenTelemetry tracing support
