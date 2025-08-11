@@ -67,13 +67,14 @@ async function main() {
     console.log('Searching for process instances...')
     const searchQuery: ProcessInstanceSearchQuery = {
         filter: {
-            processDefinitionKey: processDefinitionKey
+            processDefinitionKey
         }
     }
 
     console.log('Search query:', JSON.stringify(ObjectSerializer.serialize(searchQuery, 'ProcessInstanceSearchQuery'), null, 2))
 
     const processInstanceKey = processInstance.processInstanceKey
+
     const searchResponse = await processApi
         .searchProcessInstances
         .eventually({

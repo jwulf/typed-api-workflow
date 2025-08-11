@@ -1,4 +1,4 @@
-import { DecisionInstanceFilter, DecisionDefinitionKey, ProcessDefinitionKey, ProcessInstanceFilterFields, ProcessInstanceKey, ProcessInstanceSearchQuery, ProcessDefinitionSearchQuery, ElementInstanceKey, ElementInstanceSearchQuery, } from '../../../generated/typescript/'
+import { DecisionInstanceFilter, DecisionDefinitionKey, ProcessDefinitionKey, ProcessInstanceFilterFields, ProcessInstanceKey, ProcessInstanceSearchQuery, ProcessDefinitionSearchQuery, ElementInstanceKey, ElementInstanceSearchQuery, AdvancedProcessInstanceKeyFilter, ObjectSerializer, } from '../../../generated/typescript/'
 
 test.skip('can instantiate DecisionInstanceFilter', () => {
     const decisionInstanceFilter = new DecisionInstanceFilter();
@@ -43,14 +43,21 @@ test('Acceptance criteria for AdvancedFilters typing', () => {
     const case2: ProcessInstanceSearchQuery = { filter: { processInstanceKey: { $in: [processInstanceKey] } } }
     expect(case1).toBeDefined()
     expect(case2).toBeDefined()
+    expect(case1.filter.processInstanceKey).toEqual(processInstanceKey)
+    expect((case2.filter.processInstanceKey as AdvancedProcessInstanceKeyFilter).$in).toEqual([processInstanceKey])
 })
 
 test('Additional acceptance criteria for AdvancedFilters typing', () => {
-    const processDefinitionKey: ProcessDefinitionKey = ProcessDefinitionKey.create("234321234");
+    const opaqueValue = "234321234"
+    const processDefinitionKey: ProcessDefinitionKey = ProcessDefinitionKey.create(opaqueValue);
     const searchQuery: ProcessInstanceSearchQuery = {
         filter: {
             processDefinitionKey: processDefinitionKey
         }
     }
     expect(searchQuery).toBeDefined()
+    expect(searchQuery.filter.processDefinitionKey).toBe(processDefinitionKey)
+    const serialised = ObjectSerializer.serialize(searchQuery, 'ProcessInstanceSearchQuery')
+    expect(serialised.filter.processDefinitionKey).toBe(opaqueValue)
+
 })

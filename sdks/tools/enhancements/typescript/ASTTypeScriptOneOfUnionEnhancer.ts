@@ -62,6 +62,9 @@ export class ASTTypeScriptOneOfUnionEnhancer extends SdkEnhancementStrategy {
         // Phase 5: Fix advanced filter type annotations  
         this.fixAdvancedFilterTypesWithAST(sdkPath);
         
+        // Phase 6: Apply semantic key union types to all referencing files
+        this.applySemanticKeyUnionTypesWithAST(sdkPath);
+        
         console.log('  ✅ OneOf union types fixed with AST');
     }
 
@@ -869,6 +872,180 @@ export class ASTTypeScriptOneOfUnionEnhancer extends SdkEnhancementStrategy {
         
         console.log(`    ✓ Fixed advanced filter types in ${fileName} with AST`);
         result.dispose();
+    }
+
+    /**
+     * Apply semantic key union types to all files that reference advanced filters
+     */
+    private applySemanticKeyUnionTypesWithAST(sdkPath: string): void {
+        console.log('    🔧 Applying semantic key union types to all referencing files...');
+        
+        const modelsDir = path.join(sdkPath, 'model');
+        const allFiles = fs.readdirSync(modelsDir).filter(f => f.endsWith('.ts'));
+        
+        // Map advanced filter types to their corresponding semantic types
+        const filterToSemanticMapping: { [filterType: string]: string } = {
+            'AdvancedProcessDefinitionKeyFilter': 'ProcessDefinitionKey',
+            'AdvancedProcessInstanceKeyFilter': 'ProcessInstanceKey',
+            'AdvancedElementInstanceKeyFilter': 'ElementInstanceKey',
+            'AdvancedUserTaskKeyFilter': 'UserTaskKey',
+            'AdvancedVariableKeyFilter': 'VariableKey',
+            'AdvancedScopeKeyFilter': 'ScopeKey',
+            'AdvancedIncidentKeyFilter': 'IncidentKey',
+            'AdvancedJobKeyFilter': 'JobKey',
+            'AdvancedMessageSubscriptionKeyFilter': 'MessageSubscriptionKey',
+            'AdvancedMessageCorrelationKeyFilter': 'MessageCorrelationKey',
+            'AdvancedDecisionDefinitionKeyFilter': 'DecisionDefinitionKey',
+            'AdvancedDecisionRequirementsKeyFilter': 'DecisionRequirementsKey',
+            'AdvancedAuthorizationKeyFilter': 'AuthorizationKey',
+            'AdvancedMessageKeyFilter': 'MessageKey',
+            'AdvancedDecisionInstanceKeyFilter': 'DecisionInstanceKey',
+            'AdvancedSignalKeyFilter': 'SignalKey',
+            'AdvancedDeploymentKeyFilter': 'DeploymentKey',
+            'AdvancedFormKeyFilter': 'FormKey'
+        };
+        
+        for (const file of allFiles) {
+            if (file.startsWith('advanced') && file.endsWith('Filter.ts')) {
+                // Skip advanced filter files themselves - they were handled in the previous phase
+                continue;
+            }
+            
+            const filePath = path.join(modelsDir, file);
+            this.transformFileWithSemanticKeyUnions(filePath, filterToSemanticMapping);
+        }
+    }
+
+    /**
+     * Transform a file to apply semantic key union types
+     */
+    private transformFileWithSemanticKeyUnions(
+        filePath: string, 
+        filterToSemanticMapping: { [filterType: string]: string }
+    ): void {
+        const sourceFile = this.parseTypeScriptFile(filePath);
+        const fileName = path.basename(filePath);
+        let hasChanges = false;
+        const semanticTypesToImport = new Set<string>();
+        
+        const transformer: ts.TransformerFactory<ts.SourceFile> = (context) => {
+            return (sourceFile) => {
+                const visitor = (node: ts.Node): ts.Node => {
+                    // Transform property signatures to use union types
+                    if (ts.isPropertySignature(node) && node.type) {
+                        for (const [filterType, semanticType] of Object.entries(filterToSemanticMapping)) {
+                            if (this.typeReferencesClass(node.type, filterType)) {
+                                const unionType = ts.factory.createUnionTypeNode([
+                                    ts.factory.createTypeReferenceNode(semanticType),
+                                    ts.factory.createTypeReferenceNode(filterType)
+                                ]);
+                                
+                                semanticTypesToImport.add(semanticType);
+                                hasChanges = true;
+                                
+                                return ts.factory.createPropertySignature(
+                                    node.modifiers,
+                                    node.name,
+                                    node.questionToken,
+                                    unionType
+                                );
+                            }
+                        }
+                    }
+                    
+                    // Transform property assignments in attributeTypeMap
+                    if (ts.isPropertyAssignment(node) &&
+                        ts.isStringLiteral(node.name) &&
+                        node.name.text === 'type' &&
+                        ts.isStringLiteral(node.initializer)) {
+                        
+                        const typeValue = node.initializer.text;
+                        for (const [filterType, semanticType] of Object.entries(filterToSemanticMapping)) {
+                            if (typeValue === filterType) {
+                                const unionTypeString = `${semanticType} | ${filterType}`;
+                                semanticTypesToImport.add(semanticType);
+                                hasChanges = true;
+                                
+                                return ts.factory.createPropertyAssignment(
+                                    node.name,
+                                    ts.factory.createStringLiteral(unionTypeString)
+                                );
+                            }
+                        }
+                    }
+                    
+                    return ts.visitEachChild(node, visitor, context);
+                };
+                
+                let result = ts.visitNode(sourceFile, visitor) as ts.SourceFile;
+                
+                // Add necessary imports if there were changes
+                if (hasChanges && semanticTypesToImport.size > 0) {
+                    result = this.addNecessaryImports(result, semanticTypesToImport);
+                }
+                
+                return result;
+            };
+        };
+
+        if (hasChanges || this.fileNeedsSemanticKeyUnions(sourceFile, filterToSemanticMapping)) {
+            const result = ts.transform(sourceFile, [transformer]);
+            const transformedSourceFile = result.transformed[0];
+            
+            const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
+            const transformedCode = printer.printFile(transformedSourceFile);
+            fs.writeFileSync(filePath, transformedCode);
+            
+            if (hasChanges) {
+                console.log(`    ✓ Applied semantic key union types to ${fileName}`);
+            }
+            
+            result.dispose();
+        }
+    }
+
+    /**
+     * Check if a file needs semantic key union transformations
+     */
+    private fileNeedsSemanticKeyUnions(
+        sourceFile: ts.SourceFile, 
+        filterToSemanticMapping: { [filterType: string]: string }
+    ): boolean {
+        let needsTransformation = false;
+        
+        function visit(node: ts.Node): void {
+            if (needsTransformation) return;
+            
+            // Check property signatures
+            if (ts.isPropertySignature(node) && node.type) {
+                for (const filterType of Object.keys(filterToSemanticMapping)) {
+                    if (node.type && ts.isTypeReferenceNode(node.type) &&
+                        ts.isIdentifier(node.type.typeName) &&
+                        node.type.typeName.text === filterType) {
+                        needsTransformation = true;
+                        return;
+                    }
+                }
+            }
+            
+            // Check attributeTypeMap entries
+            if (ts.isPropertyAssignment(node) &&
+                ts.isStringLiteral(node.name) &&
+                node.name.text === 'type' &&
+                ts.isStringLiteral(node.initializer)) {
+                
+                const typeValue = node.initializer.text;
+                if (Object.keys(filterToSemanticMapping).includes(typeValue)) {
+                    needsTransformation = true;
+                    return;
+                }
+            }
+            
+            ts.forEachChild(node, visit);
+        }
+        
+        visit(sourceFile);
+        return needsTransformation;
     }
 
     // Reuse existing methods from the original enhancer...
