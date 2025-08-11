@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { OpenAPIV3 } from 'openapi-types';
 import { execSync } from 'child_process';
-import { PostBuildStrategy } from '../PostBuildOrchestrator';
+import { PostBuildStrategy } from '../../SdkPipelineOrchestrator';
 import { SdkDefinitions } from '../../sdks';
 
 /**

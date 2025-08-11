@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { SdkEnhancementStrategy } from "../SdkEnhancementOrchestrator";
+import { FlexibleSdkEnhancementStrategy } from "../../SdkPipelineOrchestrator";
 import { OpenAPIV3 } from 'openapi-types';
-import { SdkDefinitions } from "../../sdks";
+import { SdkDefinitions, SupportedSdk } from "../../sdks";
 
 /**
  * This deals with the discriminated mutually exclusive schemas like createProcessInstanceRequest
@@ -20,8 +20,9 @@ import { SdkDefinitions } from "../../sdks";
  * 
  * Note: Semantic type import fixes are handled by the SemanticTypeEnhancer
  */
-export class TypeScriptPolymorphicSchemaEnhancer extends SdkEnhancementStrategy {
+export class TypeScriptPolymorphicSchemaEnhancer extends FlexibleSdkEnhancementStrategy {
     name = 'TypeScriptPolymorphicSchemaEnhancer';
+    supportedSdks: SupportedSdk[] = ['typescript'];
     sdkEnhancementStrategies = {
         typescript: this.enhanceTypeScript,
     }
@@ -114,7 +115,7 @@ export class TypeScriptPolymorphicSchemaEnhancer extends SdkEnhancementStrategy 
         let fixedCount = 0;
         
         for (const unionSchema of unionSchemas) {
-            const unionFilePath = path.join(modelDir, `${this.camelCaseToKebabCase(unionSchema.name)}.ts`);
+            const unionFilePath = path.join(modelDir, `${this.pascalCaseToCamelCase(unionSchema.name)}.ts`);
             
             if (fs.existsSync(unionFilePath)) {
                 console.log(`  ✓ Converting merged class to union type: ${unionSchema.name}`);
@@ -184,7 +185,7 @@ export class TypeScriptPolymorphicSchemaEnhancer extends SdkEnhancementStrategy 
     /**
      * Convert PascalCase to camelCase for file names (first letter lowercase)
      */
-    private camelCaseToKebabCase(str: string): string {
+    private pascalCaseToCamelCase(str: string): string {
         return str.charAt(0).toLowerCase() + str.slice(1);
     }
 
@@ -193,7 +194,7 @@ export class TypeScriptPolymorphicSchemaEnhancer extends SdkEnhancementStrategy 
      */
     private generateUnionTypeDefinition(unionSchema: { name: string, oneOf: string[], description?: string }): string {
         const imports = unionSchema.oneOf.map(variant => 
-            `import { ${variant} } from './${this.camelCaseToKebabCase(variant)}';`
+            `import { ${variant} } from './${this.pascalCaseToCamelCase(variant)}';`
         ).join('\n');
 
         const unionType = unionSchema.oneOf.join(' | ');

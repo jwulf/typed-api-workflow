@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 import { OpenAPIV3 } from 'openapi-types';
-import { SdkEnhancementStrategy } from '../SdkEnhancementOrchestrator';
+import { SdkEnhancementStrategy } from '../../SdkPipelineOrchestrator';
 import { SdkDefinitions } from '../../sdks';
 
 /**

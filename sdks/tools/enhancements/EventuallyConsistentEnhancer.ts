@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { OpenAPIV3 } from 'openapi-types';
 import { SdkDefinitions } from '../sdks';
-import { SdkEnhancementStrategy } from './SdkEnhancementOrchestrator';
+import { SdkEnhancementStrategy } from '../SdkPipelineOrchestrator';
 import { TypeScriptEventualEnhancer } from './typescript/TypeScriptEventualEnhancer';
 
 export class EventuallyConsistentEnhancer extends SdkEnhancementStrategy {

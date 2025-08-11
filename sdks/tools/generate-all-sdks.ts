@@ -6,14 +6,13 @@ import { OpenAPIV3 } from 'openapi-types';
 import { execSync } from 'child_process';
 import { SdkDefinition, sdks, SupportedSdk } from './sdks';
 
-import { SdkEnhancementOrchestrator } from './enhancements/SdkEnhancementOrchestrator';
+import { SdkPipelineOrchestrator } from './SdkPipelineOrchestrator';
 import { SemanticTypeEnhancer } from './enhancements/SemanticTypeEnhancer';
 import { EventuallyConsistentEnhancer } from './enhancements/EventuallyConsistentEnhancer';
 import { TracingEnhancer } from './enhancements/TracingEnhancer';
 import { TypeScriptPolymorphicSchemaEnhancer } from './enhancements/typescript/TypeScriptPolymorphicSchemaEnhancer';
 import { ASTTypeScriptOneOfUnionEnhancer } from './enhancements/typescript/ASTTypeScriptOneOfUnionEnhancer';
 
-import { PostBuildOrchestrator } from './post-build/PostBuildOrchestrator';
 import { TypeScriptPostBuildStrategy } from './post-build/typescript/TypeScriptPostBuildStrategy';
 
 // Custom post-processing of generated SDKs  
@@ -109,30 +108,22 @@ function generateSdk(specFile: string, generator: string, outputDir: string, sdk
     }
 }
 
-async function enhanceSDKs(spec: OpenAPIV3.Document, sdksDir: string) {
-    log('✨ Enhancing SDKs...', colors.cyan);
+async function runSdkPipeline(spec: OpenAPIV3.Document, sdksDir: string) {
+    log('🚀 Running unified SDK pipeline...', colors.cyan);
     
     try {
-        const orchestrator = new SdkEnhancementOrchestrator(spec, sdks, sdksDir, enhancementStrategies);
-        await orchestrator.enhanceAllSDKs();
+        const orchestrator = new SdkPipelineOrchestrator(
+            spec, 
+            sdks, 
+            sdksDir, 
+            enhancementStrategies,
+            postBuildStrategies
+        );
+        await orchestrator.runPipeline();
 
-        log('🎉 All SDKs enhanced!', colors.green);
+        log('🎉 SDK pipeline completed successfully!', colors.green);
     } catch (error) {
-        log('❌ Failed to enhance SDKs', colors.red);
-        process.exit(1);
-    }
-}
-
-async function runPostBuildTasks(spec: OpenAPIV3.Document, sdksDir: string) {
-    log('🔧 Running post-build tasks...', colors.cyan);
-    
-    try {
-        const orchestrator = new PostBuildOrchestrator(spec, sdks, sdksDir, postBuildStrategies);
-        await orchestrator.runAllPostBuildTasks();
-
-        log('🎉 All post-build tasks completed!', colors.green);
-    } catch (error) {
-        log('❌ Failed to run post-build tasks', colors.red);
+        log('❌ SDK pipeline failed', colors.red);
         process.exit(1);
     }
 }
@@ -169,11 +160,8 @@ async function main() {
     
     const spec = yaml.load(fs.readFileSync(specFile, 'utf8')) as OpenAPIV3.Document;
     
-    // Enhance SDKs
-    await enhanceSDKs(spec, sdksDir);
-    
-    // Run post-build tasks after enhancements are complete
-    await runPostBuildTasks(spec, sdksDir);
+    // Run unified SDK pipeline (enhancement + post-build)
+    await runSdkPipeline(spec, sdksDir);
     
     log('');
     log('📦 Generated SDKs:', colors.cyan);

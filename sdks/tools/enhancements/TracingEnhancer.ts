@@ -1,6 +1,6 @@
 import { OpenAPIV3 } from 'openapi-types';
 import { SdkDefinitions } from '../sdks';
-import { SdkEnhancementStrategy } from './SdkEnhancementOrchestrator';
+import { SdkEnhancementStrategy } from '../SdkPipelineOrchestrator';
 import { TypeScriptTracingEnhancer } from './typescript/TypeScriptTracingEnhancer';
 
 export class TracingEnhancer extends SdkEnhancementStrategy {

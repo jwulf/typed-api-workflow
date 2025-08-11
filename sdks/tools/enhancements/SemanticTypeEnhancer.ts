@@ -1,4 +1,4 @@
-import { SdkEnhancementStrategy } from "./SdkEnhancementOrchestrator";
+import { SdkEnhancementStrategy } from "../SdkPipelineOrchestrator";
 import { OpenAPIV3 } from 'openapi-types';
 import { TypeScriptCamundaKeysToTypes, SemanticType } from './typescript/TypeScriptCamundaKeysToTypes';
 
