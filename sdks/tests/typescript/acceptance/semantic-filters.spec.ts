@@ -68,25 +68,26 @@ test('Camunda Entity Keys from API responses are type-safe at design- and compil
     const processInstanceKey = ProcessInstanceKey.create(opaqueValue)
     const processDefinitionKey = ProcessDefinitionKey.create(opaqueValue);
     //@ts-expect-error - this is disallowed by the type system
-    expect(processInstanceKey === processDefinitionKey).toBeFalsy();
+    expect(processInstanceKey === processDefinitionKey).toBeFalsy(); // and is type-safe at runtime
 })
 
 test('Camunda Entity Keys from API responses are type-safe at runtime', () => {
     const opaqueValue = "234321234"
     const processInstanceKey = ProcessInstanceKey.create(opaqueValue)
     const processDefinitionKey = ProcessDefinitionKey.create(opaqueValue);
-    // Test runtime type safety - getValue should throw when called with wrong key type
     expect(() => {
-      ProcessDefinitionKey.getValue(processInstanceKey as any) // Cast to any because this is type safe in the IDE - we want to validate runtime safety
+      ProcessDefinitionKey.getValue(processInstanceKey as any) // type safe in the IDE - we want to validate runtime safety
     }).toThrow('Invalid ProcessDefinitionKey: expected object with __type=\'ProcessDefinitionKey\', got ProcessInstanceKey')
     expect(processDefinitionKey as any === processInstanceKey).toBe(false)
 
     const searchQuery: ProcessInstanceSearchQuery = {
         filter: {
-            processDefinitionKey: processInstanceKey as any // simulate an application with no compile-time safety
+            processDefinitionKey: processInstanceKey as any // simulate a development environment with no compile-time safety
         }
     }
-    console.log(ObjectSerializer.serialize(searchQuery, 'ProcessInstanceSearchQuery'))
-    expect(() => ObjectSerializer.serialize(searchQuery, 'ProcessInstanceSearchQuery')).toThrow('Invalid ProcessDefinitionKey: expected object with __type=\'ProcessDefinitionKey\', got ProcessInstanceKey')
+    expect(() => ObjectSerializer.serialize(searchQuery, 'ProcessInstanceSearchQuery')).toThrow('Invalid union type: got ProcessInstanceKey but expected ProcessDefinitionKey | AdvancedProcessDefinitionKeyFilter')
+
+    const case2: ProcessInstanceSearchQuery = { filter: { processInstanceKey: { $in: [processDefinitionKey as any] } } }
+    expect(() => ObjectSerializer.serialize(case2, 'ProcessInstanceSearchQuery')).toThrow('No valid union type found for data');
 })
 

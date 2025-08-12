@@ -346,17 +346,33 @@ export class TypeScriptCamundaKeysToTypes {
 
   generateSerializeEnhancement(): string {
     const semanticTypeNames = Array.from(this.semanticTypes.keys());
-    let enhancement = '\n        // Handle union types containing semantic types by checking __type property\n';
-    enhancement += '        else if (type.includes(\'|\') && data && typeof data === \'object\' && data.__type) {\n';
-    enhancement += '            // Check if the actual type of the data is in the union\n';
+    let enhancement = '\n        // Handle union types with proper validation for both semantic types and complex objects\n';
+    enhancement += '        else if (type.includes(\'|\') && data && typeof data === \'object\') {\n';
     enhancement += '            const unionTypes = type.split(\' | \').map(t => t.trim());\n';
-    enhancement += '            const actualType = data.__type;\n';
-    enhancement += '            if (unionTypes.includes(actualType)) {\n';
-    enhancement += '                return ObjectSerializer.serialize(data, actualType);\n';
-    enhancement += '            } else {\n';
-    enhancement += '                // Throw error for mismatched union types to provide runtime safety\n';
-    enhancement += '                throw new Error(`Invalid union type: got ${actualType} but expected ${type}`);\n';
+    enhancement += '            \n';
+    enhancement += '            // If data has __type, validate semantic type directly\n';
+    enhancement += '            if (data.__type) {\n';
+    enhancement += '                const actualType = data.__type;\n';
+    enhancement += '                if (unionTypes.includes(actualType)) {\n';
+    enhancement += '                    return ObjectSerializer.serialize(data, actualType);\n';
+    enhancement += '                } else {\n';
+    enhancement += '                    throw new Error(`Invalid union type: got ${actualType} but expected ${type}`);\n';
+    enhancement += '                }\n';
     enhancement += '            }\n';
+    enhancement += '            \n';
+    enhancement += '            // For complex objects without __type, try each union type until one succeeds\n';
+    enhancement += '            let lastError: Error | null = null;\n';
+    enhancement += '            for (const unionType of unionTypes) {\n';
+    enhancement += '                try {\n';
+    enhancement += '                    return ObjectSerializer.serialize(data, unionType);\n';
+    enhancement += '                } catch (error) {\n';
+    enhancement += '                    lastError = error as Error;\n';
+    enhancement += '                    // Continue to next union type\n';
+    enhancement += '                }\n';
+    enhancement += '            }\n';
+    enhancement += '            \n';
+    enhancement += '            // If no union type worked, throw the last error with context\n';
+    enhancement += '            throw new Error(`No valid union type found for data. Last error: ${lastError?.message}. Expected: ${type}`);\n';
     enhancement += '        }\n';
     enhancement += '        // Semantic type handling - convert branded types to strings for JSON\n';
     
