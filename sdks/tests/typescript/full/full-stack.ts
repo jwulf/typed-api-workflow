@@ -2,32 +2,44 @@
 import './tracing';
 import { tracer } from './tracing';
 
-import {ProcessInstanceApi, ResourceApi, WithEventuality, ProcessInstanceSearchQuery, ObjectSerializer, WithTracing, ProcessDefinitionKey} from '../../../generated/typescript'
+import { ProcessInstanceApi, ResourceApi, WithEventuality, ProcessInstanceSearchQuery, ObjectSerializer, WithTracing, ProcessDefinitionKey, ProcessInstanceKey } from '../../../generated/typescript'
 import * as fs from 'fs'
 import * as path from 'path'
 import { trace, SpanStatusCode } from '@opentelemetry/api';
 
 // This test needs a running broker on localhost AND demonstrates OpenTelemetry tracing
 main()
+
+// type guards for runtime inspection of CamundaKey types
+function isProcessInstanceKey(value: any): value is ProcessInstanceKey {
+    console.log(value.__type)
+    return value && typeof value === 'object' && value.__type === 'ProcessInstanceKey';
+}
+
+function isProcessDefinitionKey(value: any): value is ProcessDefinitionKey {
+    console.log(value.__type)
+    return value && typeof value === 'object' && value.__type === 'ProcessDefinitionKey';
+}
+
 async function main() {
     console.log('🔍 Starting traced Camunda API test...');
-    
+
     // Create a root span for the entire test
     const rootSpan = tracer.startSpan('camunda-integration-test');
-    
+
     try {
         // Test both WithEventuality and WithTracing together
         // WithTracing will now work because we initialized the SDK above
         const processApi = WithTracing(WithEventuality(new ProcessInstanceApi()));
         const resourceApi = WithTracing(new ResourceApi());
-    
-    // Load the test BPMN file
-    const bpmnPath = path.join(__dirname, 'resources', 'test.bpmn')
-    const bpmnContent = fs.readFileSync(bpmnPath)
-    
-    // Deploy the process
-    console.log('Deploying process...')
- 
+
+        // Load the test BPMN file
+        const bpmnPath = path.join(__dirname, 'resources', 'test.bpmn')
+        const bpmnContent = fs.readFileSync(bpmnPath)
+
+        // Deploy the process
+        console.log('Deploying process...')
+
         const deploymentResponse = await resourceApi.createDeployment([{
             value: bpmnContent,
             options: {
@@ -36,7 +48,7 @@ async function main() {
             }
         }])
         const deployment = deploymentResponse.body
-        
+
         if (!deployment.deployments || deployment.deployments.length === 0) {
             throw new Error('No deployments found in response');
         }
@@ -46,58 +58,73 @@ async function main() {
         if (!processDefinition) {
             throw new Error('No process definition found in deployment');
         }
-        
+
         console.log(`Deployed process: ${processDefinition.processDefinitionId} (key: ${processDefinition.processDefinitionKey})`)
 
-    // Create a process instance
-    const createResponse = await processApi.createProcessInstance({
-        processDefinitionKey: processDefinition.processDefinitionKey,
-    })
+        // Create a process instance
+        const createResponse = await processApi.createProcessInstance({
+            processDefinitionKey: processDefinition.processDefinitionKey,
+        })
 
-    const processInstance = createResponse.body
-    
-    if (!processInstance.processInstanceKey) {
-        throw new Error('No process instance key returned');
-    }
-    
-    console.log(`Created process instance: ${processInstance.processInstanceKey}`)
+        const processInstance = createResponse.body
 
-    const processDefinitionKey: ProcessDefinitionKey = processDefinition.processDefinitionKey!;
-    // Search for the process instance we just created
-    console.log('Searching for process instances...')
-    const searchQuery: ProcessInstanceSearchQuery = {
-        filter: {
-            processDefinitionKey
+        if (!processInstance.processInstanceKey) {
+            throw new Error('No process instance key returned');
         }
-    }
 
-    const processInstanceKey = processInstance.processInstanceKey
+        console.log(`Created process instance: ${processInstance.processInstanceKey}`)
 
-    const searchResponse = await processApi
-        .searchProcessInstances
-        .eventually({
-            filter: { 
-                processInstanceKey
+        const processDefinitionKey: ProcessDefinitionKey = processDefinition.processDefinitionKey!;
+        // Search for the process instance we just created
+        console.log('Searching for process instances...')
+        const searchQuery: ProcessInstanceSearchQuery = {
+            filter: {
+                processDefinitionKey
             }
-        }, undefined, {timeout: 3000})
+        }
 
-    const searchResults = searchResponse.body
-    
-    console.log(`Found ${searchResults.items?.length || 0} process instances`)
+        const processInstanceKey = processInstance.processInstanceKey
 
-    console.log('Integration test completed successfully!')
-    
-    // Mark the root span as successful
-    rootSpan.setStatus({ code: SpanStatusCode.OK });
-    
-} catch (error) {
-    console.error('Test failed:', error);
-    rootSpan.recordException(error as Error);
-    rootSpan.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
-    throw error;
-} finally {
-    // Always end the root span
-    rootSpan.end();
-    console.log('🔍 Root span completed');
-}
+        const searchResponse = await processApi
+            .searchProcessInstances
+            .eventually({
+                filter: {
+                    processInstanceKey
+                }
+            }, undefined, { timeout: 5000 })
+            .catch(e => {
+                console.error(`Failed to find process instance in search within 5s, with error message: ${e.message}`)
+                process.exit(1)
+            })
+
+        const searchResults = searchResponse.body
+
+        console.log(`Found ${searchResults.items?.length || 0} process instances`)
+
+        // Proper way to validate a ProcessInstanceKey
+        const firstProcessInstanceKey = searchResults?.items?.[0].processInstanceKey;
+        const isValidProcessInstanceKey = firstProcessInstanceKey ?
+            ProcessInstanceKey.isValid(ProcessInstanceKey.getValue(firstProcessInstanceKey)) : false;
+
+        console.log(`First result has valid ProcessInstanceKey: ${isValidProcessInstanceKey}`);
+
+        console.log(`First result ProcessInstanceKey is ProcessDefinitionKey: ${isProcessDefinitionKey(processInstanceKey)}`);
+        console.log(`First result ProcessInstanceKey is ProcessInstanceKey: ${isProcessInstanceKey(processInstanceKey)}`);
+
+
+        console.log('Integration test completed successfully!')
+
+        // Mark the root span as successful
+        rootSpan.setStatus({ code: SpanStatusCode.OK });
+
+    } catch (error) {
+        console.error('Test failed:', error);
+        rootSpan.recordException(error as Error);
+        rootSpan.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        throw error;
+    } finally {
+        // Always end the root span
+        rootSpan.end();
+        console.log('🔍 Root span completed');
+    }
 }
