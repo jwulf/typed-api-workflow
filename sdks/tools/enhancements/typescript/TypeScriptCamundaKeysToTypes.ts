@@ -353,6 +353,9 @@ export class TypeScriptCamundaKeysToTypes {
     enhancement += '            const actualType = data.__type;\n';
     enhancement += '            if (unionTypes.includes(actualType)) {\n';
     enhancement += '                return ObjectSerializer.serialize(data, actualType);\n';
+    enhancement += '            } else {\n';
+    enhancement += '                // Throw error for mismatched union types to provide runtime safety\n';
+    enhancement += '                throw new Error(`Invalid union type: got ${actualType} but expected ${type}`);\n';
     enhancement += '            }\n';
     enhancement += '        }\n';
     enhancement += '        // Semantic type handling - convert branded types to strings for JSON\n';
