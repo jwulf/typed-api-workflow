@@ -61,6 +61,9 @@ export class TypeScriptCamundaKeysToTypes {
       
       code += `  /**\n   * Get the string value of a ${name}\n   */\n`;
       code += `  export function getValue(key: ${name}): string {\n`;
+      code += `    if (!key || typeof key !== 'object' || (key as any).__type !== '${name}') {\n`;
+      code += `      throw new Error(\`Invalid ${name}: expected object with __type='${name}', got \${(key as any)?.__type}\`);\n`;
+      code += `    }\n`;
       code += `    return String(key);\n`;
       code += `  }\n\n`;
       

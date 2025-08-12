@@ -61,9 +61,32 @@ test('Additional acceptance criteria for AdvancedFilters typing', () => {
     const serialised = ObjectSerializer.serialize(searchQuery, 'ProcessInstanceSearchQuery')
     expect(serialised.filter.processDefinitionKey).toBe(opaqueValue)
 
-    const processInstanceKey = ProcessInstanceKey.create(opaqueValue)
-    const case2: ProcessInstanceSearchQuery = { filter: { processInstanceKey: { $in: [processInstanceKey] } } }
-    console.log(ProcessDefinitionKey.getValue(processInstanceKey as any))
-
-    expect(processDefinitionKey as any === processInstanceKey).toBe(false) // We have type safety in the IDE, we want to validate runtime safety
 })
+
+test('Camunda Entity Keys from API responses are type-safe at design- and compile-time', () => {
+    const opaqueValue = "234321234"
+    const processInstanceKey = ProcessInstanceKey.create(opaqueValue)
+    const processDefinitionKey = ProcessDefinitionKey.create(opaqueValue);
+    //@ts-expect-error - this is disallowed by the type system
+    expect(processInstanceKey === processDefinitionKey).toBeFalsy();
+})
+
+test('Camunda Entity Keys from API responses are type-safe at runtime', () => {
+    const opaqueValue = "234321234"
+    const processInstanceKey = ProcessInstanceKey.create(opaqueValue)
+    const processDefinitionKey = ProcessDefinitionKey.create(opaqueValue);
+    // Test runtime type safety - getValue should throw when called with wrong key type
+    expect(() => {
+      ProcessDefinitionKey.getValue(processInstanceKey as any) // Cast to any because this is type safe in the IDE - we want to validate runtime safety
+    }).toThrow('Invalid ProcessDefinitionKey: expected object with __type=\'ProcessDefinitionKey\', got ProcessInstanceKey')
+    expect(processDefinitionKey as any === processInstanceKey).toBe(false)
+
+    const searchQuery: ProcessInstanceSearchQuery = {
+        filter: {
+            processDefinitionKey: processInstanceKey as any // simulate an application with no compile-time safety
+        }
+    }
+    console.log(ObjectSerializer.serialize(searchQuery, 'ProcessInstanceSearchQuery'))
+    expect(() => ObjectSerializer.serialize(searchQuery, 'ProcessInstanceSearchQuery')).toThrow('Invalid ProcessDefinitionKey: expected object with __type=\'ProcessDefinitionKey\', got ProcessInstanceKey')
+})
+
