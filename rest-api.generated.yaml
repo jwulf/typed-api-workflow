@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-08-10 07:36:03
+# File generated at: 2025-08-12 12:55:07
 
 ---
 openapi: "3.0.3"
@@ -9730,9 +9730,8 @@ components:
       type: "object"
       properties:
         decisionDefinitionId:
-          description: "The ID of the decision to be evaluated.\nCannot be used together\
-            \ with decisionDefinitionKey. When using the decision ID, the latest\n\
-            deployed version of the decision is used.\n"
+          description: "The ID of the decision to be evaluated.\nWhen using the decision\
+            \ ID, the latest\ndeployed version of the decision is used.\n"
           type: "string"
         variables:
           description: "The message variables as JSON document."
@@ -9743,8 +9742,42 @@ components:
           type: "string"
         decisionDefinitionKey:
           type: "string"
-          description: "The unique key identifying the decision to be evaluated.\n\
-            Cannot be used together with decisionDefinitionId.\n"
+          description: "Key for a decision definition. Only use values returned by\
+            \ the system."
+    DecisionEvaluationById:
+      type: "object"
+      title: "Decision evaluation by ID"
+      properties:
+        decisionDefinitionId:
+          description: "The ID of the decision to be evaluated.\nWhen using the decision\
+            \ ID, the latest\ndeployed version of the decision is used.\n"
+          type: "string"
+        variables:
+          description: "The message variables as JSON document."
+          additionalProperties: true
+          type: "object"
+        tenantId:
+          description: "The tenant ID of the decision."
+          type: "string"
+      required:
+      - "decisionDefinitionId"
+    DecisionEvaluationByKey:
+      type: "object"
+      title: "Decision evaluation by key"
+      properties:
+        decisionDefinitionKey:
+          type: "string"
+          description: "Key for a decision definition. Only use values returned by\
+            \ the system."
+        variables:
+          description: "The message variables as JSON document."
+          additionalProperties: true
+          type: "object"
+        tenantId:
+          description: "The tenant ID of the decision."
+          type: "string"
+      required:
+      - "decisionDefinitionKey"
     EvaluateDecisionResult:
       type: "object"
       properties:
