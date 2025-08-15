@@ -8913,6 +8913,7 @@ components:
           description: "The ID of the tenant that owns the job."
           type: "string"
         jobKey:
+          x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/JobKey"
             - description: "The key, a unique identifier for the job."
@@ -8925,6 +8926,7 @@ components:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
             - description: "The key of the job's process definition."
         elementInstanceKey:
+          x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
             - description: "The unique key identifying the associated task, unique\
@@ -10329,6 +10331,7 @@ components:
           type: "string"
           description: "The tenant ID of the deployed process."
         processDefinitionKey:
+          x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
             - description: "The assigned key, which acts as a unique identifier for\
@@ -10356,11 +10359,13 @@ components:
           description: "The dmn ID of the decision requirements graph that this decision\
             \ is part of, as parsed during deployment.\n"
         decisionDefinitionKey:
+          x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/DecisionDefinitionKey"
             - description: "The assigned decision key, which acts as a unique identifier\
                 \ for this decision.\n"
         decisionRequirementsKey:
+          x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/DecisionRequirementsKey"
             - description: "The assigned key of the decision requirements graph that\
@@ -10390,6 +10395,7 @@ components:
           description: "The resource name from which this decision requirements was\
             \ parsed."
         decisionRequirementsKey:
+          x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/DecisionRequirementsKey"
             - description: "The assigned decision requirements key, which acts as\
@@ -10413,6 +10419,7 @@ components:
           type: "string"
           description: "The tenant ID of the deployed form."
         formKey:
+          x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/FormKey"
             - description: "The assigned key, which acts as a unique identifier for\
@@ -10436,6 +10443,7 @@ components:
           type: "string"
           description: "The tenant ID of the deployed form."
         resourceKey:
+          x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/ResourceKey"
             - description: "The assigned key, which acts as a unique identifier for\
@@ -10637,6 +10645,7 @@ components:
             - description: "The key of the process definition which was used to create\
                 \ the process instance.\n"
         processInstanceKey:
+          x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
             - description: "The unique identifier of the created process instance;\

@@ -1,0 +1,26 @@
+{
+  "name": "path-analyser",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "generate:scenarios": "node ./dist/index.js",
+    "start": "npm run build && npm run generate:scenarios",
+    "codegen:playwright": "npm run build && node dist/codegen/index.js",
+  "codegen:playwright:all": "npm run build && node dist/codegen/index.js --all",
+    "clean": "rimraf dist || rm -rf dist"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.54.2",
+    "yaml": "^2.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

@@ -10,3 +10,5 @@ We need to accomplish four goals:
 4. Maintain a backwards-compatible version of the specification via transformation. The canonical legacy specification is `rest-api.yaml`. The transformer is in `java/openapi-camunda-key-flattener`. The output of this script is `rest-api.generated.yaml`. We generate and validate this format by running `npm run spec:go`. 
 
 We must achieve all of these requirements simultaneously.
+
+When we are working on SDKs, we need to run `npm run sdks:generate` in the project root to generate the SDKs. Changes made to files in `generated` are not persistent. They need to be made via the SDK enhancement pipeline by an enhancer.

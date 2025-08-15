@@ -1,6 +1,6 @@
 # ignore generated SDKs
 sdks/generated
-
+dist
 #
 spec-tools/semantic-types-coverage/dist
 

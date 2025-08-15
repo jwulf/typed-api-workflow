@@ -51,6 +51,7 @@ rules:
           - "x-eventually-consistent"
           - "x-semantic-type"
           - "x-polymorphic-schema"
+          - "x-semantic-provider"
 
   endpoints-must-have-consistency-declaration:
     description: "All endpoints must have x-eventually-consistent vendor extension."

@@ -1,3 +1,17 @@
+## Document Id needs to be made semantic
+
+It's a uuid string, like "cbfe6f07-215a-4dcc-b12c-965b47c97a13". 
+
+This needs to be made into a new semantic type, because it has a different validation format than a CamundaKey. 
+
+So we need to go to a higher level of abstraction for semantic keys. SemanticKey<CamundaKey>, SemanticKey<UUID>.
+
+## Openapi-generator complains about empty request schema
+
+In the BatchOperation endpoints, we take a POST request with an empty body. This is allowed in the OpenAPI spec v3. 
+
+Openapi-generator complains about them during SDK generation. These can be ignored.
+
 
 ## Advanced filter semantic types are lost
 
