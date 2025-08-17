@@ -163,6 +163,8 @@ export interface RequestStep {
   expect: { status: number };
   extract?: { fieldPath: string; bind: string; semantic?: string }[];
   notes?: string;
+  // Optional: expected slices in deployments[] for createDeployment responses, derived from domain sidecar
+  expectedDeploymentSlices?: string[];
 }
 
 // Filter dimension details for feature coverage
@@ -184,6 +186,7 @@ export interface DomainSemantics {
   artifactKinds?: Record<string, ArtifactKindSpec>;
   semanticTypeToArtifactKind?: Record<string,string>;
   operationArtifactRules?: Record<string, OperationArtifactRuleSpec>;
+  artifactFileKinds?: Record<string, string[]>; // extension -> artifactKind[]
 }
 
 export interface IdentifierSpec {
@@ -221,6 +224,7 @@ export interface ArtifactKindSpec {
   producesStates?: string[];
   producesSemantics?: string[];
   identifierType?: string;
+  deploymentSlices?: string[]; // e.g., ["processDefinition"] or ["decisionDefinition","decisionRequirements"]
 }
 
 export interface OperationArtifactRuleSpec {

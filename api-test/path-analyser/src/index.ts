@@ -197,6 +197,9 @@ function buildRequestPlan(scenario: any, resp: any, graph: any, canonical: Recor
       } else if (plan?.kind === 'multipart') {
         step.multipartTemplate = plan.template;
         step.bodyKind = 'multipart';
+        if ((plan as any).expectedSlices && Array.isArray((plan as any).expectedSlices)) {
+          step.expectedDeploymentSlices = (plan as any).expectedSlices;
+        }
       }
     }
     if (isFinal && resp?.fields?.length) {
@@ -389,7 +392,26 @@ ${'${'}${varName}}`;
       template.fields['tenantId'] = `\
 ${'${'}${varName}}`;
     }
-    return { kind: 'multipart' as const, template };
+    // Derive expected deployment slices using domain sidecar mapping (explicit). Fallback to heuristic later in emitter.
+    const expectedSlicesSet = new Set<string>();
+    try {
+      const fileKinds: Record<string, string[]> | undefined = (graph.domain as any)?.artifactFileKinds;
+      const kindsSpec: Record<string, any> | undefined = (graph.domain as any)?.artifactKinds;
+      for (const [name, val] of Object.entries<any>(template.files)) {
+        const s = typeof val === 'string' ? val : '';
+        const pth = s.startsWith('@@FILE:') ? s.slice('@@FILE:'.length) : s;
+        if (!pth) continue;
+        const ext = path.extname(pth).toLowerCase();
+        const kinds = (fileKinds && fileKinds[ext]) || [];
+        for (const k of kinds) {
+          const spec = kindsSpec?.[k];
+          const slices: string[] = spec?.deploymentSlices || [];
+          slices.forEach(x => expectedSlicesSet.add(x));
+        }
+      }
+    } catch {}
+    const expectedSlices = Array.from(expectedSlicesSet);
+    return { kind: 'multipart' as const, template, expectedSlices };
   }
   return undefined;
 }

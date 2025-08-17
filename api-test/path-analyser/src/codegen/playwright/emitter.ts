@@ -63,6 +63,8 @@ function renderScenarioTest(s: EndpointScenario): string {
     const varName = `resp${idx+1}`;
     const urlExpr = buildUrlExpression(step.pathTemplate);
     const method = step.method.toLowerCase();
+  const isFinal = idx === (s.requestPlan!.length - 1);
+  const hasShape = Array.isArray((s as any).responseShapeFields) && (s as any).responseShapeFields.length > 0;
     // Basic body handling placeholder
     body.push(`  // Step ${idx+1}: ${step.operationId}`);
     body.push(`  {`);
@@ -98,11 +100,64 @@ function renderScenarioTest(s: EndpointScenario): string {
     }
     body.push(`    const ${varName} = await request.${method}(url, { ${opts.join(', ')} });`);
     body.push(`    expect(${varName}.status()).toBe(${step.expect.status});`);
+  // If this is the final step and scenario expects a success body, assert presence and types
+  const isErrorScenario = (s as any).expectedResult && (s as any).expectedResult.kind === 'error';
+  if (isFinal && hasShape && !isErrorScenario) {
+      // Always parse once here so assertions can use it
+      body.push(`    const json = await ${varName}.json();`);
+      for (const f of (s as any).responseShapeFields as Array<{ name: string; type: string; required?: boolean }>) {
+        const acc = 'json' + toPathAccessor(f.name);
+        const t = (f as any).type || 'unknown';
+        if (f.required) {
+          body.push(`    expect(${acc}).not.toBeUndefined();`);
+          body.push(`    expect(${acc}).not.toBeNull();`);
+          body.push(...emitTypeAssertLines(acc, t));
+        } else {
+          body.push(`    if (${acc} !== undefined && ${acc} !== null) {`);
+          body.push(...emitTypeAssertLines(acc, t, '      '));
+          body.push(`    }`);
+        }
+      }
+      // Deployment response shape assertions based on uploaded resource types (multipart only)
+      if (step.bodyKind === 'multipart' && step.multipartTemplate && step.multipartTemplate.files) {
+        // Prefer explicit domain-driven slices if present on the step
+        const expectedSlices = new Set<string>(Array.isArray((step as any).expectedDeploymentSlices) ? (step as any).expectedDeploymentSlices : []);
+        // Fallback to filename heuristic when domain-driven mapping not provided
+        if (expectedSlices.size === 0) {
+          try {
+            for (const [fname, fval] of Object.entries<any>(step.multipartTemplate.files)) {
+              if (typeof fval === 'string' && fval.startsWith('@@FILE:')) {
+                const pth = fval.slice('@@FILE:'.length);
+                const ext = path.extname(pth).toLowerCase();
+                if (ext === '.bpmn' || ext === '.bpmn20.xml' || pth.includes('/bpmn/')) expectedSlices.add('processDefinition');
+                if (ext === '.dmn' || ext === '.dmn11.xml' || pth.includes('/dmn/')) { expectedSlices.add('decisionDefinition'); expectedSlices.add('decisionRequirements'); }
+                if (ext === '.form' || ext === '.json' || pth.includes('/forms/')) expectedSlices.add('form');
+              }
+            }
+          } catch {}
+        }
+        if (expectedSlices.size > 0) {
+          body.push(`    // Assert deployment items contain expected slices based on uploaded resources`);
+          body.push(`    expect(Array.isArray(json.deployments)).toBeTruthy();`);
+          if (expectedSlices.has('processDefinition')) body.push(`    expect(json.deployments?.[0]?.processDefinition).toBeTruthy();`);
+          if (expectedSlices.has('decisionDefinition')) body.push(`    expect(json.deployments?.[0]?.decisionDefinition).toBeTruthy();`);
+          if (expectedSlices.has('decisionRequirements')) body.push(`    expect(json.deployments?.[0]?.decisionRequirements).toBeTruthy();`);
+          if (expectedSlices.has('form')) body.push(`    expect(json.deployments?.[0]?.form).toBeTruthy();`);
+        }
+      }
+    }
     // Extraction
     if (step.extract && step.extract.length) {
-      body.push(`    const json = await ${varName}.json();`);
+      // Avoid duplicate parsing if already parsed for final-step assertions above
+      if (!(isFinal && hasShape && !isErrorScenario)) {
+        body.push(`    const json = await ${varName}.json();`);
+      }
+      let exIdx = 0;
       for (const ex of step.extract) {
-        body.push(`    ctx['${ex.bind}'] = json${toPathAccessor(ex.fieldPath)};`);
+        const optAcc = toOptionalAccessor(ex.fieldPath);
+        const vname = `val_${idx+1}_${++exIdx}`;
+        body.push(`    const ${vname} = json${optAcc};`);
+        body.push(`    if (${vname} !== undefined) { ctx['${ex.bind}'] = ${vname}; }`);
       }
     }
     body.push('  }');
@@ -134,3 +189,38 @@ function toPathAccessor(fieldPath: string): string {
 
 function escapeQuotes(s: string): string { return s.replace(/'/g, "\'"); }
 function camelCase(s: string){ return s.charAt(0).toLowerCase()+s.slice(1); }
+
+// Build an accessor using optional chaining for nested/array paths, e.g. a.b[0].c -> ?.a?.b?.[0]?.c
+function toOptionalAccessor(fieldPath: string): string {
+  // Similar to toPathAccessor but with optional chaining and safe array index segments
+  const parts = fieldPath.split('.');
+  return parts.map((p, i) => {
+    const m = p.match(/^([a-zA-Z_][a-zA-Z0-9_]*)(\[[0-9]+\])?$/);
+    if (m) {
+      const base = `${i === 0 ? '?.' : '?.'}${m[1]}`; // always prefix with ?.
+      const idx = m[2] ? `?.${m[2]}` : '';
+      return base + idx;
+    }
+    // fallback for unusual keys
+    return `?.['${p.replace(/'/g, "\\'")}']`;
+  }).join('');
+}
+
+// Emit lines asserting the runtime type of a value according to a simple type name
+function emitTypeAssertLines(accExpr: string, typeName: string, indent = '    '): string[] {
+  switch (typeName) {
+    case 'string': return [`${indent}expect(typeof ${accExpr}).toBe('string');`];
+    case 'integer': return [
+      `${indent}expect(typeof ${accExpr}).toBe('number');`,
+      `${indent}expect(Number.isInteger(${accExpr})).toBeTruthy();`
+    ];
+    case 'number': return [`${indent}expect(typeof ${accExpr}).toBe('number');`];
+    case 'boolean': return [`${indent}expect(typeof ${accExpr}).toBe('boolean');`];
+    case 'array': return [`${indent}expect(Array.isArray(${accExpr})).toBeTruthy();`];
+    case 'object': return [
+      `${indent}expect(typeof ${accExpr}).toBe('object');`,
+      `${indent}expect(Array.isArray(${accExpr})).toBeFalsy();`
+    ];
+    default: return [`${indent}/* unknown type: ${typeName} */`];
+  }
+}

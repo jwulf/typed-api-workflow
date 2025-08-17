@@ -81,23 +81,35 @@
     "bpmnProcess": {
       "producesStates": ["ProcessDefinitionDeployed", "ModelHasServiceTaskType"],
       "producesSemantics": ["ProcessDefinitionKey"],
-      "identifierType": "ProcessDefinitionId"
+      "identifierType": "ProcessDefinitionId",
+      "deploymentSlices": ["processDefinition"]
     },
     "dmnDecision": {
       "producesStates": ["DecisionDefinitionDeployed"],
       "producesSemantics": ["DecisionDefinitionKey"],
-      "identifierType": "DecisionDefinitionId"
+      "identifierType": "DecisionDefinitionId",
+      "deploymentSlices": ["decisionDefinition"]
     },
     "dmnDrd": {
       "producesStates": ["DecisionRequirementsDeployed"],
       "producesSemantics": ["DecisionRequirementsKey"],
-      "identifierType": "DecisionRequirementsId"
+      "identifierType": "DecisionRequirementsId",
+      "deploymentSlices": ["decisionRequirements"]
     },
     "form": {
   "producesStates": ["FormDeployed"],
   "producesSemantics": ["FormKey"],
-  "identifierType": "FormId"
+  "identifierType": "FormId",
+  "deploymentSlices": ["form"]
     }
+  },
+  "artifactFileKinds": {
+    ".bpmn": ["bpmnProcess"],
+    ".bpmn20.xml": ["bpmnProcess"],
+    ".dmn": ["dmnDecision", "dmnDrd"],
+    ".dmn11.xml": ["dmnDecision", "dmnDrd"],
+    ".form": ["form"],
+    ".json": ["form"]
   },
   "semanticTypeToArtifactKind": {
     "ProcessDefinitionKey": "bpmnProcess",
