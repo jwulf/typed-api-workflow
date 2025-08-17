@@ -36,6 +36,10 @@ function mergeAllOf(doc, schema) {
     for (const part of schema.allOf) {
       const eff = mergeAllOf(doc, part);
       base.type = base.type || eff?.type;
+      // propagate explicit nullable from parts
+      if (eff && typeof eff.nullable !== 'undefined') {
+        base.nullable = base.nullable || !!eff.nullable;
+      }
       // merge properties
       if (eff?.properties) {
         base.properties = { ...(base.properties||{}), ...eff.properties };
@@ -54,11 +58,23 @@ function mergeAllOf(doc, schema) {
 }
 
 // Determine if schema (object) has optional fields
-function getOptionalFields(eff) {
+function isNullable(doc, schema) {
+  if (!schema) return false;
+  const m = mergeAllOf(doc, schema);
+  return !!m?.nullable;
+}
+
+function getOptionalFields(doc, eff) {
   if (!eff || eff.type !== 'object' || !eff.properties) return [];
   const req = new Set(eff.required || []);
   const names = Object.keys(eff.properties);
-  return names.filter(n => !req.has(n));
+  return names.filter(n => {
+    if (req.has(n)) return false;
+    const propSch = eff.properties[n];
+    // Exclude explicitly nullable fields from analysis
+    if (isNullable(doc, propSch)) return false;
+    return true;
+  });
 }
 
 function main() {
@@ -94,17 +110,17 @@ function main() {
           if (!schemaName && eff?.items?.$ref) schemaName = eff.items.$ref.split('/').pop();
 
           if (eff?.type === 'object' || (!eff?.type && eff?.properties)) {
-            opt = getOptionalFields(eff);
+            opt = getOptionalFields(doc, eff);
           } else if (eff?.type === 'array' || eff?.items) {
             const itemsEff = mergeAllOf(doc, eff.items || {});
             const itemsResolved = itemsEff?.$ref ? mergeAllOf(doc, resolveRef(doc, itemsEff.$ref)) : itemsEff;
             if (itemsResolved?.type === 'object' && itemsResolved?.properties) {
-              opt = getOptionalFields(itemsResolved);
+              opt = getOptionalFields(doc, itemsResolved);
             }
           } else if (eff?.$ref) {
             const target = resolveRef(doc, eff.$ref);
             const merged = mergeAllOf(doc, target);
-            opt = getOptionalFields(merged);
+            opt = getOptionalFields(doc, merged);
           }
           if (opt.length) {
             const id = p;
@@ -120,13 +136,13 @@ function main() {
           if (sch2) {
             const eff2 = mergeAllOf(doc, sch2);
             if (eff2?.type === 'object' && eff2.properties) {
-              const opt2 = getOptionalFields(eff2);
+              const opt2 = getOptionalFields(doc, eff2);
               if (opt2.length) { const id = p; const out = `${id} - [${opt2.join(', ')}]`; if (!seen.has(out)) { lines.push(out); seen.add(out); } }
             } else if (eff2?.type === 'array' || eff2?.items) {
               const itemsEff2 = mergeAllOf(doc, eff2.items || {});
               const res2 = itemsEff2?.$ref ? mergeAllOf(doc, resolveRef(doc, itemsEff2.$ref)) : itemsEff2;
               if (res2?.type === 'object' && res2.properties) {
-                const opt3 = getOptionalFields(res2);
+                const opt3 = getOptionalFields(doc, res2);
                 if (opt3.length) { const id = p; const out = `${id} - [${opt3.join(', ')}]`; if (!seen.has(out)) { lines.push(out); seen.add(out); } }
               }
             }
