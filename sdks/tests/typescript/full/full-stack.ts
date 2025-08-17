@@ -1,23 +1,22 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Import tracing setup FIRST - this must be done before any other imports
 import './tracing';
 import { tracer } from './tracing';
 
-import { ProcessInstanceApi, ResourceApi, WithEventuality, ProcessInstanceSearchQuery, ObjectSerializer, WithTracing, ProcessDefinitionKey, ProcessInstanceKey } from '../../../generated/typescript'
+import { ProcessInstanceApi, ResourceApi, WithEventuality, WithTracing, ProcessDefinitionKey, ProcessInstanceKey } from '../../../generated/typescript'
 import * as fs from 'fs'
 import * as path from 'path'
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import { SpanStatusCode } from '@opentelemetry/api';
 
 // This test needs a running broker on localhost AND demonstrates OpenTelemetry tracing
 main()
 
 // type guards for runtime inspection of CamundaKey types
 function isProcessInstanceKey(value: any): value is ProcessInstanceKey {
-    console.log(value.__type)
     return value && typeof value === 'object' && value.__type === 'ProcessInstanceKey';
 }
 
 function isProcessDefinitionKey(value: any): value is ProcessDefinitionKey {
-    console.log(value.__type)
     return value && typeof value === 'object' && value.__type === 'ProcessDefinitionKey';
 }
 
@@ -74,17 +73,18 @@ async function main() {
 
         console.log(`Created process instance: ${processInstance.processInstanceKey}`)
 
-        const processDefinitionKey: ProcessDefinitionKey = processDefinition.processDefinitionKey!;
         // Search for the process instance we just created
         console.log('Searching for process instances...')
-        const searchQuery: ProcessInstanceSearchQuery = {
-            filter: {
-                processDefinitionKey
-            }
-        }
-
+  
         const processInstanceKey = processInstance.processInstanceKey
 
+        // const searchResponse = await processApi
+        //     .searchProcessInstances({
+        //         filter: {
+        //             processInstanceKey
+        //         }
+        // })
+        
         const searchResponse = await processApi
             .searchProcessInstances
             .eventually({
