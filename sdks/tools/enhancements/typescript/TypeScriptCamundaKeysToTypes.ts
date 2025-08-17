@@ -136,7 +136,11 @@ export class TypeScriptCamundaKeysToTypes {
         
         for (const pattern of patterns) {
           if (pattern.test(content)) {
-            content = content.replace(pattern, `'$1'?: ${typeName}`);
+            // Preserve required/optional marker when replacing the type
+            content = content.replace(pattern, (match: string, propName: string) => {
+              const isOptional = match.includes("?:");
+              return `'${propName}'${isOptional ? '?:' : ':'} ${typeName}`;
+            });
             changed = true;
           }
         }
