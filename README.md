@@ -149,3 +149,14 @@ See the `README.md` file in `sdks` for information about generating SDKs.
 This project adds metadata to the OpenAPI spec about the eventually-consistent nature of endpoints, based on static analysis of the controller code. 
 
 See the `EVENTUAL.md` file for more information on eventual consistency.
+
+## Test Suite Deployment Artifacts
+
+The Playwright-based API tests (under `api-test/path-analyser`) deploy sample artifacts (BPMN, DMN, Forms):
+
+- Editable registry: `api-test/path-analyser/fixtures/deployment-artifacts.json`
+	- Describes artifact `kind`, `path` (relative to `fixtures/`), and a human-readable `description`.
+- Generated manifest: `api-test/path-analyser/dist/output/deployment-artifacts.manifest.json`
+	- Machine-readable list of artifacts actually referenced by generated scenarios/tests, suitable for programmatic build/packaging.
+
+See `api-test/path-analyser/README.md` for details.

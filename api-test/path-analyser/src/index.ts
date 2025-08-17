@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'fs/promises';
+import { mkdir, writeFile, readFile as readFileAsync } from 'fs/promises';
 import path from 'path';
 import { loadGraph, loadOpenApiSemanticHints } from './graphLoader.js';
 import { generateScenariosForEndpoint } from './scenarioGenerator.js';
@@ -65,6 +65,8 @@ async function main() {
 
   const summaryEntries: GenerationSummaryEntry[] = [];
   let processed = 0;
+  // Aggregate deployment artifacts referenced by scenarios for manifest output
+  const artifactsManifest = new Map<string, { kind: string; path: string; description?: string }>();
 
   for (const op of Object.values(graph.operations)) {
     // Generate scenarios for every endpoint, even if it has no semantic requirements.
@@ -75,6 +77,7 @@ async function main() {
       for (const s of collection.scenarios) {
         s.responseShapeSemantics = resp.producedSemantics || undefined;
   s.responseShapeFields = resp.fields.map(f => ({ name: f.name, type: f.type, semantic: (f as any).semantic, required: f.required }));
+        if ((resp as any).nestedSlices) s.responseNestedSlices = resp.nestedSlices as any;
   s.requestPlan = buildRequestPlan(s, resp, graph, canonical, requestIndex.byOperation);
       }
     }
@@ -87,7 +90,7 @@ async function main() {
     const chainSource = integrationCandidates
       .filter(sc => sc.operations.length > 1)
       .sort((a,b) => a.operations.length - b.operations.length)[0] || integrationCandidates[0];
-    if (resp) {
+  if (resp) {
       for (const s of featureCollection.scenarios) {
         // Graft chain if available and feature scenario currently only has endpoint op
         if (chainSource && s.operations.length === 1 && chainSource.operations.length > 1) {
@@ -95,6 +98,7 @@ async function main() {
         }
         s.responseShapeSemantics = resp.producedSemantics || undefined;
   s.responseShapeFields = resp.fields.map(f => ({ name: f.name, type: f.type, semantic: (f as any).semantic, required: f.required }));
+        if ((resp as any).nestedSlices) s.responseNestedSlices = resp.nestedSlices as any;
   s.requestPlan = buildRequestPlan(s, resp, graph, canonical, requestIndex.byOperation);
         // Validation: for JSON requests with oneOf groups, non-negative scenarios must set exactly one variant's required keys
         try {
@@ -107,8 +111,15 @@ async function main() {
             for (const g of groups) {
               // Count variants whose required keys are fully present in the body
               const hits = g.variants.filter((v: any) => v.required.every((k: string) => presentKeys.has(k)));
-              if (hits.length !== 1) {
-                throw new Error(`oneOf validation failed for ${op.operationId} group '${g.groupId}': expected exactly 1 variant's required keys present, found ${hits.length}`);
+              // Deduplicate by required set (some variants only differ by discriminator value but share the same required keys)
+              const uniqByReq = new Map<string, any>();
+              for (const v of hits) {
+                const key = [...v.required].sort().join('|');
+                if (!uniqByReq.has(key)) uniqByReq.set(key, v);
+              }
+              const uniqCount = uniqByReq.size;
+              if (uniqCount !== 1) {
+                throw new Error(`oneOf validation failed for ${op.operationId} group '${g.groupId}': expected exactly 1 variant's required keys present, found ${uniqCount}`);
               }
             }
           }
@@ -127,6 +138,40 @@ async function main() {
         }
       }
     }
+    // Collect artifact references from feature scenarios (multipart files)
+    try {
+      const domainRules = (graph.domain as any)?.operationArtifactRules || {};
+      for (const sc of featureCollection.scenarios) {
+        const steps = (sc as any).requestPlan || [];
+        for (const st of steps) {
+          if (st?.bodyKind === 'multipart' && st?.multipartTemplate?.files) {
+            for (const [k,v] of Object.entries<any>(st.multipartTemplate.files)) {
+              const s = typeof v === 'string' ? v : '';
+              if (!s.startsWith('@@FILE:')) continue;
+              const rel = s.slice('@@FILE:'.length);
+              // Determine artifact kind: prefer scenario artifact rule mapping
+              let kind: string | undefined;
+              const rulesForOp = domainRules?.[st.operationId]?.rules || [];
+              if (Array.isArray((sc as any).artifactsApplied) && (sc as any).artifactsApplied.length) {
+                const rid = (sc as any).artifactsApplied[0];
+                const r = rulesForOp.find((r: any) => r.id === rid);
+                kind = r?.artifactKind;
+              }
+              // Fallback by extension mapping
+              if (!kind) {
+                const ext = path.extname(rel).toLowerCase();
+                const kinds = (graph.domain as any)?.artifactFileKinds?.[ext] || [];
+                kind = kinds[0];
+              }
+              const desc = getArtifactsRegistry().find(e => e.kind === kind && e.path === rel)?.description;
+              const key = `${kind || 'unknown'}::${rel}`;
+              if (!artifactsManifest.has(key)) artifactsManifest.set(key, { kind: kind || 'unknown', path: rel, description: desc });
+            }
+          }
+        }
+      }
+    } catch {}
+
     await writeFile(path.join(featureDir, fileName), JSON.stringify(featureCollection, null, 2), 'utf8');
     summaryEntries.push({
       operationId: op.operationId,
@@ -145,6 +190,11 @@ async function main() {
     endpoints: summaryEntries
   };
   await writeFile(path.join(outputDir, 'index.json'), JSON.stringify(summary, null, 2), 'utf8');
+  // Write artifact manifest for programmatic builds
+  if (artifactsManifest.size) {
+    const artifacts = Array.from(artifactsManifest.values()).sort((a,b) => (a.kind+a.path).localeCompare(b.kind+b.path));
+    await writeFile(path.join(outputDir, 'deployment-artifacts.manifest.json'), JSON.stringify({ artifacts }, null, 2), 'utf8');
+  }
 
   console.log(`Generated scenario files for ${processed} endpoints.`);
 }
@@ -307,7 +357,10 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
         chosen = variants.find(v => v.required.some((f: string) => /Key$/.test(f))) || chosen;
       }
       chosenVariantRequired = [...(chosen?.required || [])];
-      const names: string[] = [...(chosen?.required || []), ...(chosen?.optional || [])];
+      // Allow chosen required, plus chosen optional that are NOT required by any other variant
+      const otherRequired = new Set<string>(variants.filter(v => v !== chosen).flatMap(v => v.required || []));
+      const safeOptional = (chosen?.optional || []).filter((n: string) => !otherRequired.has(n));
+      const names: string[] = [...(chosen?.required || []), ...safeOptional];
       allowedFields = new Set(names);
     }
   }
@@ -381,8 +434,22 @@ ${'${'}${varName}}`;
     const template: any = { fields: {}, files: {} };
     const fileFields = nodes.filter(n => /\bstring\b/i.test(n.type) && /resources\[\]/.test(n.path));
     if (fileFields.length) {
-      // Provide a placeholder fixture and variable for caller to override
-      template.files['resources'] = '@@FILE:bpmn/simple.bpmn';
+      // Choose fixture based on artifact rule selection if present
+  const ruleId = (scenario.artifactsApplied && scenario.artifactsApplied[0]) || undefined;
+      const domainRules = (graph.domain as any)?.operationArtifactRules?.[opId]?.rules || [];
+      const rule = ruleId ? domainRules.find((r: any) => r.id === ruleId) : undefined;
+      const kind = rule?.artifactKind as string | undefined;
+      // Map artifact kind -> default fixture path
+      const defaultFixtures: Record<string,string> = {
+        bpmnProcess: '@@FILE:bpmn/simple.bpmn',
+        form: '@@FILE:forms/simple.form',
+        dmnDecision: '@@FILE:dmn/decision.dmn',
+        dmnDrd: '@@FILE:dmn/drd.dmn'
+      };
+  // Prefer registry-defined artifact if available for this kind
+  const regFile = chooseFixtureFromRegistry(kind);
+  let fileRef = regFile || defaultFixtures[kind || ''] || '@@FILE:bpmn/simple.bpmn';
+      template.files['resources'] = fileRef;
     }
     const tenant = nodes.find(n => n.path === 'tenantId');
     if (tenant) {
@@ -394,7 +461,7 @@ ${'${'}${varName}}`;
     }
     // Derive expected deployment slices using domain sidecar mapping (explicit). Fallback to heuristic later in emitter.
     const expectedSlicesSet = new Set<string>();
-    try {
+  try {
       const fileKinds: Record<string, string[]> | undefined = (graph.domain as any)?.artifactFileKinds;
       const kindsSpec: Record<string, any> | undefined = (graph.domain as any)?.artifactKinds;
       for (const [name, val] of Object.entries<any>(template.files)) {
@@ -413,5 +480,36 @@ ${'${'}${varName}}`;
     const expectedSlices = Array.from(expectedSlicesSet);
     return { kind: 'multipart' as const, template, expectedSlices };
   }
+  return undefined;
+}
+
+// -------- Artifact Registry support ---------
+let artifactsRegistryCache: { kind: string; path: string; description?: string }[] | undefined;
+function getArtifactsRegistry(): { kind: string; path: string; description?: string }[] {
+  if (artifactsRegistryCache) return artifactsRegistryCache;
+  const candidates = [
+    // Invoked from api-test/path-analyser
+    path.resolve(process.cwd(), 'fixtures', 'deployment-artifacts.json'),
+    // Invoked from repo root
+    path.resolve(process.cwd(), 'api-test', 'path-analyser', 'fixtures', 'deployment-artifacts.json')
+  ];
+  for (const p of candidates) {
+    try {
+      const data = require('fs').readFileSync(p, 'utf8');
+      const json = JSON.parse(data);
+      const arr = Array.isArray(json?.artifacts) ? json.artifacts : Array.isArray(json) ? json : [];
+    artifactsRegistryCache = arr.map((e: any) => ({ kind: e.kind, path: e.path, description: e.description }));
+    return artifactsRegistryCache || [];
+    } catch {}
+  }
+  artifactsRegistryCache = [];
+  return artifactsRegistryCache;
+}
+
+function chooseFixtureFromRegistry(kind?: string): string | undefined {
+  if (!kind) return undefined;
+  const reg = getArtifactsRegistry();
+  const hit = reg.find(e => e.kind === kind);
+  if (hit && hit.path) return `@@FILE:${hit.path}`;
   return undefined;
 }

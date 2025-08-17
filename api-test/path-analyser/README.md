@@ -19,7 +19,7 @@ This produces JSON files under `dist/feature-output/` (feature coverage enriched
 Structure:
 
 - `dist/feature-output/<method>--<path>-scenarios.json` – scenario collection for a single endpoint (feature coverage + metadata like `requestPlan`, `responseShapeFields`, oneOf variants, negative union variants, etc.).
-- `dist/feature-output/index.json` – summary of processed endpoints.
+- `dist/output/index.json` – summary of processed endpoints.
 
 Constraints / heuristics:
 
@@ -40,7 +40,11 @@ npm run codegen:playwright:all
 
 Outputs go to `dist/generated-tests/`:
 
-- `<operationId>.feature.spec.ts` – One test per scenario in the collection (currently status-code assertions; body templates & deeper field assertions forthcoming).
+- `<operationId>.feature.spec.ts` – One test per scenario in the collection. The emitter asserts:
+	- Status code (using the extracted success status when available).
+	- Presence and type of top-level fields in the final response.
+	- For deployment responses, required inner fields for expected slices (e.g., `deployments[0].processDefinition.*`).
+	- It parses JSON once and reuses it for all assertions.
 
 ### Running the Generated Tests
 
@@ -54,7 +58,26 @@ Or run all generated specs (when multiple exist):
 
 ```bash
 npx playwright test dist/generated-tests
-Note: multipart endpoints (e.g., createDeployment) use a small fixture located under `fixtures/` by default. Adjust paths or variables as needed.
+Note: multipart endpoints (e.g., createDeployment) use a small fixture located under `fixtures/` by default. Adjust paths or variables as needed. Multipart requests are emitted using Playwright's keyed `multipart` object with `FilePayload` entries (`{ name, mimeType, buffer }`).
+
+### Deployment Artifact Registry and Manifest
+
+- Registry file (editable): `api-test/path-analyser/fixtures/deployment-artifacts.json`
+	- Purpose: define deployable artifacts used by tests. The planner prefers these over generic defaults.
+	- Shape:
+		- `artifacts: Array<{ kind: string; path: string; description?: string }>`
+		- `kind` must match a domain artifact kind (e.g., `bpmnProcess`, `form`, `dmnDecision`, `dmnDrd`).
+		- `path` is relative to `api-test/path-analyser/fixtures/`.
+		- `description` is free text to capture notable characteristics.
+	- Example entries are provided for BPMN, Form, and DMN.
+
+- Output manifest (read-only, regenerated): `api-test/path-analyser/dist/output/deployment-artifacts.manifest.json`
+	- Purpose: machine-readable list of artifacts referenced by generated scenarios/tests.
+	- Shape: `{ artifacts: [{ kind, path, description? }] }`
+	- Use this file to build artifacts programmatically for a CI test environment or pre-seed step.
+
+CreateDeployment coverage:
+- The feature generator emits one scenario per declared artifact rule (BPMN, Form, DMN Decision, DMN DRD) using the registry to select files. Assertions verify the corresponding deployment slices in the response.
 ```
 
 ### Environment Variables

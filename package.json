@@ -31,7 +31,8 @@
     "watch:spec": "nodemon --watch rest-api.domain.yaml --exec 'npm run build:sdks'",
     "test:sdks": "npm run sdks:install && cd sdks/tools && npm run test",
     "test:typescript": "cd sdks/tests/typescript && npm test",
-    "test:ts:integration": "cd sdks/tests/typescript && npx jest integration"
+    "test:ts:integration": "cd sdks/tests/typescript && npx jest integration",
+    "testsuite:generate": "cd api-test/semantic-graph-extractor && npm run extract-graph && cd ../path-analyser && npm run build && node dist/src/index.js && npm run codegen:playwright:all"
   },
   "keywords": [],
   "author": "",

@@ -23,8 +23,19 @@ export function generateFeatureCoverageForEndpoint(graph: OperationGraph, endpoi
   const optional = [...endpoint.requires.optional];
   const variants: FeatureVariantSpec[] = [];
 
+  // Artifact coverage: if domain has artifact rules for this operation, generate a base variant per rule
+  const artifactRules = graph.domain?.operationArtifactRules?.[endpointOpId]?.rules || [];
+  if (artifactRules.length) {
+    for (const r of artifactRules) {
+      variants.push({ endpointId: endpointOpId, optionals: [], disjunctionChoices: [], artifactSemantics: [], expectedResult: 'nonEmpty', artifactRuleId: r.id, artifactKind: r.artifactKind });
+    }
+  }
+
   // Base variant (minimal)
-  variants.push({ endpointId: endpointOpId, optionals: [], disjunctionChoices: [], artifactSemantics: [], expectedResult: 'nonEmpty' });
+  // Generic base variant (only if no artifact rule already covers it)
+  if (!artifactRules.length) {
+    variants.push({ endpointId: endpointOpId, optionals: [], disjunctionChoices: [], artifactSemantics: [], expectedResult: 'nonEmpty' });
+  }
 
   // Single optional variants
   for (const o of optional) {
@@ -122,6 +133,10 @@ function buildScenarioFromVariant(graph: OperationGraph, endpointId: string, var
     scenario.requestVariants = [{ groupId: variant.requestVariantGroup, variant: variant.requestVariantName, richness: variant.requestVariantRichness || 'minimal' }];
     if (variant.negative && variant.requestVariantName === 'union-all') scenario.exclusivityViolations = [`oneOf:${variant.requestVariantGroup}:union-all`];
   }
+  // Tag artifact selection in scenario for downstream request planning
+  if (variant.artifactRuleId || variant.artifactKind) {
+    scenario.artifactsApplied = variant.artifactRuleId ? [variant.artifactRuleId] : [];
+  }
   return scenario;
 }
 
@@ -142,6 +157,7 @@ function buildCoverageTags(v: FeatureVariantSpec): string[] {
 }
 
 function buildFeatureScenarioName(operationId: string, v: FeatureVariantSpec, index: number): string {
+  if (v.artifactRuleId) return `${operationId} - ${v.artifactRuleId} (${index})`;
   // Special-case union-all negative before generic negative naming
   if (v.requestVariantGroup && typeof v.requestVariantName === 'string' && v.requestVariantName.startsWith('pair:')) {
     const pair = v.requestVariantName.slice('pair:'.length);
@@ -163,6 +179,7 @@ function buildFeatureScenarioName(operationId: string, v: FeatureVariantSpec, in
 
 function buildFeatureScenarioDescription(endpoint: any, v: FeatureVariantSpec): string {
   const base = `Invoke ${endpoint.operationId} (${endpoint.method.toUpperCase()} ${endpoint.path})`;
+  if (v.artifactRuleId) return `${base} deploying ${v.artifactRuleId.toUpperCase()} artifact.`;
   // Special-case union-all negative before generic negative description
   if (v.requestVariantGroup && typeof v.requestVariantName === 'string' && v.requestVariantName.startsWith('pair:')) {
     const pair = v.requestVariantName.slice('pair:'.length);

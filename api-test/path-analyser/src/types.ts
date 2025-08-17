@@ -73,6 +73,8 @@ export interface EndpointScenario {
   // Response shape (for future assertion synthesis)
   responseShapeSemantics?: string[];   // semantic types inferred from response fields
   responseShapeFields?: { name: string; type: string; semantic?: string; required?: boolean; }[];
+  // Nested slice field shapes keyed by slice name for deep assertions
+  responseNestedSlices?: Record<string, { name: string; type: string; required?: boolean }[]>;
   requestPlan?: RequestStep[];          // concrete request assembly plan per operation (ordered)
 }
 
@@ -104,6 +106,9 @@ export interface FeatureVariantSpec {
   requestVariantGroup?: string; // oneOf group id
   requestVariantName?: string;  // specific variant id/name
   requestVariantRichness?: 'minimal' | 'rich';
+  // Artifact deployment coverage (from domain.operationArtifactRules)
+  artifactRuleId?: string;      // e.g., 'bpmn' | 'form' | 'dmn' | 'drd'
+  artifactKind?: string;        // e.g., 'bpmnProcess' | 'form' | 'dmnDecision' | 'dmnDrd'
 }
 
 export interface GenerationSummary {
@@ -129,6 +134,8 @@ export interface ResponseShapeSummary {
   fields: ResponseShapeField[]; // flattened top-level fields
   producedSemantics?: string[];
   successStatus?: number; // primary success HTTP status code
+  // Optional nested slice shapes, keyed by slice name
+  nestedSlices?: Record<string, ResponseShapeField[]>;
 }
 
 // -------- Request oneOf variant extraction ---------

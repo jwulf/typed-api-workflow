@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-08-12 12:55:07
+# File generated at: 2025-08-18 07:33:01
 
 ---
 openapi: "3.0.3"
@@ -8894,6 +8894,7 @@ components:
           description: "The ID of the tenant that owns the job."
           type: "string"
         jobKey:
+          x-semantic-provider: true
           type: "string"
           description: "The key, a unique identifier for the job."
         processInstanceKey:
@@ -8903,6 +8904,7 @@ components:
           type: "string"
           description: "The key of the job's process definition."
         elementInstanceKey:
+          x-semantic-provider: true
           type: "string"
           description: "The unique key identifying the associated task, unique within\
             \ the scope of the process instance."
@@ -10290,6 +10292,12 @@ components:
     DeploymentProcessResult:
       description: "A deployed process."
       type: "object"
+      required:
+      - "processDefinitionId"
+      - "processDefinitionVersion"
+      - "resourceName"
+      - "processDefinitionKey"
+      - "tenantId"
       properties:
         processDefinitionId:
           type: "string"
@@ -10306,6 +10314,7 @@ components:
           type: "string"
           description: "The tenant ID of the deployed process."
         processDefinitionKey:
+          x-semantic-provider: true
           type: "string"
           description: "The assigned key, which acts as a unique identifier for this\
             \ process."
@@ -10332,10 +10341,12 @@ components:
           description: "The dmn ID of the decision requirements graph that this decision\
             \ is part of, as parsed during deployment.\n"
         decisionDefinitionKey:
+          x-semantic-provider: true
           type: "string"
           description: "The assigned decision key, which acts as a unique identifier\
             \ for this decision.\n"
         decisionRequirementsKey:
+          x-semantic-provider: true
           type: "string"
           description: "The assigned key of the decision requirements graph that this\
             \ decision is part of.\n"
@@ -10364,6 +10375,7 @@ components:
           description: "The resource name from which this decision requirements was\
             \ parsed."
         decisionRequirementsKey:
+          x-semantic-provider: true
           type: "string"
           description: "The assigned decision requirements key, which acts as a unique\
             \ identifier for this decision requirements.\n"
@@ -10386,6 +10398,7 @@ components:
           type: "string"
           description: "The tenant ID of the deployed form."
         formKey:
+          x-semantic-provider: true
           type: "string"
           description: "The assigned key, which acts as a unique identifier for this\
             \ form."
@@ -10408,6 +10421,7 @@ components:
           type: "string"
           description: "The tenant ID of the deployed form."
         resourceKey:
+          x-semantic-provider: true
           type: "string"
           description: "The assigned key, which acts as a unique identifier for this\
             \ Resource."
@@ -10662,6 +10676,7 @@ components:
           description: "The key of the process definition which was used to create\
             \ the process instance.\n"
         processInstanceKey:
+          x-semantic-provider: true
           type: "string"
           description: "The unique identifier of the created process instance; to\
             \ be used wherever a request\nneeds a process instance key (e.g. CancelProcessInstanceRequest).\n"

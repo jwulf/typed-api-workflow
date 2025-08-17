@@ -10286,6 +10286,10 @@ components:
           description: "The date and time when the link expires."
     DeploymentResult:
       type: "object"
+      required: 
+        - "tenantId"
+        - "deploymentKey"
+        - "deployments"
       properties:
         tenantId:
           description: "The tenant ID associated with the deployment."
@@ -10315,6 +10319,12 @@ components:
     DeploymentProcessResult:
       description: "A deployed process."
       type: "object"
+      required: 
+        - "processDefinitionId"
+        - "processDefinitionVersion"
+        - "resourceName"
+        - "processDefinitionKey"
+        - "tenantId"
       properties:
         processDefinitionId:
           type: "string"

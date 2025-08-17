@@ -28,7 +28,36 @@ export async function extractResponseAndRequestVariants(baseDir: string, semanti
         }
       }
       if (ctSchemas.length) {
-        const fields = flattenTopLevelFields(ctSchemas[0].schema, doc.components?.schemas || {});
+        const components = doc.components?.schemas || {};
+        const rootSchema = resolveSchema(ctSchemas[0].schema, components);
+        const fields = flattenTopLevelFields(rootSchema, components);
+        // Extract nested slice field shapes for deployments[].{slice}
+        const nestedSlices: Record<string, any[]> = {};
+        try {
+          const deploymentsProp = rootSchema?.properties?.deployments;
+          const deployments = deploymentsProp ? resolveSchema(deploymentsProp, components) : undefined;
+          const items = deployments?.type === 'array' ? resolveSchema(deployments.items, components) : undefined;
+          const itemObj = items && items.$ref ? resolveSchema(items, components) : items;
+          const sliceNames = ['processDefinition','decisionDefinition','decisionRequirements','form'];
+          if (itemObj && itemObj.properties) {
+            for (const slice of sliceNames) {
+              const sProp = itemObj.properties[slice];
+              if (!sProp) continue;
+              const sResolved = resolveSchema(sProp, components);
+              if (sResolved?.type === 'object' || sResolved?.$ref) {
+                const sObj = resolveSchema(sResolved, components);
+                const req = new Set(sObj.required || []);
+                const inner: { name: string; type: string; required?: boolean }[] = [];
+                for (const [fname, fsch] of Object.entries<any>(sObj.properties || {})) {
+                  const r = resolveSchema(fsch, components);
+                  const type = effectiveType(r, components);
+                  inner.push({ name: fname, type, required: req.has(fname) });
+                }
+                if (inner.length) nestedSlices[slice] = inner;
+              }
+            }
+          }
+        } catch {}
         // Map to semantic types if field (PascalCase) matches
         const producedSet = new Set<string>();
         for (const f of fields) {
@@ -38,7 +67,9 @@ export async function extractResponseAndRequestVariants(baseDir: string, semanti
               producedSet.add(pascal);
             }
         }
-  responses.push({ operationId, contentTypes: ctSchemas.map(c=>c.ct), fields, producedSemantics: [...producedSet], successStatus: successCode ? Number(successCode) : undefined });
+        const resp: ResponseShapeSummary = { operationId, contentTypes: ctSchemas.map(c=>c.ct), fields, producedSemantics: [...producedSet], successStatus: successCode ? Number(successCode) : undefined } as any;
+        if (Object.keys(nestedSlices).length) (resp as any).nestedSlices = nestedSlices;
+  responses.push(resp);
       }
 
       // Request oneOf extraction
@@ -63,8 +94,7 @@ function flattenTopLevelFields(schemaRef: any, components: Record<string, any>) 
     const req = new Set(resolved.required || []);
     for (const [fname, fsch] of Object.entries<any>(resolved.properties)) {
       const r = resolveSchema(fsch, components);
-      let type = r.type || (r.oneOf ? 'union' : 'unknown');
-      if (r.$ref) type = 'object';
+      const type = effectiveType(r, components);
       if (type === 'array' && r.items) {
         const it = resolveSchema(r.items, components);
         out.push({ name: fname, type: 'array', required: req.has(fname), objectRef: it.$ref ? refName(it.$ref) : undefined });
@@ -109,12 +139,49 @@ function findOneOfGroups(operationId: string, root: any, components: Record<stri
 
 function resolveSchema(schema: any, components: Record<string, any>, depth = 0): any {
   if (!schema || depth > 10) return schema;
-  if (schema.$ref) {
-    const name = refName(schema.$ref);
+  let s = schema;
+  // Resolve $ref by merging referenced content (schema properties override refs)
+  if (s.$ref) {
+    const name = refName(s.$ref);
     const target = components[name];
-    if (target) return resolveSchema(target, components, depth+1);
+    if (target) {
+      const merged = { ...resolveSchema(target, components, depth + 1), ...s };
+      delete (merged as any).$ref;
+      s = merged;
+    }
   }
-  return schema;
+  // Resolve allOf by merging members
+  if (Array.isArray(s.allOf)) {
+    const merged: any = {};
+    for (const part of s.allOf) {
+      const r = resolveSchema(part, components, depth + 1) || {};
+      if (r.type && !merged.type) merged.type = r.type;
+      if (r.properties) merged.properties = { ...(merged.properties || {}), ...r.properties };
+      if (Array.isArray(r.required)) merged.required = Array.from(new Set([...(merged.required || []), ...r.required]));
+      if (r.items && !merged.items) merged.items = r.items;
+      if (r.format && !merged.format) merged.format = r.format;
+    }
+    const withoutAllOf = { ...s };
+    delete (withoutAllOf as any).allOf;
+    s = { ...merged, ...withoutAllOf };
+  }
+  return s;
+}
+
+function effectiveType(schema: any, components: Record<string, any>): string {
+  const s = resolveSchema(schema, components);
+  if (s.type) return s.type;
+  if (Array.isArray(s.allOf)) {
+    for (const part of s.allOf) {
+      const t = effectiveType(part, components);
+      if (t && t !== 'unknown') return t;
+    }
+  }
+  if (s.oneOf) return 'union';
+  if (s.anyOf) return 'union';
+  // If it references a known key format, default to string
+  if (typeof s.format === 'string' && /Key$/.test(s.format)) return 'string';
+  return 'unknown';
 }
 
 function refName(ref: string): string { return ref.split('/').pop() || ref; }

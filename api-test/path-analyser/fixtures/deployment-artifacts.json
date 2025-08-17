@@ -1,0 +1,24 @@
+{
+  "artifacts": [
+    {
+      "kind": "bpmnProcess",
+      "path": "bpmn/simple.bpmn",
+      "description": "Simple BPMN process with one service task"
+    },
+    {
+      "kind": "form",
+      "path": "forms/simple.form",
+      "description": "Minimal Camunda form JSON"
+    },
+    {
+      "kind": "dmnDecision",
+      "path": "dmn/decision.dmn",
+      "description": "Single decision table"
+    },
+    {
+      "kind": "dmnDrd",
+      "path": "dmn/drd.dmn",
+      "description": "Simple DRD with two decisions"
+    }
+  ]
+}

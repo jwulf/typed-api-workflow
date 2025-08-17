@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { EndpointScenarioCollection, EndpointScenario, RequestStep } from '../../types.js';
+import { planFinalStepAssertions } from '../assertionPlanner.js';
 
 interface EmitOptions {
   outDir: string;
@@ -84,30 +85,49 @@ function renderScenarioTest(s: EndpointScenario): string {
     opts.push('headers: await authHeaders()');
     if (step.bodyKind === 'json' && step.bodyTemplate) opts.push(`data: ${bodyVar}`);
     if (step.bodyKind === 'multipart' && step.multipartTemplate) {
-      // Convert template to multipart form-data for Playwright: use multipart option
-      // Interpret files entries: value '@@FILE:relativePath' means read file at runtime via fs
-  body.push(`    const formData: Array<{ name: string; value: any; fileName?: string }> = [];`);
-      body.push(`    for (const [k,v] of Object.entries(${bodyVar}.fields||{})) formData.push({ name: k, value: String(v) });`);
+      // Convert template to Playwright's expected multipart shape: a keyed object map
+      // Files are passed as { name, mimeType, buffer }
+      body.push(`    const multipart: Record<string, any> = {};`);
+      body.push(`    for (const [k,v] of Object.entries(${bodyVar}.fields||{})) multipart[k] = String(v);`);
       body.push(`    for (const [k,v] of Object.entries(${bodyVar}.files||{})) {
         if (typeof v === 'string' && v.startsWith('@@FILE:')) {
-          const p = v.slice('@@FILE:'.length);
-          formData.push({ name: k, value: await (await import('fs')).promises.readFile(p), fileName: p.split('/').pop() });
+          let p = v.slice('@@FILE:'.length);
+          // Resolve relative paths against likely fixture locations
+          const fsMod = await import('fs');
+          const pathMod = await import('path');
+          const candidates = [
+            p,
+            pathMod.resolve(process.cwd(), p),
+            pathMod.resolve(process.cwd(), 'api-test/path-analyser/fixtures', p),
+            // when running compiled tests from dist/generated-tests
+            typeof __dirname !== 'undefined' ? pathMod.resolve(__dirname, '../../fixtures', p) : undefined,
+            typeof __dirname !== 'undefined' ? pathMod.resolve(__dirname, '../fixtures', p) : undefined
+          ].filter(Boolean) as string[];
+          let buf: Buffer | undefined;
+          for (const cand of candidates) {
+            try { buf = await fsMod.promises.readFile(cand); break; } catch {}
+          }
+          if (!buf) { throw new Error('Fixture not found: ' + p); }
+          const name = p.split('/').pop() || 'file';
+          multipart[k] = { name, mimeType: 'application/octet-stream', buffer: buf };
         } else {
-          formData.push({ name: k, value: v });
+          multipart[k] = v;
         }
       }`);
-      opts.push('multipart: formData');
+      opts.push('multipart: multipart');
     }
-    body.push(`    const ${varName} = await request.${method}(url, { ${opts.join(', ')} });`);
+  body.push(`    const ${varName} = await request.${method}(url, { ${opts.join(', ')} });`);
     body.push(`    expect(${varName}.status()).toBe(${step.expect.status});`);
   // If this is the final step and scenario expects a success body, assert presence and types
   const isErrorScenario = (s as any).expectedResult && (s as any).expectedResult.kind === 'error';
   if (isFinal && hasShape && !isErrorScenario) {
       // Always parse once here so assertions can use it
       body.push(`    const json = await ${varName}.json();`);
-      for (const f of (s as any).responseShapeFields as Array<{ name: string; type: string; required?: boolean }>) {
-        const acc = 'json' + toPathAccessor(f.name);
-        const t = (f as any).type || 'unknown';
+      const plan = planFinalStepAssertions(s, step);
+      // Top-level field assertions
+      for (const f of plan.topLevel) {
+        const acc = 'json' + toPathAccessor(f.path);
+        const t = f.type || 'unknown';
         if (f.required) {
           body.push(`    expect(${acc}).not.toBeUndefined();`);
           body.push(`    expect(${acc}).not.toBeNull();`);
@@ -118,31 +138,21 @@ function renderScenarioTest(s: EndpointScenario): string {
           body.push(`    }`);
         }
       }
-      // Deployment response shape assertions based on uploaded resource types (multipart only)
-      if (step.bodyKind === 'multipart' && step.multipartTemplate && step.multipartTemplate.files) {
-        // Prefer explicit domain-driven slices if present on the step
-        const expectedSlices = new Set<string>(Array.isArray((step as any).expectedDeploymentSlices) ? (step as any).expectedDeploymentSlices : []);
-        // Fallback to filename heuristic when domain-driven mapping not provided
-        if (expectedSlices.size === 0) {
-          try {
-            for (const [fname, fval] of Object.entries<any>(step.multipartTemplate.files)) {
-              if (typeof fval === 'string' && fval.startsWith('@@FILE:')) {
-                const pth = fval.slice('@@FILE:'.length);
-                const ext = path.extname(pth).toLowerCase();
-                if (ext === '.bpmn' || ext === '.bpmn20.xml' || pth.includes('/bpmn/')) expectedSlices.add('processDefinition');
-                if (ext === '.dmn' || ext === '.dmn11.xml' || pth.includes('/dmn/')) { expectedSlices.add('decisionDefinition'); expectedSlices.add('decisionRequirements'); }
-                if (ext === '.form' || ext === '.json' || pth.includes('/forms/')) expectedSlices.add('form');
-              }
-            }
-          } catch {}
-        }
-        if (expectedSlices.size > 0) {
-          body.push(`    // Assert deployment items contain expected slices based on uploaded resources`);
-          body.push(`    expect(Array.isArray(json.deployments)).toBeTruthy();`);
-          if (expectedSlices.has('processDefinition')) body.push(`    expect(json.deployments?.[0]?.processDefinition).toBeTruthy();`);
-          if (expectedSlices.has('decisionDefinition')) body.push(`    expect(json.deployments?.[0]?.decisionDefinition).toBeTruthy();`);
-          if (expectedSlices.has('decisionRequirements')) body.push(`    expect(json.deployments?.[0]?.decisionRequirements).toBeTruthy();`);
-          if (expectedSlices.has('form')) body.push(`    expect(json.deployments?.[0]?.form).toBeTruthy();`);
+      // Slice object + inner required fields assertions
+      if (plan.slices.expected.length) {
+        body.push(`    // Assert deployment items contain expected slices based on uploaded resources`);
+        body.push(`    expect(Array.isArray(json.deployments)).toBeTruthy();`);
+        for (const slice of plan.slices.expected) {
+          const objAcc = `json.deployments?.[0]?.${slice}`;
+          body.push(`    expect(${objAcc}).toBeTruthy();`);
+          const inner = plan.slices.bySlice[slice] || [];
+          for (const f of inner) {
+            if (!f.required) continue;
+            const acc = 'json' + toPathAccessor(f.path);
+            body.push(`    expect(${acc}).not.toBeUndefined();`);
+            body.push(`    expect(${acc}).not.toBeNull();`);
+            body.push(...emitTypeAssertLines(acc, f.type || 'unknown'));
+          }
         }
       }
     }
