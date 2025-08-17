@@ -9,6 +9,14 @@ async function run() {
   const featureDir = path.join(baseDir, 'dist/feature-output');
   const outDir = path.join(baseDir, 'dist/generated-tests');
   await fs.mkdir(outDir, { recursive: true });
+  // Ensure runtime support files are available alongside generated tests
+  try {
+    const envSrc = path.join(baseDir, 'dist/src/codegen/support/env.js');
+    const envDstDir = path.join(outDir, 'support');
+    await fs.mkdir(envDstDir, { recursive: true });
+    const envDst = path.join(envDstDir, 'env.js');
+    await fs.copyFile(envSrc, envDst);
+  } catch {}
 
   if (!arg || arg === '--help' || arg === '-h') {
     console.error('Usage: node dist/codegen/index.js <operationId>|--all');

@@ -5,12 +5,15 @@ interface FeatureCoverageOptions {
   includeAllOptionalsThreshold: number;
   generateNegative: boolean;
   requestVariants?: RequestOneOfGroupSummary[]; // injected extracted request variant groups
+  // Cap for pairwise oneOf negatives per endpoint to avoid explosion
+  oneOfPairwiseMax?: number;
 }
 
 const DEFAULT_OPTS: FeatureCoverageOptions = {
   maxOptionalPairs: 20,
   includeAllOptionalsThreshold: 5,
-  generateNegative: true
+  generateNegative: true,
+  oneOfPairwiseMax: 10
 };
 
 export function generateFeatureCoverageForEndpoint(graph: OperationGraph, endpointOpId: string, opts: Partial<FeatureCoverageOptions> = {}): EndpointScenarioCollection {
@@ -51,6 +54,22 @@ export function generateFeatureCoverageForEndpoint(graph: OperationGraph, endpoi
       // Union violation negative (all fields) if more than 1 variant
       if (group.variants.length > 1) {
   variants.push({ endpointId: endpointOpId, optionals: [], disjunctionChoices: [], artifactSemantics: [], expectedResult: 'error', negative: true, requestVariantGroup: group.groupId, requestVariantName: 'union-all', requestVariantRichness: 'rich' });
+      }
+      // Pairwise violation negatives: minimal pair combos using one required field from each variant
+      if (group.variants.length > 1) {
+        const reqFields = group.variants.map(v => ({ name: v.variantName, req: v.required[0] || v.required[1] || v.required[2] || v.required[0] }));
+        const pairs: Array<[string,string]> = [];
+        for (let i=0;i<reqFields.length;i++) {
+          for (let j=i+1;j<reqFields.length;j++) {
+            const a = reqFields[i].req; const b = reqFields[j].req;
+            if (a && b) pairs.push([a,b]);
+          }
+        }
+        const cap = options.oneOfPairwiseMax ?? 10;
+        for (let k=0;k<Math.min(cap, pairs.length); k++) {
+          const [a,b] = pairs[k];
+          variants.push({ endpointId: endpointOpId, optionals: [], disjunctionChoices: [], artifactSemantics: [], expectedResult: 'error', negative: true, requestVariantGroup: group.groupId, requestVariantName: `pair:${a}+${b}`, requestVariantRichness: 'minimal' });
+        }
       }
     }
   }
@@ -123,6 +142,14 @@ function buildCoverageTags(v: FeatureVariantSpec): string[] {
 }
 
 function buildFeatureScenarioName(operationId: string, v: FeatureVariantSpec, index: number): string {
+  // Special-case union-all negative before generic negative naming
+  if (v.requestVariantGroup && typeof v.requestVariantName === 'string' && v.requestVariantName.startsWith('pair:')) {
+    const pair = v.requestVariantName.slice('pair:'.length);
+    return `${operationId} - oneOf ${v.requestVariantGroup} pair violation (${pair}) (${index})`;
+  }
+  if (v.requestVariantGroup && v.requestVariantName === 'union-all') {
+    return `${operationId} - oneOf ${v.requestVariantGroup} union violation (${index})`;
+  }
   if (v.negative) return `${operationId} - negative empty (${index})`;
   if (v.requestVariantGroup) {
     if (v.requestVariantName === 'union-all') return `${operationId} - oneOf ${v.requestVariantGroup} union violation (${index})`;
@@ -136,6 +163,14 @@ function buildFeatureScenarioName(operationId: string, v: FeatureVariantSpec, in
 
 function buildFeatureScenarioDescription(endpoint: any, v: FeatureVariantSpec): string {
   const base = `Invoke ${endpoint.operationId} (${endpoint.method.toUpperCase()} ${endpoint.path})`;
+  // Special-case union-all negative before generic negative description
+  if (v.requestVariantGroup && typeof v.requestVariantName === 'string' && v.requestVariantName.startsWith('pair:')) {
+    const pair = v.requestVariantName.slice('pair:'.length);
+    return `${base} with invalid oneOf payload containing conflicting fields (${pair}) from two different variants (pair union violation) expecting 400 error.`;
+  }
+  if (v.requestVariantGroup && v.requestVariantName === 'union-all') {
+    return `${base} with invalid oneOf payload containing ALL fields from group '${v.requestVariantGroup}' variants (union violation) expecting 400 error.`;
+  }
   if (v.negative) return `${base} expecting empty result set; no producing setup provided for optionals.`;
   if (v.requestVariantGroup) {
   if (v.requestVariantName === 'union-all') return `${base} with invalid oneOf payload containing ALL fields from group '${v.requestVariantGroup}' variants (union violation) expecting 400 error.`;

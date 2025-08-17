@@ -27,10 +27,11 @@ export function generateScenariosForEndpoint(
   // Domain requirements flattening (for initial endpoint) - treat all domainRequiresAll as required states for ranking only (not gating existing logic yet)
   const domainRequiredStates = endpoint.domainRequiresAll ? [...endpoint.domainRequiresAll] : [];
   const domainDisjunctions = endpoint.domainDisjunctions ? [...endpoint.domainDisjunctions] : [];
-  const initialNeeded = new Set([...required, ...optional]);
+  // Only treat required semantics as blocking; optional ones are opportunistic and won't force extra pre-ops.
+  const initialNeeded = new Set([...required]);
 
-  // Trivial endpoint (no semantic requirements). Return a single scenario containing only the endpoint.
-  if (initialNeeded.size === 0) {
+  // Trivial endpoint (no semantic AND no domain requirements). Return a single scenario containing only the endpoint.
+  if (initialNeeded.size === 0 && domainRequiredStates.length === 0 && domainDisjunctions.length === 0) {
     const trivial: EndpointScenario = {
       id: 'scenario-1',
   operations: [toRef(endpoint)],
@@ -237,9 +238,11 @@ export function generateScenariosForEndpoint(
       if (!longChainsEnabled || state.ops.length >= maxPreOps) continue;
     }
 
-    // Domain-only progression: if no semantic remaining but domain unsatisfied
+  // Domain-only progression: if no semantic remaining but domain unsatisfied
     if (remaining.length === 0 && (!domainRequiresSatisfied || !domainDisjunctionsSatisfied)) {
-      const missingDomainAll = endpointDomainRequires.filter(r => !state.domainStates.has(r));
+      // Collect transitive closure of prerequisite domain states so we can schedule producers for prerequisites first.
+      const directMissing = endpointDomainRequires.filter(r => !state.domainStates.has(r));
+      const missingDomainAll = gatherDomainPrerequisites(graph, directMissing, state.domainStates);
       const unmetDisjunctions = endpointDisjunctions.filter(group => !group.some(g => state.domainStates.has(g)));
       const domainCandidates = new Set<string>();
       for (const d of missingDomainAll) (graph.domainProducers?.[d] || []).forEach(opId => domainCandidates.add(opId));
@@ -257,10 +260,32 @@ export function generateScenariosForEndpoint(
         }
         const producerNode = graph.operations[producerOpId];
         if (!producerNode) continue;
+        // Domain gating for domain producer expansion
+        if (producerNode.domainRequiresAll && producerNode.domainRequiresAll.length) {
+          const missingDomain = producerNode.domainRequiresAll.filter(ds => !state.domainStates.has(ds));
+          if (missingDomain.length) continue; // enforce strict satisfaction first
+        }
         // Must add at least one new domain state to avoid infinite loops
         const newlyAdds = new Set<string>();
         producerNode.domainProduces?.forEach(d => { if (!state.domainStates.has(d)) newlyAdds.add(d); });
         producerNode.domainImplicitAdds?.forEach(d => { if (!state.domainStates.has(d)) newlyAdds.add(d); });
+        // Enforce domain prerequisite chains for newly added states/capabilities
+        if (newlyAdds.size) {
+          let prereqFailed = false;
+          for (const d of newlyAdds) {
+            const rs = graph.domain?.runtimeStates?.[d];
+            if (rs?.requires) {
+              for (const req of rs.requires) { if (!state.domainStates.has(req) && !newlyAdds.has(req)) { prereqFailed = true; break; } }
+              if (prereqFailed) break;
+            }
+            const cap = graph.domain?.capabilities?.[d];
+            if (cap?.dependsOn) {
+              for (const dep of cap.dependsOn) { if (!state.domainStates.has(dep) && !newlyAdds.has(dep)) { prereqFailed = true; break; } }
+              if (prereqFailed) break;
+            }
+          }
+          if (prereqFailed) continue;
+        }
         if (newlyAdds.size === 0) continue;
         const newProduced = new Set(state.produced);
         producerNode.produces.forEach(s => newProduced.add(s));
@@ -314,7 +339,7 @@ export function generateScenariosForEndpoint(
       }
     }
 
-    for (const producerOpId of producers) {
+  for (const producerOpId of producers) {
       if (producerOpId === endpointOpId) continue; // don't pre-run endpoint
 
       // Cycle detection logic
@@ -327,15 +352,38 @@ export function generateScenariosForEndpoint(
 
       const producerNode = graph.operations[producerOpId];
       if (!producerNode) continue;
+      // Domain gating for semantic producer expansion
+      if (producerNode.domainRequiresAll && producerNode.domainRequiresAll.length) {
+        const missingDomain = producerNode.domainRequiresAll.filter(ds => !state.domainStates.has(ds));
+        if (missingDomain.length) continue; // wait until domain states present
+      }
 
       const newProduced = new Set(state.produced);
       const newDomainStates = new Set(state.domainStates);
-  if (producerOpId === 'createDeployment') {
+      if (producerOpId === 'createDeployment') {
         applyArtifactRuleSelection(graph, producerNode, state, newProduced, newDomainStates);
       } else {
         producerNode.produces.forEach(s => newProduced.add(s));
         producerNode.domainProduces?.forEach(d => newDomainStates.add(d));
         producerNode.domainImplicitAdds?.forEach(d => newDomainStates.add(d));
+      }
+      // Enforce domain prerequisite chains for any newly added domain states after semantic expansion
+      const domainAddedNow = [...newDomainStates].filter(d => !state.domainStates.has(d));
+      if (domainAddedNow.length) {
+        let prereqFailed = false;
+        for (const d of domainAddedNow) {
+          const rs = graph.domain?.runtimeStates?.[d];
+          if (rs?.requires) {
+            for (const req of rs.requires) { if (!newDomainStates.has(req)) { prereqFailed = true; break; } }
+            if (prereqFailed) break;
+          }
+          const cap = graph.domain?.capabilities?.[d];
+          if (cap?.dependsOn) {
+            for (const dep of cap.dependsOn) { if (!newDomainStates.has(dep)) { prereqFailed = true; break; } }
+            if (prereqFailed) break;
+          }
+        }
+        if (prereqFailed) continue; // skip expansion; prerequisites not yet satisfied
       }
       const newNeeded = new Set(state.needed);
       producerNode.requires.required.forEach(s => newNeeded.add(s));
@@ -430,33 +478,40 @@ function applyArtifactRuleSelection(
     const remaining = new Set(unmetNeeded);
     const applied: string[] = [];
     const rules = (ruleSpec.rules || []).slice();
-    // Greedy until coverage or exhaustion
-    while (remaining.size && rules.length) {
-      // Rank rules by coverage (# new semantics) then priority then smaller footprint (# semantics total)
-      rules.sort((a,b) => {
-        const covA = coverageCount(a, remaining, graph); const covB = coverageCount(b, remaining, graph);
-        if (covA !== covB) return covB - covA; // more coverage first
-        const priA = a.priority ?? 100; const priB = b.priority ?? 100;
-        if (priA !== priB) return priA - priB;
-        const sizeA = enumerateRuleSemantics(a, graph).length; const sizeB = enumerateRuleSemantics(b, graph).length;
-        return sizeA - sizeB;
-      });
-      const best = rules[0];
-      const semantics = enumerateRuleSemantics(best, graph);
-      const adds = semantics.filter(s => remaining.has(s));
-      if (!adds.length) { // remove non-contributing rule to avoid infinite loop
-        rules.shift();
-        continue;
+    if (remaining.size === 0) {
+      // No required semantics drive coverage: pick a single minimal artifact (prefer BPMN) to avoid flooding with unused Decision*/Form semantics.
+      const preferred = rules.find(r => r.artifactKind === 'bpmnProcess') || rules[0];
+      if (preferred) {
+        const semantics = enumerateRuleSemantics(preferred, graph);
+        semantics.forEach(s => newProduced.add(s));
+        const states = enumerateRuleStates(preferred, graph);
+        states.forEach(st => newDomainStates.add(st));
+        ensureArtifactBindings(preferred, graph, state, semantics, states);
+        if (preferred.id) applied.push(preferred.id); else applied.push(preferred.artifactKind);
       }
-      adds.forEach(s => { newProduced.add(s); remaining.delete(s); });
-      const states = enumerateRuleStates(best, graph);
-      states.forEach(st => newDomainStates.add(st));
-      if (best.id) applied.push(best.id); else applied.push(best.artifactKind);
-      // Bind identifiers / model specs per artifact
-      ensureArtifactBindings(best, graph, state, adds, states);
+    } else {
+      // Greedy until coverage or exhaustion
+      while (remaining.size && rules.length) {
+        rules.sort((a,b) => {
+          const covA = coverageCount(a, remaining, graph); const covB = coverageCount(b, remaining, graph);
+          if (covA !== covB) return covB - covA; // more coverage first
+          const priA = a.priority ?? 100; const priB = b.priority ?? 100;
+          if (priA !== priB) return priA - priB;
+          const sizeA = enumerateRuleSemantics(a, graph).length; const sizeB = enumerateRuleSemantics(b, graph).length;
+          return sizeA - sizeB;
+        });
+        const best = rules[0];
+        const semantics = enumerateRuleSemantics(best, graph);
+        const adds = semantics.filter(s => remaining.has(s));
+        if (!adds.length) { rules.shift(); continue; }
+        adds.forEach(s => { newProduced.add(s); remaining.delete(s); });
+        const states = enumerateRuleStates(best, graph);
+        states.forEach(st => newDomainStates.add(st));
+        if (best.id) applied.push(best.id); else applied.push(best.artifactKind);
+        ensureArtifactBindings(best, graph, state, adds, states);
+      }
     }
     if (applied.length) (state.artifactsApplied ||= []).push(...applied);
-    if (!applied.length) producerNode.produces.forEach((s: string) => newProduced.add(s));
     return;
   }
 
@@ -572,4 +627,20 @@ function buildIntegrationScenarioDescription(endpoint: any, state: any, preOpCou
   if (state.artifactsApplied?.length) segs.push(`Artifact bundle applied: ${state.artifactsApplied.join(', ')}.`);
   if (state.domainStates?.size) segs.push(`Domain states realized: ${[...state.domainStates].join(', ')}.`);
   return segs.join(' ');
+}
+
+// Recursively gather prerequisite domain states (runtimeState.requires and capability.dependsOn)
+function gatherDomainPrerequisites(graph: OperationGraph, seeds: string[], already: Set<string>): string[] {
+  const needed = new Set<string>();
+  const stack = [...seeds];
+  while (stack.length) {
+    const cur = stack.pop()!;
+    if (already.has(cur) || needed.has(cur)) continue;
+    needed.add(cur);
+    const rs = graph.domain?.runtimeStates?.[cur];
+    if (rs?.requires) rs.requires.forEach(r => { if (!already.has(r) && !needed.has(r)) stack.push(r); });
+    const cap = graph.domain?.capabilities?.[cur];
+    if (cap?.dependsOn) cap.dependsOn.forEach(d => { if (!already.has(d) && !needed.has(d)) stack.push(d); });
+  }
+  return [...needed];
 }

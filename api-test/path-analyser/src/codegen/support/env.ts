@@ -4,5 +4,6 @@ export function buildBaseUrl(): string {
 
 export async function authHeaders(): Promise<Record<string,string>> {
   const token = process.env.API_TOKEN || 'dev-token';
-  return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+  // Do not set Content-Type here; request options (data vs multipart) will determine it.
+  return { 'Authorization': `Bearer ${token}` };
 }

@@ -5,10 +5,12 @@
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "generate:scenarios": "node ./dist/index.js",
+    "generate:scenarios": "node ./dist/src/index.js",
     "start": "npm run build && npm run generate:scenarios",
-    "codegen:playwright": "npm run build && node dist/codegen/index.js",
-  "codegen:playwright:all": "npm run build && node dist/codegen/index.js --all",
+    "codegen:playwright": "npm run build && node dist/src/codegen/index.js",
+  "codegen:playwright:all": "npm run build && node dist/src/codegen/index.js --all",
+  "validate:providers": "npm run build && node dist/scripts/validate-providers.js",
+  "debug:canonical": "npm run build && node dist/src/scripts/debug-canonical.js",
     "clean": "rimraf dist || rm -rf dist"
   },
   "dependencies": {

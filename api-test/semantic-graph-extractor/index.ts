@@ -89,6 +89,7 @@ export class SemanticGraphExtractor {
     // Convert the graph to a JSON-serializable format
     const serializedGraph = {
       operations: Array.from(graph.operations.values()),
+  operationsById: Object.fromEntries(Array.from(graph.operations.entries()).map(([id, op]) => [id, op])),
       semanticTypes: Array.from(graph.semanticTypes.values()),
       edges: graph.edges,
       metadata: {
@@ -105,8 +106,8 @@ export class SemanticGraphExtractor {
       crossContaminationMap: graph.crossContaminationMap
     };
     
-    fs.writeFileSync(outputPath, JSON.stringify(serializedGraph, null, 2));
-    console.log(`Dependency graph saved to: ${outputPath}`);
+  fs.writeFileSync(outputPath, JSON.stringify(serializedGraph, null, 2));
+  console.log(`Dependency graph saved to: ${outputPath}`);
   }
 
   /**
@@ -146,8 +147,8 @@ async function main() {
     // Extract the dependency graph
     const graph = await extractor.extractGraph(specPath);
     
-    // Save to disk
-    await extractor.saveGraph(graph, outputPath);
+  // Save to disk
+  await extractor.saveGraph(graph, outputPath);
     
     console.log('Semantic graph extraction completed successfully!');
     console.log(`Graph contains ${graph.operations.size} operations with ${graph.edges.length} dependencies`);

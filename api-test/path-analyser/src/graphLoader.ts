@@ -26,7 +26,9 @@ export async function loadGraph(baseDir: string): Promise<OperationGraph> {
   const operations: Record<string, OperationNode> = {};
 
   // Support multiple possible root shapes
+  // Prefer object map if available (operationsById) to avoid loss of operations due to large array truncation
   let candidateOps: any =
+    parsed.operationsById ??
     parsed.operations ??
     parsed.nodes ??
     (Array.isArray(parsed) ? parsed : null) ??
@@ -115,6 +117,11 @@ export async function loadGraph(baseDir: string): Promise<OperationGraph> {
     domainProducers = {};
     const addProducer = (state: string, opId: string) => {
       (domainProducers![state] ||= []).push(opId);
+      const node = operations[opId];
+      if (node) {
+        if (!node.domainProduces) node.domainProduces = [state];
+        else if (!node.domainProduces.includes(state)) node.domainProduces.push(state);
+      }
     };
     if (domain && domain.runtimeStates) {
       for (const [stateName, spec] of Object.entries(domain.runtimeStates)) {
@@ -161,33 +168,32 @@ function normalizeOp(opId: string, op: any): OperationNode {
   const pushProduce = (v: any) => { if (v && typeof v === 'string') produces.push(v); };
   if (Array.isArray(directProduces)) directProduces.forEach(pushProduce); else pushProduce(directProduces);
 
-  // Derive from responseSemanticTypes structure used by extractor
-  if (op.responseSemanticTypes && typeof op.responseSemanticTypes === 'object') {
-    for (const arr of Object.values<any>(op.responseSemanticTypes)) {
-      if (Array.isArray(arr)) {
-        for (const entry of arr) {
-          const st = entry?.semanticType;
-            if (st) produces.push(st);
-        }
-      }
-    }
-  }
-
-  const { required, optional } = extractRequires(op);
-
-  // Build provider map from response semantic types (and possibly explicit lists later)
+  // First pass: derive providerMap & candidate semantics from responseSemanticTypes
+  const responseDerived: string[] = [];
   const providerMap: Record<string, boolean> = {};
   if (op.responseSemanticTypes && typeof op.responseSemanticTypes === 'object') {
     for (const arr of Object.values<any>(op.responseSemanticTypes)) {
       if (Array.isArray(arr)) {
         for (const entry of arr) {
           const st = entry?.semanticType;
-            if (st && entry?.provider) providerMap[st] = true;
+          if (st) {
+            responseDerived.push(st);
+            if (entry?.provider) providerMap[st] = true;
+          }
         }
       }
     }
   }
-  // If no providers flagged, providerMap remains empty (undefined later if empty)
+  // If any provider flags exist, restrict produced semantics to only provider:true; else, include all response-derived
+  if (Object.keys(providerMap).length) {
+    responseDerived.forEach(st => { if (providerMap[st]) produces.push(st); });
+  } else {
+    responseDerived.forEach(st => produces.push(st));
+  }
+
+  const { required, optional } = extractRequires(op);
+
+  // providerMap already built above; if still empty leave as undefined later
 
   return {
     operationId: op.operationId ?? op.id ?? op.name ?? opId,

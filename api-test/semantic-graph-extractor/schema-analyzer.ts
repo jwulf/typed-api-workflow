@@ -105,13 +105,13 @@ export class SchemaAnalyzer {
   extractOperations(spec: OpenAPISpec): Operation[] {
     const operations: Operation[] = [];
     
-    for (const [path, pathItem] of Object.entries(spec.paths)) {
+  for (const [path, pathItem] of Object.entries(spec.paths)) {
       // Handle each HTTP method
       const methods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options', 'trace'] as const;
       
       for (const method of methods) {
         const operation = pathItem[method];
-        if (operation) {
+    if (operation) {
           const extractedOp = this.extractOperation(method, path, operation, spec);
           if (extractedOp) {
             operations.push(extractedOp);

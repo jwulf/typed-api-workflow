@@ -54,6 +54,7 @@ Or run all generated specs (when multiple exist):
 
 ```bash
 npx playwright test dist/generated-tests
+Note: multipart endpoints (e.g., createDeployment) use a small fixture located under `fixtures/` by default. Adjust paths or variables as needed.
 ```
 
 ### Environment Variables

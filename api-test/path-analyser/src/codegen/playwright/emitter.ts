@@ -37,9 +37,20 @@ function renderScenarioTest(s: EndpointScenario): string {
   body.push(`test('${title}', async ({ request }) => {`);
   body.push(`  const baseUrl = buildBaseUrl();`);
   body.push(`  const ctx: Record<string, any> = {};`);
+  // Collect extraction target variable names across all steps
+  const extractionVars = new Set<string>();
+  if (s.requestPlan) {
+    for (const step of s.requestPlan) {
+      if (step.extract) {
+        for (const ex of step.extract) extractionVars.add(ex.bind);
+      }
+    }
+  }
   if ((s as any).bindings && Object.keys((s as any).bindings).length) {
     body.push('  // Seed scenario bindings');
     for (const [k,v] of Object.entries((s as any).bindings)) {
+      if (v === '__PENDING__') continue; // placeholder for extraction
+      if (extractionVars.has(k)) continue; // real value will be extracted later
       body.push(`  ctx['${k}'] = ${JSON.stringify(v)};`);
     }
   }
@@ -57,14 +68,34 @@ function renderScenarioTest(s: EndpointScenario): string {
     body.push(`  {`);
     body.push(`    const url = baseUrl + ${urlExpr};`);
     const bodyVar = `body${idx+1}`;
-    if (step.bodyTemplate) {
+    if (step.bodyKind === 'json' && step.bodyTemplate) {
       const json = JSON.stringify(step.bodyTemplate, null, 4)
         .replace(/"\\?\$\{([^}]+)\}"/g, (_,v)=>'ctx["'+v+'"]');
       body.push(`    const ${bodyVar} = ${json};`);
+    } else if (step.bodyKind === 'multipart' && step.multipartTemplate) {
+      // multipart template format: { fields: Record<string,string>, files: Record<string,string> }
+      const tpl = JSON.stringify(step.multipartTemplate, null, 4)
+        .replace(/"\\?\$\{([^}]+)\}"/g, (_,v)=>'ctx["'+v+'"]');
+      body.push(`    const ${bodyVar} = ${tpl};`);
     }
     const opts: string[] = [];
     opts.push('headers: await authHeaders()');
-    if (step.bodyTemplate) opts.push(`data: ${bodyVar}`);
+    if (step.bodyKind === 'json' && step.bodyTemplate) opts.push(`data: ${bodyVar}`);
+    if (step.bodyKind === 'multipart' && step.multipartTemplate) {
+      // Convert template to multipart form-data for Playwright: use multipart option
+      // Interpret files entries: value '@@FILE:relativePath' means read file at runtime via fs
+  body.push(`    const formData: Array<{ name: string; value: any; fileName?: string }> = [];`);
+      body.push(`    for (const [k,v] of Object.entries(${bodyVar}.fields||{})) formData.push({ name: k, value: String(v) });`);
+      body.push(`    for (const [k,v] of Object.entries(${bodyVar}.files||{})) {
+        if (typeof v === 'string' && v.startsWith('@@FILE:')) {
+          const p = v.slice('@@FILE:'.length);
+          formData.push({ name: k, value: await (await import('fs')).promises.readFile(p), fileName: p.split('/').pop() });
+        } else {
+          formData.push({ name: k, value: v });
+        }
+      }`);
+      opts.push('multipart: formData');
+    }
     body.push(`    const ${varName} = await request.${method}(url, { ${opts.join(', ')} });`);
     body.push(`    expect(${varName}.status()).toBe(${step.expect.status});`);
     // Extraction
@@ -86,8 +117,19 @@ function buildUrlExpression(pathTemplate: string): string {
 }
 
 function toPathAccessor(fieldPath: string): string {
+  // Support paths like processes[0].bpmnProcessId or nested.simple
   if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(fieldPath)) return '.' + fieldPath;
-  return `['${fieldPath.replace(/'/g, "\\'")}']`;
+  // Split on dots, preserve bracket indices
+  const parts = fieldPath.split('.');
+  return parts.map(p => {
+    const m = p.match(/^([a-zA-Z_][a-zA-Z0-9_]*)(\[[0-9]+\])?$/);
+    if (m) {
+      const base = '.' + m[1];
+      const idx = m[2] || '';
+      return base + idx;
+    }
+    return `['${p.replace(/'/g, "\\'")}']`;
+  }).join('');
 }
 
 function escapeQuotes(s: string): string { return s.replace(/'/g, "\'"); }

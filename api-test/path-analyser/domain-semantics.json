@@ -5,7 +5,7 @@
       "kind": "identifier",
       "validityState": "ProcessDefinitionDeployed",
       "boundBy": ["createDeployment"],
-      "fieldPaths": ["deployment.resources[].processes[].bpmnProcessId"]
+      "fieldPaths": ["deployments[].processDefinition.processDefinitionId"]
     },
     "JobTypeValue": {
       "kind": "identifier",
@@ -45,7 +45,9 @@
       "disjunctions": [["ProcessDefinitionKey", "ProcessDefinitionDeployed"]],
       "implicitAdds": ["ProcessInstanceExists"],
       "valueBindings": {
-        "request.processDefinitionId": "ProcessDefinitionDeployed.processDefinitionId"
+  "request.processDefinitionId": "ProcessDefinitionDeployed.processDefinitionId",
+  "request.processDefinitionKey": "ProcessDefinitionKey.processDefinitionKey",
+  "response.processInstanceKey": "ProcessInstanceExists.processInstanceKey"
       }
     },
     "activateJobs": {
@@ -55,10 +57,20 @@
       },
       "produces": ["JobAvailableForActivation"]
     },
+    "searchJobs": {
+      "requires": ["ProcessInstanceExists", "ModelHasServiceTaskType"]
+    },
+    "getUserTask": {
+      "requires": ["ProcessInstanceExists"]
+    },
+    "searchProcessInstances": {
+      "requires": ["ProcessInstanceExists"]
+    },
     "createDeployment": {
       "valueBindings": {
-        "response.processes[].bpmnProcessId": "ProcessDefinitionDeployed.processDefinitionId",
-        "response.forms[].formKey": "FormDeployed.formKey"
+        "response.deployments[].processDefinition.processDefinitionId": "ProcessDefinitionDeployed.processDefinitionId",
+        "response.deployments[].processDefinition.processDefinitionKey": "ProcessDefinitionKey.processDefinitionKey",
+        "response.deployments[].form.formKey": "FormDeployed.formKey"
       }
     },
     "searchProcessDefinitions": {

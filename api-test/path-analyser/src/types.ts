@@ -158,6 +158,8 @@ export interface RequestStep {
   pathTemplate: string;
   pathParams?: { name: string; var: string }[];
   bodyTemplate?: any; // object with ${var} placeholders
+  bodyKind?: 'json' | 'multipart';
+  multipartTemplate?: any; // object suitable for Playwright multipart option
   expect: { status: number };
   extract?: { fieldPath: string; bind: string; semantic?: string }[];
   notes?: string;
