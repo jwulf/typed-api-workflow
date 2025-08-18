@@ -3,7 +3,7 @@
 import './tracing';
 import { tracer } from './tracing';
 
-import { ProcessInstanceApi, ResourceApi, WithEventuality, WithTracing, ProcessDefinitionKey, ProcessInstanceKey } from '../../../generated/typescript'
+import { ProcessInstanceApi, ResourceApi, WithEventuality, WithTracing, ProcessDefinitionKey, ProcessInstanceKey, ClusterApi, LicenseApi, UserApi, JobApi } from '../../../generated/typescript'
 import * as fs from 'fs'
 import * as path from 'path'
 import { SpanStatusCode } from '@opentelemetry/api';
@@ -31,6 +31,26 @@ async function main() {
         // WithTracing will now work because we initialized the SDK above
         const processApi = WithTracing(WithEventuality(new ProcessInstanceApi()));
         const resourceApi = WithTracing(new ResourceApi());
+        const clusterApi = new ClusterApi();
+        const licenseApi = new LicenseApi();
+        const userApi = new UserApi();
+        const jobs = new JobApi();
+
+        const topology = await clusterApi.getTopology();
+        console.log('Cluster topology:', JSON.stringify(topology.body, null, 2));
+
+        const license = await licenseApi.getLicense()
+        console.log('License information:', JSON.stringify(license.body, null, 2))
+
+        const user = await userApi.searchUsers({
+            page: {
+                // after: "0",
+                from: 130,
+                // before: "2",
+                limit: 100,
+            }
+        })
+        console.log('User information:', JSON.stringify(user.body, null, 2))
 
         // Load the test BPMN file
         const bpmnPath = path.join(__dirname, 'resources', 'test.bpmn')
@@ -62,7 +82,7 @@ async function main() {
 
         // Create a process instance
         const createResponse = await processApi.createProcessInstance({
-            processDefinitionKey: processDefinition.processDefinitionKey,
+            processDefinitionKey: processDefinition.processDefinitionKey,            
         })
 
         const processInstance = createResponse.body
@@ -82,7 +102,7 @@ async function main() {
         //     .searchProcessInstances({
         //         filter: {
         //             processInstanceKey
-        //         }
+        //         },
         // })
         
         const searchResponse = await processApi
@@ -91,7 +111,7 @@ async function main() {
                 filter: {
                     processInstanceKey
                 }
-            }, undefined, { timeout: 5000 })
+            }, undefined, { timeout: 10000 }) // return result as soon as available or timeout after 10s
             .catch(e => {
                 console.error(`Failed to find process instance in search within 5s, with error message: ${e.message}`)
                 process.exit(1)
@@ -101,18 +121,37 @@ async function main() {
 
         console.log(`Found ${searchResults.items?.length || 0} process instances`)
 
+        console.log(JSON.stringify(searchResults.items, null, 2))
+
         // Proper way to validate a ProcessInstanceKey
         const firstProcessInstanceKey = searchResults?.items?.[0].processInstanceKey;
         const isValidProcessInstanceKey = firstProcessInstanceKey ?
             ProcessInstanceKey.isValid(ProcessInstanceKey.getValue(firstProcessInstanceKey)) : false;
 
-        console.log(`First result has valid ProcessInstanceKey: ${isValidProcessInstanceKey}`);
+            console.log(`\nEven Chuck Norris, coding in vi on the production instance, gets type-safety at runtime:`)
+        console.log(`- First result has valid ProcessInstanceKey: ${isValidProcessInstanceKey}`);
 
-        console.log(`First result ProcessInstanceKey is ProcessDefinitionKey: ${isProcessDefinitionKey(processInstanceKey)}`);
-        console.log(`First result ProcessInstanceKey is ProcessInstanceKey: ${isProcessInstanceKey(processInstanceKey)}`);
+        console.log(`- First result ProcessInstanceKey is ProcessDefinitionKey: ${isProcessDefinitionKey(processInstanceKey)}`);
+        console.log(`- First result ProcessInstanceKey is ProcessInstanceKey: ${isProcessInstanceKey(processInstanceKey)}`);
 
+        const job = await jobs.activateJobs({
+                type: 'console-log-complete-rest',
+                maxJobsToActivate: 100,
+                timeout: 30000,
+                requestTimeout: 10000
+            })
 
-        console.log('Integration test completed successfully!')
+        console.log(`Activated job: ${job.body.jobs?.length} jobs`)
+
+        await Promise.all(job.body.jobs.map(job => jobs.completeJob(job.jobKey!, {
+            variables: {
+                foo: 'bar'
+            }
+        })))
+
+        console.log(`Completed job ${job.body.jobs![0].jobKey}`)
+        
+        console.log('\nIntegration test completed successfully!')
 
         // Mark the root span as successful
         rootSpan.setStatus({ code: SpanStatusCode.OK });

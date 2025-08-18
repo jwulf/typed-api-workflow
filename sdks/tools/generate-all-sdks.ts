@@ -13,6 +13,9 @@ import { TracingEnhancer } from './enhancements/TracingEnhancer';
 import { TypeScriptPolymorphicSchemaEnhancer } from './enhancements/typescript/TypeScriptPolymorphicSchemaEnhancer';
 import { ASTTypeScriptOneOfUnionEnhancer } from './enhancements/typescript/ASTTypeScriptOneOfUnionEnhancer';
 import { TypeScriptTsConfigEnhancer } from './enhancements/typescript/TypeScriptTsConfigEnhancer';
+import { TypeScriptExclusiveUnionEnhancer } from './enhancements/typescript/TypeScriptExclusiveUnionEnhancer';
+import { TypeScriptErgonomicBuildersEnhancer } from './enhancements/typescript/TypeScriptErgonomicBuildersEnhancer';
+import { TypeScriptApiMethodOverloadEnhancer } from './enhancements/typescript/TypeScriptApiMethodOverloadEnhancer';
 
 import { TypeScriptPostBuildStrategy } from './post-build/typescript/TypeScriptPostBuildStrategy';
 
@@ -24,6 +27,9 @@ const enhancementStrategies = [
     TracingEnhancer, // Add OpenTelemetry tracing support
     TypeScriptPolymorphicSchemaEnhancer, // Fix TypeScript code generation issues
     ASTTypeScriptOneOfUnionEnhancer, // Fix OneOf union types using AST transformations
+    TypeScriptExclusiveUnionEnhancer, // Enforce exclusive unions (XOR) for object unions
+    TypeScriptErgonomicBuildersEnhancer, // Generate IDE-friendly builders for union aliases
+    TypeScriptApiMethodOverloadEnhancer, // Add method overloads for APIs
 ];
 
 // Post-build tasks for generated SDKs
