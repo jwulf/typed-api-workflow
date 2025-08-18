@@ -280,6 +280,29 @@ public class CamundaKeyFlattener {
     }
 
     /**
+     * Checks if a oneOf array consists exclusively of references to CamundaKey descendants.
+     * In such cases we can safely collapse the union to a plain string for backward compatibility.
+     */
+    private static boolean isOneOfAllCamundaKeyRefs(ArrayNode oneOfArray, Set<String> keyNames) {
+        if (oneOfArray == null || oneOfArray.isEmpty()) return false;
+        for (JsonNode item : oneOfArray) {
+            // Only allow $ref items that point to a CamundaKey descendant
+            if (!item.has("$ref")) {
+                return false;
+            }
+            String ref = item.get("$ref").asText("");
+            if (!ref.startsWith("#/components/schemas/")) {
+                return false;
+            }
+            String referencedType = ref.substring("#/components/schemas/".length());
+            if (!keyNames.contains(referencedType)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Finds the string option in a oneOf array
      */
     private static JsonNode findStringOptionInOneOf(ArrayNode oneOfArray) {
@@ -328,6 +351,16 @@ public class CamundaKeyFlattener {
             // Handle oneOf patterns for CamundaKey filter properties
             if (obj.has("oneOf")) {
                 ArrayNode oneOfArray = (ArrayNode) obj.get("oneOf");
+                // General rule: if all oneOf entries are CamundaKey descendants, collapse to plain string
+                if (isOneOfAllCamundaKeyRefs(oneOfArray, keyNames)) {
+                    JsonNode description = obj.get("description");
+                    obj.remove("oneOf");
+                    obj.put("type", "string");
+                    if (description != null && !STRIP_DESCRIPTIONS) {
+                        obj.set("description", description);
+                    }
+                    return;
+                }
                 if (isKeyFilterOneOfPattern(oneOfArray, keyNames)) {
                     // Transform oneOf [CamundaKey descendant, AdvancedXxxKeyFilter] to allOf [BasicStringFilterProperty]
                     JsonNode description = obj.get("description");
