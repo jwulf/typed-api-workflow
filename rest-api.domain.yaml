@@ -9462,8 +9462,6 @@ components:
         - "customHeaders"
         - "elementId"
         - "elementInstanceKey"
-        - "errorCode"
-        - "errorMessage"
         - "hasFailedWithRetriesLeft"
         - "jobKey"
         - "kind"
@@ -9483,9 +9481,10 @@ components:
           additionalProperties:
             type: "string"
         deadline:
-          description: "When the job can be activated."
+          description: "If the job has been activated, when it will next be available to be activated."
           type: "string"
           format: "date-time"
+          nullable: true
         deniedReason:
           description: "The reason provided by the user task listener for denying\
             \ the work."
@@ -9503,7 +9502,7 @@ components:
           type: "string"
           format: "date-time"
         errorCode:
-          description: "The error code provided for the failed job."
+          description: "The error code provided for a failed job."
           type: "string"
           nullable: true
         errorMessage:
