@@ -59,9 +59,10 @@ async function main() {
         const clusterApi = new ClusterApi(baseUrl);
         const licenseApi = new LicenseApi(baseUrl);
         const userApi = new UserApi(baseUrl);
-        const jobs = new JobApi(baseUrl);
-        const authentication = new AuthenticationApi(baseUrl);
+        const jobs = WithTracing(WithEventuality(new JobApi(baseUrl)));
+
         if (process.env.CAMUNDA_OAUTH_URL) {
+            const authentication = new AuthenticationApi(baseUrl);
             const me = await authentication.getAuthentication(headers);
             console.log('Authenticated user information:', JSON.stringify(me.body, null, 2));
         }
@@ -167,10 +168,13 @@ async function main() {
 
 
         const jobsResult = await jobs.searchJobs.eventually({
-            filter: {
-                processInstanceKey: processInstance.processInstanceKey,
-            }
-        }, headers, { timeout: 10000 })
+                filter: {
+                    processInstanceKey: processInstance.processInstanceKey,
+                }
+            }, headers, { timeout: 10000 })
+
+        console.log(`Job search results`, JSON.stringify(jobsResult.body, null,2))
+        
         const job = await jobs.activateJobs({
             type: 'console-log-complete-rest',
             maxJobsToActivate: 100,

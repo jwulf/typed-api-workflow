@@ -4,7 +4,7 @@ It's a uuid string, like "cbfe6f07-215a-4dcc-b12c-965b47c97a13".
 
 This needs to be made into a new semantic type, because it has a different validation format than a CamundaKey. 
 
-So we need to go to a higher level of abstraction for semantic keys. SemanticKey<CamundaKey>, SemanticKey<UUID>.
+DecisionEvaluationKey shows the pattern to use.
 
 ## Openapi-generator complains about empty request schema
 
