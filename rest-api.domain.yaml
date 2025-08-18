@@ -5356,6 +5356,18 @@ components:
       minLength: 1
       maxLength: 20
       description: "System-assigned entity key (Java long serialized as string)"
+    StartCursor:
+      allOf:
+        - $ref: "#/components/schemas/CamundaKey"
+        - description: "The start cursor in a search query result set."
+          format: "StartCursor"
+          x-semantic-type: "StartCursor"
+    EndCursor:
+      allOf:
+        - $ref: "#/components/schemas/CamundaKey"
+        - description: "The end cursor in a search query result set."
+          format: "EndCursor"
+          x-semantic-type: "EndCursor"
     ProcessInstanceKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
@@ -9741,7 +9753,8 @@ components:
       properties:
         after:
           description: "Use the `endCursor` value from the previous response to fetch the next page of results."
-          type: "string"
+          allOf:
+            - $ref: "#/components/schemas/EndCursor"
         limit:
           description: "The maximum number of items to return in one request."
           type: "integer"
@@ -9755,7 +9768,8 @@ components:
       properties:
         before:
           description: "Use the `startCursor` value from the previous response to fetch the previous page of results."
-          type: "string"
+          allOf:
+            - $ref: "#/components/schemas/StartCursor"
         limit:
           description: "The maximum number of items to return in one request."
           type: "integer"
@@ -9789,12 +9803,14 @@ components:
           nullable: true
           description: "The cursor value for getting the previous page of results.\
             \ Use this in the `before` field of an ensuing request."
-          type: "string"
+          allOf:
+            - $ref: "#/components/schemas/StartCursor"
         endCursor:
           nullable: true
           description: "The cursor value for getting the next page of results. Use\
             \ this in the `after` field of an ensuing request."
-          type: "string"
+          allOf:
+            - $ref: "#/components/schemas/EndCursor"
     DecisionRequirementsSearchQuerySortRequest:
       type: "object"
       properties:

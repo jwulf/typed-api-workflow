@@ -78,9 +78,14 @@ async function main() {
                 from: 0,
                 limit: 100,
             }
-        }, headers).catch(e => ({body: {error: e.message, statusCode: e.statusCode}}))
+        }, headers) // .catch(e => ({body: {error: e.message, statusCode: e.statusCode}}))
         console.log('User information:', JSON.stringify(user.body, null, 2))
 
+        // const users = await userApi.searchUsers({
+        //     page: {
+        //         after: "snt"
+        //     }
+        // }, headers)
         // Load the test BPMN file
         const bpmnPath = path.join(__dirname, 'resources', 'test.bpmn')
         const bpmnContent = fs.readFileSync(bpmnPath)

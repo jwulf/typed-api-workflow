@@ -16,6 +16,7 @@ import { TypeScriptTsConfigEnhancer } from './enhancements/typescript/TypeScript
 import { TypeScriptExclusiveUnionEnhancer } from './enhancements/typescript/TypeScriptExclusiveUnionEnhancer';
 import { TypeScriptErgonomicBuildersEnhancer } from './enhancements/typescript/TypeScriptErgonomicBuildersEnhancer';
 import { TypeScriptApiMethodOverloadEnhancer } from './enhancements/typescript/TypeScriptApiMethodOverloadEnhancer';
+import { TypeScriptSemanticPropertyMapper } from './enhancements/typescript/TypeScriptSemanticPropertyMapper';
 
 import { TypeScriptPostBuildStrategy } from './post-build/typescript/TypeScriptPostBuildStrategy';
 
@@ -23,6 +24,7 @@ import { TypeScriptPostBuildStrategy } from './post-build/typescript/TypeScriptP
 const enhancementStrategies = [
     TypeScriptTsConfigEnhancer, // Update TypeScript configuration (tsconfig.json)
     SemanticTypeEnhancer, // Enhance semantic types with validation
+    TypeScriptSemanticPropertyMapper, // Map non-...Key semantic properties (e.g., cursors) to nominal TS types
     EventuallyConsistentEnhancer, // Enhance eventually consistent operations  
     TracingEnhancer, // Add OpenTelemetry tracing support
     TypeScriptPolymorphicSchemaEnhancer, // Fix TypeScript code generation issues

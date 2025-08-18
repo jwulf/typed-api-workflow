@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-08-19 08:48:07
+# File generated at: 2025-08-19 10:39:23
 
 ---
 openapi: "3.0.3"
@@ -5434,6 +5434,12 @@ components:
       minLength: 1
       maxLength: 20
       description: "System-assigned entity key (Java long serialized as string)"
+    StartCursor:
+      type: "string"
+      description: "The start cursor in a search query result set."
+    EndCursor:
+      type: "string"
+      description: "The end cursor in a search query result set."
     ProcessInstanceKey:
       type: "string"
       description: "Key for a process instance. Only use values returned by the system."
@@ -9696,12 +9702,10 @@ components:
           format: "int32"
           default: 100
         after:
-          description: "Use the `endCursor` value from the previous response to fetch\
-            \ the next page of results."
+          description: "The end cursor in a search query result set."
           type: "string"
         before:
-          description: "Use the `startCursor` value from the previous response to\
-            \ fetch the previous page of results."
+          description: "The start cursor in a search query result set."
           type: "string"
     OffsetPagination:
       type: "object"
@@ -9723,8 +9727,7 @@ components:
       - "after"
       properties:
         after:
-          description: "Use the `endCursor` value from the previous response to fetch\
-            \ the next page of results."
+          description: "The end cursor in a search query result set."
           type: "string"
         limit:
           description: "The maximum number of items to return in one request."
@@ -9738,8 +9741,7 @@ components:
       - "before"
       properties:
         before:
-          description: "Use the `startCursor` value from the previous response to\
-            \ fetch the previous page of results."
+          description: "The start cursor in a search query result set."
           type: "string"
         limit:
           description: "The maximum number of items to return in one request."
@@ -9772,13 +9774,11 @@ components:
           type: "boolean"
         startCursor:
           nullable: true
-          description: "The cursor value for getting the previous page of results.\
-            \ Use this in the `before` field of an ensuing request."
+          description: "The start cursor in a search query result set."
           type: "string"
         endCursor:
           nullable: true
-          description: "The cursor value for getting the next page of results. Use\
-            \ this in the `after` field of an ensuing request."
+          description: "The end cursor in a search query result set."
           type: "string"
     DecisionRequirementsSearchQuerySortRequest:
       type: "object"

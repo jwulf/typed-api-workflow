@@ -1,4 +1,4 @@
-import { UserTaskApi, ProcessInstanceApi, ClusterApi, CursorBackwardPagination, CursorForwardPagination, OffsetPagination, SearchQueryPageRequest, WithEventuality,  } from '../../../generated/typescript'
+import { UserTaskApi, ProcessInstanceApi, ClusterApi, CursorBackwardPagination, CursorForwardPagination, OffsetPagination, SearchQueryPageRequest, WithEventuality, StartCursor, EndCursor } from '../../../generated/typescript'
 
 test('it works!', () => {
     expect(true).toBe(true);
@@ -42,11 +42,11 @@ test('SearchQueryPageRequest polymorphic schema works correctly', () => {
     offsetPagination.limit = 50
     
     const cursorForward = new CursorForwardPagination()
-    cursorForward.after = "cursor123"
+    cursorForward.after = EndCursor.create("cursor123")
     cursorForward.limit = 25
     
     const cursorBackward = new CursorBackwardPagination()
-    cursorBackward.before = "cursor456"
+    cursorBackward.before = StartCursor.create("cursor456")
     cursorBackward.limit = 25
     
     // All should be assignable to the union type
@@ -58,10 +58,10 @@ test('SearchQueryPageRequest polymorphic schema works correctly', () => {
     expect(offsetPagination.from).toBe(0)
     expect(offsetPagination.limit).toBe(50)
     
-    expect(cursorForward.after).toBe("cursor123") 
+    expect(EndCursor.getValue(cursorForward.after)).toBe("cursor123")
     expect(cursorForward.limit).toBe(25)
     
-    expect(cursorBackward.before).toBe("cursor456")
+    expect(StartCursor.getValue(cursorBackward.before)).toBe("cursor456")
     expect(cursorBackward.limit).toBe(25)
     
     // Test type narrowing with type guards
@@ -70,11 +70,11 @@ test('SearchQueryPageRequest polymorphic schema works correctly', () => {
     }
     
     if ('after' in unionForward) {
-        expect(unionForward.after).toBe("cursor123")
+        expect(EndCursor.getValue(unionForward.after)).toBe("cursor123")
     }
     
     if ('before' in unionBackward) {
-        expect(unionBackward.before).toBe("cursor456")
+        expect(StartCursor.getValue(unionBackward.before)).toBe("cursor456")
     }
 })
 
