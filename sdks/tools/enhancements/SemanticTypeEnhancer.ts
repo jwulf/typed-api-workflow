@@ -28,23 +28,118 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
   extractSemanticTypes() {
     const types = new Map<string, SemanticType>();
 
+    // Helper: choose constraints preferring child's pattern and only inheriting
+    // CamundaKey min/max when the chosen pattern is the same as CamundaKey's.
+    const chooseConstraints = (
+      child: { pattern: string | null; minLength?: number; maxLength?: number },
+      parent?: { pattern: string | null; minLength?: number; maxLength?: number },
+    ) => {
+      const camundaKey = (this.spec.components?.schemas?.['CamundaKey'] as OpenAPIV3.SchemaObject) || undefined;
+      const camundaPattern = camundaKey?.pattern ?? null;
+      const camundaMin = camundaKey?.minLength;
+      const camundaMax = camundaKey?.maxLength;
+
+      const parentPattern = parent?.pattern ?? null;
+      const parentMin = parent?.minLength;
+      const parentMax = parent?.maxLength;
+
+      // Determine the winning pattern in priority: child -> parent -> CamundaKey -> null
+      const pattern = (child.pattern ?? parentPattern ?? camundaPattern ?? null);
+
+      // Decide min/max:
+      // 1) Prefer explicitly defined child min/max.
+      // 2) Else, if the chosen pattern equals parent's pattern, we may take parent's min/max.
+      // 3) Else, if the chosen pattern equals CamundaKey's pattern (numeric keys), we may take camunda min/max.
+      // 4) Otherwise (custom pattern different from CamundaKey), do NOT inherit min/max.
+      let minLength: number | undefined = child.minLength;
+      let maxLength: number | undefined = child.maxLength;
+
+      if (minLength === undefined) {
+        if (pattern && parentPattern && pattern === parentPattern && parentMin !== undefined) {
+          minLength = parentMin;
+        } else if (pattern && camundaPattern && pattern === camundaPattern && camundaMin !== undefined) {
+          minLength = camundaMin;
+        }
+      }
+
+      if (maxLength === undefined) {
+        if (pattern && parentPattern && pattern === parentPattern && parentMax !== undefined) {
+          maxLength = parentMax;
+        } else if (pattern && camundaPattern && pattern === camundaPattern && camundaMax !== undefined) {
+          maxLength = camundaMax;
+        }
+      }
+
+      return { pattern, minLength, maxLength } as { pattern: string | null; minLength?: number; maxLength?: number };
+    };
+
+    const mergeConstraints = (schema: OpenAPIV3.SchemaObject, visited = new Set<string>()) => {
+      // Merge constraints down the allOf/$ref chain
+      let pattern: string | null = schema.pattern || null;
+      let minLength: number | undefined = schema.minLength;
+      let maxLength: number | undefined = schema.maxLength;
+
+      const visit = (s: OpenAPIV3.SchemaObject) => {
+        if (s.pattern && !pattern) pattern = s.pattern;
+        // For minLength, take the maximum of all defined mins to satisfy all parents
+        if (typeof s.minLength === 'number') {
+          minLength = typeof minLength === 'number' ? Math.max(minLength, s.minLength) : s.minLength;
+        }
+        // For maxLength, take the minimum of all defined maxes to satisfy all parents
+        if (typeof s.maxLength === 'number') {
+          maxLength = typeof maxLength === 'number' ? Math.min(maxLength, s.maxLength) : s.maxLength;
+        }
+        if (s.allOf) {
+          for (const sub of s.allOf) {
+            if ('$ref' in sub && sub.$ref) {
+              const refName = this.getRefName(sub.$ref);
+              if (refName && !visited.has(refName)) {
+                visited.add(refName);
+                const resolved = this.resolveRef(sub.$ref);
+                if (resolved) visit(resolved);
+              }
+            } else {
+              visit(sub as OpenAPIV3.SchemaObject);
+            }
+          }
+        }
+      };
+
+      visit(schema);
+      return { pattern, minLength, maxLength } as { pattern: string | null; minLength?: number; maxLength?: number };
+    };
+
     const processSchema = (name: string, schema: OpenAPIV3.SchemaObject, visited = new Set<string>()) => {
       if (visited.has(name)) return; // Prevent circular references
       visited.add(name);
-      
+
       // Type assertion for the custom extension
       const extendedSchema = schema as OpenAPIV3.SchemaObject & { 'x-semantic-type'?: string };
-      
+
       if (extendedSchema['x-semantic-type']) {
+        const merged = mergeConstraints(schema, new Set<string>(visited));
+        const chosen = chooseConstraints(merged);
         types.set(extendedSchema['x-semantic-type'], {
           name: extendedSchema['x-semantic-type'],
           description: schema.description || '',
-          pattern: this.resolvePattern(schema, visited),
-          minLength: this.resolveMinLength(schema, visited),
-          maxLength: this.resolveMaxLength(schema, visited)
+          pattern: chosen.pattern,
+          minLength: chosen.minLength,
+          maxLength: chosen.maxLength,
         });
       }
-      
+      // General rule: if this schema inherits from CamundaKey, treat the schema name as a semantic type
+      else if (this.inheritsFrom(schema, 'CamundaKey')) {
+        const merged = mergeConstraints(schema, new Set<string>(visited));
+        const chosen = chooseConstraints(merged);
+        types.set(name, {
+          name,
+          description: schema.description || '',
+          pattern: chosen.pattern,
+          minLength: chosen.minLength,
+          maxLength: chosen.maxLength,
+        });
+      }
+
       // Handle allOf inheritance
       if (schema.allOf) {
         for (const subSchema of schema.allOf) {
@@ -58,14 +153,30 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
             // Process any object schema that could have x-semantic-type
             const subSchemaObj = subSchema as OpenAPIV3.SchemaObject;
             const extendedSubSchema = subSchemaObj as OpenAPIV3.SchemaObject & { 'x-semantic-type'?: string };
-            
+
             if (extendedSubSchema['x-semantic-type']) {
+              // Merge constraints from child and parent using chooser
+              const childMerged = mergeConstraints(subSchemaObj, new Set<string>(visited));
+              const parentMerged = mergeConstraints(schema, new Set<string>(visited));
+              const chosen = chooseConstraints(childMerged, parentMerged);
               types.set(extendedSubSchema['x-semantic-type'], {
                 name: extendedSubSchema['x-semantic-type'],
                 description: subSchemaObj.description || schema.description || '',
-                pattern: this.resolvePattern(subSchemaObj, visited) || this.resolvePattern(schema, visited),
-                minLength: this.resolveMinLength(subSchemaObj, visited) || this.resolveMinLength(schema, visited),
-                maxLength: this.resolveMaxLength(subSchemaObj, visited) || this.resolveMaxLength(schema, visited)
+                pattern: chosen.pattern,
+                minLength: chosen.minLength,
+                maxLength: chosen.maxLength,
+              });
+            }
+            // Or if child inherits from CamundaKey and has no explicit x-semantic-type, use the schema name
+            else if (this.inheritsFrom(subSchemaObj, 'CamundaKey')) {
+              const childMerged = mergeConstraints(subSchemaObj, new Set<string>(visited));
+              const chosen = chooseConstraints(childMerged);
+              types.set(name, {
+                name,
+                description: subSchemaObj.description || schema.description || '',
+                pattern: chosen.pattern,
+                minLength: chosen.minLength,
+                maxLength: chosen.maxLength,
               });
             }
           }
@@ -86,7 +197,7 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
         }
       }
     }
-    
+
     return types;
   }
 
@@ -165,6 +276,24 @@ export class SemanticTypeEnhancer extends SdkEnhancementStrategy {
       if (!current) return null;
     }
     return current as OpenAPIV3.SchemaObject;
+  }
+
+  private inheritsFrom(schema: OpenAPIV3.SchemaObject, baseName: string, seen = new Set<OpenAPIV3.SchemaObject>()): boolean {
+    if (seen.has(schema)) return false;
+    seen.add(schema);
+    if (schema.allOf) {
+      for (const sub of schema.allOf) {
+        if ('$ref' in sub && sub.$ref) {
+          const refName = this.getRefName(sub.$ref);
+          if (refName === baseName) return true;
+          const resolved = this.resolveRef(sub.$ref);
+          if (resolved && this.inheritsFrom(resolved, baseName, seen)) return true;
+        } else if ((sub as OpenAPIV3.SchemaObject).allOf) {
+          if (this.inheritsFrom(sub as OpenAPIV3.SchemaObject, baseName, seen)) return true;
+        }
+      }
+    }
+    return false;
   }
 
   // Template method hooks

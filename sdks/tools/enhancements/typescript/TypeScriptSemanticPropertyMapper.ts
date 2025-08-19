@@ -42,9 +42,15 @@ export class TypeScriptSemanticPropertyMapper extends FlexibleSdkEnhancementStra
     if ('$ref' in schema && schema.$ref) {
       const resolved = this.resolveRef(schema.$ref);
       if (!resolved) return undefined;
-  // Only use explicit x-semantic-type; do NOT fall back to ref name to avoid false positives
-  const ext = (resolved as any)['x-semantic-type'] as string | undefined;
-  return ext;
+      // Prefer explicit x-semantic-type when present
+      const ext = (resolved as any)['x-semantic-type'] as string | undefined;
+      if (ext) return ext;
+      // Generalize: if the referenced schema inherits from CamundaKey, use the schema name as the semantic type
+      const inherits = this.inheritsFrom(resolved, 'CamundaKey');
+      if (inherits) {
+        return this.getRefName(schema.$ref);
+      }
+      return undefined;
     }
 
     const obj = schema as OpenAPIV3.SchemaObject & { 'x-semantic-type'?: string };
@@ -69,6 +75,24 @@ export class TypeScriptSemanticPropertyMapper extends FlexibleSdkEnhancementStra
       }
     }
     return undefined;
+  }
+
+  private inheritsFrom(schema: OpenAPIV3.SchemaObject, baseName: string, seen = new Set<OpenAPIV3.SchemaObject>()): boolean {
+    if (seen.has(schema)) return false;
+    seen.add(schema);
+    if (schema.allOf) {
+      for (const sub of schema.allOf) {
+        if ('$ref' in sub && sub.$ref) {
+          const name = this.getRefName(sub.$ref);
+          if (name === baseName) return true;
+          const resolved = this.resolveRef(sub.$ref);
+          if (resolved && this.inheritsFrom(resolved, baseName, seen)) return true;
+        } else if ((sub as OpenAPIV3.SchemaObject).allOf) {
+          if (this.inheritsFrom(sub as OpenAPIV3.SchemaObject, baseName, seen)) return true;
+        }
+      }
+    }
+    return false;
   }
 
   private collectSemanticPropertyMap(): Map<string, Array<{ prop: string; type: string }>> {
@@ -149,7 +173,7 @@ export class TypeScriptSemanticPropertyMapper extends FlexibleSdkEnhancementStra
     const imp = this.ensureSemanticImport(src, typeSet);
     src = imp.src; changed = changed || imp.changed;
 
-    for (const { prop, type } of props) {
+  for (const { prop, type } of props) {
       // Replace class property declaration types only (start-of-line, single-line until semicolon)
       // Capture: [indent + name][separator : or ?:][space][type...];
       const propDeclRe = new RegExp(
@@ -162,14 +186,32 @@ export class TypeScriptSemanticPropertyMapper extends FlexibleSdkEnhancementStra
       });
 
       // Fix attributeTypeMap type annotation entries (within object literal entries)
+      // Be robust across newlines and varying spacing. Match the entry with this prop's name, then its "type".
+      // Example matched block:
+      // {
+      //   "name": "after",
+      //   "baseName": "after",
+      //   "type": "any"
+      // }
       const attrMapRe = new RegExp(
-        `(\{[^}]*"name"\s*:\s*"${prop}"[^}]*"type"\s*:\s*)"[^"]+"`,
+        `(["']name["']\s*:\s*["']${prop}["'][\s\S]*?["']type["']\s*:\s*)["'][^"']+["']`,
         'g'
       );
-      if (attrMapRe.test(src)) {
-        src = src.replace(attrMapRe, `$1"${type}"`);
-        changed = true;
-      }
+      const before = src;
+      src = src.replace(attrMapRe, `$1"${type}"`);
+      if (src !== before) changed = true;
+    }
+
+    // Targeted fallback: if we mapped cursor pagination props but the attributeTypeMap still says any, force-rewrite.
+    if (/cursorForwardPagination\.ts$/.test(filePath)) {
+      const before = src;
+      src = src.replace(/(["']name["']\s*:\s*["']after["'][\s\S]*?["']type["']\s*:\s*)["'][^"']+["']/g, `$1"EndCursor"`);
+      if (src !== before) changed = true;
+    }
+    if (/cursorBackwardPagination\.ts$/.test(filePath)) {
+      const before = src;
+      src = src.replace(/(["']name["']\s*:\s*["']before["'][\s\S]*?["']type["']\s*:\s*)["'][^"']+["']/g, `$1"StartCursor"`);
+      if (src !== before) changed = true;
     }
 
     if (changed) fs.writeFileSync(filePath, src, 'utf8');

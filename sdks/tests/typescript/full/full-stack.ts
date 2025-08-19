@@ -14,7 +14,8 @@ import {
     LicenseApi, 
     UserApi, 
     JobApi,
-    AuthenticationApi
+    AuthenticationApi,
+    EndCursor
 } from '../../../generated/typescript'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -74,6 +75,11 @@ async function main() {
         console.log('License information:', JSON.stringify(license.body, null, 2))
 
         const user = await userApi.searchUsers({
+            filter: {
+                email: {
+                    $like: "%example.com%"
+                }
+            },
             page: {
                 from: 0,
                 limit: 100,
@@ -81,11 +87,20 @@ async function main() {
         }, headers) // .catch(e => ({body: {error: e.message, statusCode: e.statusCode}}))
         console.log('User information:', JSON.stringify(user.body, null, 2))
 
-        // const users = await userApi.searchUsers({
-        //     page: {
-        //         after: "snt"
-        //     }
-        // }, headers)
+
+        const users = await (userApi.searchUsers as any)({
+             filter: {
+                email: {
+                    $like: "%example.com%"
+                }
+            },
+            page: {
+                after: "0"
+            }
+        }, headers)
+        console.log('Users information:', JSON.stringify(users.body, null, 2))
+    
+
         // Load the test BPMN file
         const bpmnPath = path.join(__dirname, 'resources', 'test.bpmn')
         const bpmnContent = fs.readFileSync(bpmnPath)

@@ -13,7 +13,7 @@ export const sdks: SdkDefinitions = {
         name: 'typescript', 
         path: 'typescript', 
         generator: 'typescript-node', 
-        generatorOptions: 'npmName=@camunda8/rest-api,npmVersion=1.0.0,typescriptThreePlus=true,withSeparateModelsAndApi=true,supportsES6=true' 
+        generatorOptions: 'npmName=@camunda8/rest-api,npmVersion=1.0.0,typescriptThreePlus=true,withSeparateModelsAndApi=true,supportsES6=true,withValidation=true,withoutRuntimeChecks=false' 
     },
     // csharp: { 
     //     name: 'csharp', 

@@ -42,11 +42,11 @@ test('SearchQueryPageRequest polymorphic schema works correctly', () => {
     offsetPagination.limit = 50
     
     const cursorForward = new CursorForwardPagination()
-    cursorForward.after = EndCursor.create("cursor123")
+    cursorForward.after = EndCursor.create("WzIyNTE3OTk4MTM2ODcxMDJd")
     cursorForward.limit = 25
     
     const cursorBackward = new CursorBackwardPagination()
-    cursorBackward.before = StartCursor.create("cursor456")
+    cursorBackward.before = StartCursor.create("WzIyNTE3OTk4MTM2ODcxMDJd")
     cursorBackward.limit = 25
     
     // All should be assignable to the union type
@@ -58,10 +58,10 @@ test('SearchQueryPageRequest polymorphic schema works correctly', () => {
     expect(offsetPagination.from).toBe(0)
     expect(offsetPagination.limit).toBe(50)
     
-    expect(EndCursor.getValue(cursorForward.after)).toBe("cursor123")
+    expect(EndCursor.getValue(cursorForward.after)).toBe("WzIyNTE3OTk4MTM2ODcxMDJd")
     expect(cursorForward.limit).toBe(25)
     
-    expect(StartCursor.getValue(cursorBackward.before)).toBe("cursor456")
+    expect(StartCursor.getValue(cursorBackward.before)).toBe("WzIyNTE3OTk4MTM2ODcxMDJd")
     expect(cursorBackward.limit).toBe(25)
     
     // Test type narrowing with type guards
@@ -70,11 +70,11 @@ test('SearchQueryPageRequest polymorphic schema works correctly', () => {
     }
     
     if ('after' in unionForward) {
-        expect(EndCursor.getValue(unionForward.after)).toBe("cursor123")
+        expect(EndCursor.getValue(unionForward.after)).toBe("WzIyNTE3OTk4MTM2ODcxMDJd")
     }
     
     if ('before' in unionBackward) {
-        expect(StartCursor.getValue(unionBackward.before)).toBe("cursor456")
+        expect(StartCursor.getValue(unionBackward.before)).toBe("WzIyNTE3OTk4MTM2ODcxMDJd")
     }
 })
 

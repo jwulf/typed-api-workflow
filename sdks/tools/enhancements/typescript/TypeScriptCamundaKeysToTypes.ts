@@ -45,11 +45,16 @@ export class TypeScriptCamundaKeysToTypes {
     code += '  readonly __type: T;\n';
     code += '}\n\n';
     
-    for (const [name, type] of Array.from(this.semanticTypes.entries())) {
+    const allTypes = Array.from(this.semanticTypes.entries());
+    for (const [name, type] of allTypes) {
       code += `/**\n * ${type.description}\n */\n`;
       code += `export type ${name} = CamundaKey<'${name}'>;\n\n`;
       
       code += `export namespace ${name} {\n`;
+      if (type.pattern) {
+        code += `  // Expose compiled validation pattern for reuse\n`;
+        code += `  export const pattern = /${type.pattern}/;\n\n`;
+      }
       code += `  /**\n   * Create a new ${name} with validation\n   */\n`;
       code += `  export function create(value: string): ${name} {\n`;
       code += `    if (!isValid(value)) {\n`;
@@ -86,9 +91,22 @@ export class TypeScriptCamundaKeysToTypes {
       }
       code += `    return true;\n`;
       code += `  }\n`;
+
       code += `}\n\n`;
     }
-    
+    // Export a small registry for generic access
+    code += 'export const SemanticRegistry = {\n';
+    for (const [name, type] of allTypes) {
+      const parts: string[] = [
+        `  ${name}: { isValid: ${name}.isValid, create: ${name}.create, getValue: ${name}.getValue`,
+      ];
+      if (type.pattern) parts.push(`pattern: ${name}.pattern`);
+      if (type.minLength !== undefined) parts.push(`minLength: ${type.minLength}`);
+      if (type.maxLength !== undefined) parts.push(`maxLength: ${type.maxLength}`);
+      code += parts.join(', ') + ' },\n';
+    }
+    code += '} as const;\n\n';
+
     return code;
   }
 
@@ -293,7 +311,7 @@ export class TypeScriptCamundaKeysToTypes {
     // Check if we've already enhanced the ObjectSerializer
     if (content.includes('// Semantic type handling')) {
       console.log(`  ✓ ObjectSerializer already enhanced`);
-      return;
+  return;
     }
 
     // Add or merge import for semantic types at the top
@@ -330,8 +348,11 @@ export class TypeScriptCamundaKeysToTypes {
       }
     }
 
-    // Enhance serialize method
-    const serializeEnhancement = this.generateSerializeEnhancement();
+  // Discover alias unions in generated models so we can handle them at runtime
+  const aliasUnions = this.discoverAliasUnions(path.join(sdkPath, 'model'));
+
+  // Enhance serialize method
+  const serializeEnhancement = this.generateSerializeEnhancement(aliasUnions);
     content = content.replace(
       /(public static serialize\(data: any, type: string\): any \{\s*if \(data == undefined\) \{\s*return data;\s*\})/,
       `$1${serializeEnhancement}`
@@ -348,9 +369,73 @@ export class TypeScriptCamundaKeysToTypes {
     console.log(`  ✓ Enhanced ObjectSerializer with semantic type support`);
   }
 
-  generateSerializeEnhancement(): string {
+  /**
+   * Generate the serialize enhancement, including:
+   * - Alias union handling (e.g., SearchQueryPageRequest) detected from model files
+   * - Safer union handling that avoids picking the wrong branch by checking for extraneous keys
+   * - Semantic type handling for all discovered semantic types
+   */
+  generateSerializeEnhancement(aliasUnions: Record<string, string[]>): string {
     const semanticTypeNames = Array.from(this.semanticTypes.keys());
-    let enhancement = '\n        // Handle union types with proper validation for both semantic types and complex objects\n';
+    let enhancement = '\n        // Handle alias union types detected from the generated models (e.g., StrictUnion<A | B>)\n';
+    for (const [alias, variants] of Object.entries(aliasUnions)) {
+      enhancement += `        else if (type === "${alias}" && data && typeof data === 'object') {\n`;
+      enhancement += `            const unionTypes = [${variants.map(v => `"${v}"`).join(', ')}];\n`;
+      enhancement += `            let lastError: Error | null = null;\n`;
+      enhancement += `            for (const unionType of unionTypes) {\n`;
+      enhancement += `                try {\n`;
+      enhancement += `                    // Skip union candidates that don't match the shape (extraneous keys)\n`;
+      enhancement += `                    if (typeMap[unionType]) {\n`;
+      enhancement += `                        const attributeTypes = typeMap[unionType].getAttributeTypeMap();\n`;
+      enhancement += `                        const allowed = new Set(attributeTypes.map((a: any) => a.name));\n`;
+      enhancement += `                        const dataKeys = Object.keys(data);\n`;
+      enhancement += `                        const hasExtraneous = dataKeys.some(k => !allowed.has(k));\n`;
+      enhancement += `                        if (hasExtraneous) {\n`;
+      enhancement += `                            continue;\n`;
+      enhancement += `                        }\n`;
+      enhancement += `                    }\n`;
+      enhancement += `                    return ObjectSerializer.serialize(data, unionType);\n`;
+      enhancement += `                } catch (error) {\n`;
+      enhancement += `                    lastError = error as Error;\n`;
+      enhancement += `                }\n`;
+      enhancement += `            }\n`;
+      enhancement += `            throw new Error(\`No valid union type found for alias ${alias}. Last error: \${lastError?.message}.\`);\n`;
+      enhancement += `        }\n`;
+    }
+
+    // Fallback: ensure SearchQueryPageRequest is handled even if not detected yet (pipeline order)
+    if (!aliasUnions["SearchQueryPageRequest"]) {
+      const variants = ["OffsetPagination", "CursorForwardPagination", "CursorBackwardPagination"];
+      enhancement += `        else if (type === "SearchQueryPageRequest" && data && typeof data === 'object') {\n`;
+      enhancement += `            const unionTypes = [${variants.map(v => `"${v}"`).join(', ')}];\n`;
+      enhancement += `            // Try to discriminate by keys first\n`;
+      enhancement += `            if (Object.prototype.hasOwnProperty.call(data, 'after')) {\n`;
+      enhancement += `                return ObjectSerializer.serialize(data, "CursorForwardPagination");\n`;
+      enhancement += `            } else if (Object.prototype.hasOwnProperty.call(data, 'before')) {\n`;
+      enhancement += `                return ObjectSerializer.serialize(data, "CursorBackwardPagination");\n`;
+      enhancement += `            }\n`;
+      enhancement += `            let lastError: Error | null = null;\n`;
+      enhancement += `            for (const unionType of unionTypes) {\n`;
+      enhancement += `                try {\n`;
+      enhancement += `                    if (typeMap[unionType]) {\n`;
+      enhancement += `                        const attributeTypes = typeMap[unionType].getAttributeTypeMap();\n`;
+      enhancement += `                        const allowed = new Set(attributeTypes.map((a: any) => a.name));\n`;
+      enhancement += `                        const dataKeys = Object.keys(data);\n`;
+      enhancement += `                        const hasExtraneous = dataKeys.some(k => !allowed.has(k));\n`;
+      enhancement += `                        if (hasExtraneous) {\n`;
+      enhancement += `                            continue;\n`;
+      enhancement += `                        }\n`;
+      enhancement += `                    }\n`;
+      enhancement += `                    return ObjectSerializer.serialize(data, unionType);\n`;
+      enhancement += `                } catch (error) {\n`;
+      enhancement += `                    lastError = error as Error;\n`;
+      enhancement += `                }\n`;
+      enhancement += `            }\n`;
+      enhancement += `            throw new Error(\`No valid union type found for alias SearchQueryPageRequest. Last error: \${lastError?.message}.\`);\n`;
+      enhancement += `        }\n`;
+    }
+
+    enhancement += '        // Handle inline union types with proper validation for both semantic types and complex objects\n';
     enhancement += '        else if (type.includes(\'|\') && data && typeof data === \'object\') {\n';
     enhancement += '            const unionTypes = type.split(\' | \').map(t => t.trim());\n';
     enhancement += '            \n';
@@ -364,10 +449,19 @@ export class TypeScriptCamundaKeysToTypes {
     enhancement += '                }\n';
     enhancement += '            }\n';
     enhancement += '            \n';
-    enhancement += '            // For complex objects without __type, try each union type until one succeeds\n';
+    enhancement += '            // For complex objects without __type, try each union type until one succeeds (skip mismatched shapes)\n';
     enhancement += '            let lastError: Error | null = null;\n';
     enhancement += '            for (const unionType of unionTypes) {\n';
     enhancement += '                try {\n';
+    enhancement += '                    if (typeMap[unionType]) {\n';
+    enhancement += '                        const attributeTypes = typeMap[unionType].getAttributeTypeMap();\n';
+    enhancement += '                        const allowed = new Set(attributeTypes.map((a: any) => a.name));\n';
+    enhancement += '                        const dataKeys = Object.keys(data);\n';
+    enhancement += '                        const hasExtraneous = dataKeys.some(k => !allowed.has(k));\n';
+    enhancement += '                        if (hasExtraneous) {\n';
+    enhancement += '                            continue;\n';
+    enhancement += '                        }\n';
+    enhancement += '                    }\n';
     enhancement += '                    return ObjectSerializer.serialize(data, unionType);\n';
     enhancement += '                } catch (error) {\n';
     enhancement += '                    lastError = error as Error;\n';
@@ -382,6 +476,23 @@ export class TypeScriptCamundaKeysToTypes {
     
     for (const typeName of semanticTypeNames) {
       enhancement += `        else if (type === "${typeName}") {\n`;
+      enhancement += `            // Allow passing either the branded type or a raw string; validate raw strings locally (configurable)\n`;
+      enhancement += `            const __vmode = (typeof process !== 'undefined' && (process as any).env && (process as any).env.CAMUNDA_SDK_VALIDATION) || 'strict';\n`;
+      enhancement += `            if (__vmode === 'none') {\n`;
+      enhancement += `                // Skip validation entirely\n`;
+      enhancement += `                return typeof data === 'string' ? data : ${typeName}.getValue(data as ${typeName});\n`;
+      enhancement += `            }\n`;
+      enhancement += `            if (typeof data === 'string') {\n`;
+      enhancement += `                try {\n`;
+      enhancement += `                    return ${typeName}.getValue(${typeName}.create(data as string));\n`;
+      enhancement += `                } catch (e) {\n`;
+      enhancement += `                    if (__vmode === 'warn') {\n`;
+      enhancement += `                        if (typeof console !== 'undefined' && console.warn) { console.warn('Semantic validation failed for ${typeName}:', String(e)); }\n`;
+      enhancement += `                        return data;\n`;
+      enhancement += `                    }\n`;
+      enhancement += `                    throw e;\n`;
+      enhancement += `                }\n`;
+      enhancement += `            }\n`;
       enhancement += `            return ${typeName}.getValue(data as ${typeName});\n`;
       enhancement += `        }\n`;
     }
@@ -395,7 +506,17 @@ export class TypeScriptCamundaKeysToTypes {
     
     for (const typeName of semanticTypeNames) {
       enhancement += `        else if (type === "${typeName}") {\n`;
-      enhancement += `            return ${typeName}.create(data as string);\n`;
+      enhancement += `            const __vmode = (typeof process !== 'undefined' && (process as any).env && (process as any).env.CAMUNDA_SDK_VALIDATION) || 'strict';\n`;
+      enhancement += `            if (__vmode === 'none') { return data as string; }\n`;
+      enhancement += `            try {\n`;
+      enhancement += `                return ${typeName}.create(data as string);\n`;
+      enhancement += `            } catch (e) {\n`;
+      enhancement += `                if (__vmode === 'warn') {\n`;
+      enhancement += `                    if (typeof console !== 'undefined' && console.warn) { console.warn('Semantic validation failed for ${typeName} (deserialize):', String(e)); }\n`;
+      enhancement += `                    return data as string;\n`;
+      enhancement += `                }\n`;
+      enhancement += `                throw e;\n`;
+      enhancement += `            }\n`;
       enhancement += `        }\n`;
     }
     
@@ -427,5 +548,52 @@ export class TypeScriptCamundaKeysToTypes {
         }
       }
     }
+  }
+
+  /**
+   * Scan generated model files to detect exported type alias unions, like:
+   *   export type X = StrictUnion<A | B | C>;
+   *   export type Y = A | B;
+   * Returns a map of alias -> [variantTypeNames]
+   */
+  private discoverAliasUnions(modelsDir: string): Record<string, string[]> {
+    const result: Record<string, string[]> = {};
+    if (!fs.existsSync(modelsDir)) return result;
+
+    const files = fs.readdirSync(modelsDir).filter(f => f.endsWith('.ts'));
+    const strictUnionRegex = /export\s+type\s+(\w+)\s*=\s*StrictUnion\s*<([^>]+)>\s*;/m;
+    const plainUnionRegex = /export\s+type\s+(\w+)\s*=\s*([^;]+\|[^;]+);/m;
+
+    for (const file of files) {
+      const filePath = path.join(modelsDir, file);
+      const content = fs.readFileSync(filePath, 'utf8');
+
+      let m = content.match(strictUnionRegex);
+      if (m) {
+        const alias = m[1];
+        const body = m[2];
+        const variants = body.split('|').map(s => s.trim())
+          .map(s => s.replace(/\s+extends\s+[^|]+/g, '')) // drop extends if any
+          .map(s => s.replace(/[^A-Za-z0-9_]/g, ' ').trim().split(/\s+/)[0]) // first token
+          .filter(Boolean);
+        if (variants.length > 0) result[alias] = variants;
+        continue;
+      }
+
+      m = content.match(plainUnionRegex);
+      if (m) {
+        const alias = m[1];
+        const body = m[2];
+        const variants = body.split('|').map(s => s.trim())
+          .map(s => s.replace(/[^A-Za-z0-9_]/g, ' ').trim().split(/\s+/)[0])
+          .filter(Boolean);
+        if (variants.length > 0) result[alias] = variants;
+      }
+    }
+
+    if (Object.keys(result).length > 0) {
+      console.log(`  ✓ Detected alias unions: ${Object.keys(result).join(', ')}`);
+    }
+    return result;
   }
 }
