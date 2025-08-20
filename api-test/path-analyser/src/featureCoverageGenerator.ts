@@ -123,7 +123,11 @@ function buildScenarioFromVariant(graph: OperationGraph, endpointId: string, var
     satisfiedSemanticTypes: [...new Set([...endpoint.requires.required, ...variant.optionals])],
     strategy: 'featureCoverage',
     variantKey: buildVariantKey(variant),
-  expectedResult: variant.requestVariantName === 'union-all' && variant.negative ? { kind: 'error', code: '400' } : { kind: variant.expectedResult },
+  // For negative oneOf violations (union-all or pairwise), explicitly expect HTTP 400
+  expectedResult: (variant.negative && variant.requestVariantGroup && (
+    variant.requestVariantName === 'union-all' ||
+    (typeof variant.requestVariantName === 'string' && variant.requestVariantName.startsWith('pair:'))
+  )) ? { kind: 'error', code: '400' } : { kind: variant.expectedResult },
     coverageTags: buildCoverageTags(variant),
     filtersUsed: variant.optionals,
     syntheticBindings: variant.negative ? Object.keys(bindings) : undefined,

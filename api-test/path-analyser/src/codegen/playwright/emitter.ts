@@ -22,7 +22,9 @@ function buildSuiteSource(collection: EndpointScenarioCollection, opts: EmitOpti
   const suiteName = opts.suiteName || collection.endpoint.operationId;
   // Import only test & expect; request fixture is provided per-test via parameters
   lines.push("import { test, expect } from '@playwright/test';");
-  lines.push("import { buildBaseUrl, authHeaders } from '../support/env';");
+  // Import env helpers from compiled support location relative to generated tests
+  lines.push("import { buildBaseUrl, authHeaders } from '../src/codegen/support/env';");
+  lines.push("import { recordResponse, sanitizeBody } from '../src/codegen/support/recorder';");
   lines.push('');
   lines.push(`test.describe('${suiteName}', () => {`);
   for (const scenario of collection.scenarios) {
@@ -88,8 +90,10 @@ function renderScenarioTest(s: EndpointScenario): string {
       // Convert template to Playwright's expected multipart shape: a keyed object map
       // Files are passed as { name, mimeType, buffer }
       body.push(`    const multipart: Record<string, any> = {};`);
-      body.push(`    for (const [k,v] of Object.entries(${bodyVar}.fields||{})) multipart[k] = String(v);`);
-      body.push(`    for (const [k,v] of Object.entries(${bodyVar}.files||{})) {
+  body.push(`    for (const [k,v] of Object.entries(${bodyVar}.fields||{})) {`);
+  body.push(`      if (v !== undefined && v !== null) multipart[k] = String(v);`);
+  body.push(`    }`);
+  body.push(`    for (const [k,v] of Object.entries(${bodyVar}.files||{})) {
         if (typeof v === 'string' && v.startsWith('@@FILE:')) {
           let p = v.slice('@@FILE:'.length);
           // Resolve relative paths against likely fixture locations
@@ -98,7 +102,10 @@ function renderScenarioTest(s: EndpointScenario): string {
           const candidates = [
             p,
             pathMod.resolve(process.cwd(), p),
-            pathMod.resolve(process.cwd(), 'api-test/path-analyser/fixtures', p),
+    // When running from path-analyser dir
+    pathMod.resolve(process.cwd(), 'fixtures', p),
+    // When running from repo root
+    pathMod.resolve(process.cwd(), 'api-test/path-analyser/fixtures', p),
             // when running compiled tests from dist/generated-tests
             typeof __dirname !== 'undefined' ? pathMod.resolve(__dirname, '../../fixtures', p) : undefined,
             typeof __dirname !== 'undefined' ? pathMod.resolve(__dirname, '../fixtures', p) : undefined
@@ -117,7 +124,29 @@ function renderScenarioTest(s: EndpointScenario): string {
       opts.push('multipart: multipart');
     }
   body.push(`    const ${varName} = await request.${method}(url, { ${opts.join(', ')} });`);
-    body.push(`    expect(${varName}.status()).toBe(${step.expect.status});`);
+  body.push(`    if (${varName}.status() !== ${step.expect.status}) {`);
+  body.push(`      try { console.error('Response body:', await ${varName}.text()); } catch {}`);
+  body.push(`    }`);
+  body.push(`    expect(${varName}.status()).toBe(${step.expect.status});`);
+  // Record observation for this step (best-effort)
+  body.push(`    try {`);
+  body.push(`      let bodyJson: any = undefined;`);
+  body.push(`      try { bodyJson = await ${varName}.json(); } catch {}`);
+  body.push(`      await recordResponse({`);
+  body.push(`        timestamp: new Date().toISOString(),`);
+  body.push(`        operationId: '${s.operations[idx].operationId}',`);
+  body.push(`        scenarioId: '${s.id}',`);
+  body.push(`        scenarioName: ${JSON.stringify(s.name || '')},`);
+  body.push(`        stepIndex: ${idx},`);
+  body.push(`        isFinal: ${isFinal},`);
+  body.push(`        method: '${step.method}',`);
+  body.push(`        pathTemplate: ${JSON.stringify(step.pathTemplate)},`);
+  body.push(`        status: ${varName}.status(),`);
+  body.push(`        expectedStatus: ${step.expect.status},`);
+  body.push(`        errorScenario: ${(s as any).expectedResult && (s as any).expectedResult.kind === 'error'},`);
+  body.push(`        bodyShape: bodyJson !== undefined ? sanitizeBody(bodyJson) : undefined`);
+  body.push(`      });`);
+  body.push(`    } catch {}`);
   // If this is the final step and scenario expects a success body, assert presence and types
   const isErrorScenario = (s as any).expectedResult && (s as any).expectedResult.kind === 'error';
   if (isFinal && hasShape && !isErrorScenario) {

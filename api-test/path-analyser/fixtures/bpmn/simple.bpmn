@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.36.1">
   <process id="process_simple" name="Simple Process" isExecutable="true">
-    <startEvent id="start" />
-    <sequenceFlow id="flow1" sourceRef="start" targetRef="end" />
-    <endEvent id="end" />
     <startEvent id="Event_1qq1nf7" name="Start">
       <outgoing>Flow_19ww1w0</outgoing>
     </startEvent>

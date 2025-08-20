@@ -37,7 +37,7 @@ function isProcessDefinitionKey(value: any): value is ProcessDefinitionKey {
 async function getHeaders() {
     if (!process.env.CAMUNDA_OAUTH_URL) {
         console.log(`Running with no OAuth authentication`);
-        return undefined
+        return {headers: {}} // undefined
     }
     const oauth = new Auth.OAuthProvider({config: {CAMUNDA_TOKEN_DISK_CACHE_DISABLE: true}})
     const headers = await oauth.getHeaders('ZEEBE')
@@ -95,9 +95,16 @@ async function main() {
                 }
             },
             page: {
-                after: "0"
+                after: "some-process-id"
             }
-        }, headers)
+        }, headers).catch((e: Error) => {
+            console.error(`Failed to search users: ${e.message}`);
+            if ((e as any).body) {
+               console.error(`Response body: ${JSON.stringify((e as any).body, null, 2)}`);
+            }
+             process.exit(1)
+        })
+
         console.log('Users information:', JSON.stringify(users.body, null, 2))
     
 
