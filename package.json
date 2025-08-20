@@ -9,7 +9,9 @@
     "camunda:es:shhh": "curl -X PUT \"http://localhost:9200/_cluster/settings\" -H \"Content-Type: application/json\" -d '{ \"persistent\":{\"logger.org.elasticsearch.deprecation\": \"OFF\"}}'",
     "camunda:es:stop": "docker compose -f camunda/operate/docker-compose.yml stop elasticsearch",
     "spec:update": "cd camunda && git reset --hard && git clean -fd && git pull && cd .. && cp camunda/zeebe/gateway-protocol/src/main/proto/rest-api.yaml rest-api.yaml",
-    "docs:generate": "cp ./rest-api.domain.yaml ./camunda-docs/api/camunda/camunda-openapi.yaml && npm run --prefix camunda-docs api:generate:camunda",
+    "docs:copy:patches": "cp -R docs-patch/src/mdx/* ./camunda-docs/src/mdx/ && cp docs-patch/api.camunda.generation-strategy.js ./camunda-docs/api/camunda/generation-strategy.js",
+    "docs:copy:spec": "cp rest-api.domain.yaml camunda-docs/api/camunda/camunda-openapi.yaml",
+    "docs:generate": "npm run docs:copy:patches && npm run docs:copy:spec && npm run --prefix camunda-docs api:generate:camunda",
     "docs:start": "npm run --prefix camunda-docs start",
     "docs:push": "cd camunda-docs && git add . && git commit -m\"updated docs\" && git fetch origin && git rebase origin/main -X ours && git push --force-with-lease",
     "spec:go": "npm run spec:generate && npm run lint && npm run spec:install && npm run spec:build && npm run spec:verify",
@@ -34,6 +36,9 @@
     "test:typescript": "cd sdks/tests/typescript && npm test",
     "test:ts:integration": "cd sdks/tests/typescript && npx jest integration",
     "testsuite:generate": "cd api-test/semantic-graph-extractor && npm run extract-graph && cd ../path-analyser && npm run build && node dist/src/index.js && npm run codegen:playwright:all"
+  ,
+  "testsuite:observe:aggregate": "cd api-test/path-analyser && npm run observe:aggregate",
+  "testsuite:observe:run": "cd api-test/path-analyser && npm run observe:run"
   },
   "keywords": [],
   "author": "",

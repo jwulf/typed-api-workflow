@@ -13,19 +13,24 @@ function preGenerateDocs(config) {
 
   console.log("adjusting C8 spec file...");
 
-  const specUpdates = [
-    ...addDisclaimer(originalSpec),
-    ...redefineCreateProcessInstanceRequest(originalSpec),
-    ...redefineEvaluateDecisionRequest(originalSpec),
-    ...addAlphaAdmonition(), // needs to go before addFrequentlyLinkedDocs
-    ...addFrequentlyLinkedDocs(config.version),
-    ...flattenPathParams(originalSpec),
-    ...stripCamundaKeyConstraintsForDocs(originalSpec),
-  ];
-
+  // Apply transforms cumulatively in order, passing the current spec to each.
+  // Previously, each helper received the original spec and produced a full-document
+  // replacement, causing later steps to overwrite earlier ones (e.g., flattening).
   let updatedSpec = originalSpec;
 
-  for (const update of specUpdates) {
+  for (const update of addDisclaimer(updatedSpec)) {
+    updatedSpec = updatedSpec.replace(update.from, update.to);
+  }
+  for (const update of addAlphaAdmonition()) {
+    updatedSpec = updatedSpec.replace(update.from, update.to);
+  }
+  for (const update of addFrequentlyLinkedDocs(config.version)) {
+    updatedSpec = updatedSpec.replace(update.from, update.to);
+  }
+  for (const update of flattenPathParams(updatedSpec)) {
+    updatedSpec = updatedSpec.replace(update.from, update.to);
+  }
+  for (const update of stripCamundaKeyConstraintsForDocs(updatedSpec)) {
     updatedSpec = updatedSpec.replace(update.from, update.to);
   }
 
@@ -39,10 +44,14 @@ function preGenerateDocs(config) {
   removeVendorExtensions(config.specPath);
 }
 
+// This will break if the specification title is changed
 function postGenerateDocs(config) {
   removeDuplicateVersionBadge(
-    `${config.outputDir}/orchestration-cluster-rest-api.info.mdx`
+    `${config.outputDir}/orchestration-cluster-api.info.mdx`
   );
+  // Replace consistency marker tokens with MDX components and add imports
+  replaceConsistencyMarkersWithComponents(config.outputDir);
+  console.log(`✅ Added eventual consistency admonitions`);
 }
 
 function addDisclaimer(originalSpec) {
@@ -63,178 +72,6 @@ function addDisclaimer(originalSpec) {
       to: `# Disclaimer: This is a modified version of the Camunda REST API specification, optimized for the documentation.
 
 `,
-    },
-  ];
-}
-
-function redefineCreateProcessInstanceRequest(originalSpec) {
-  // Redefines the CreateProcessInstanceRequest schema to describe a union of two possible request bodies.
-  //   This union type does not work upstream, but we can rewrite it here to more clearly describe the schema.
-
-  if (originalSpec.includes("CreateProcessInstanceRequestBase")) {
-    // Make this a repeatable task by checking if it's run already.
-    console.log("skipping redefineCreateProcessInstanceRequest...");
-    return [];
-  }
-
-  // Diff created by these changes:
-  //   CreateProcessInstanceRequest:
-  //     type: object
-  //+    oneOf:
-  //+      - $ref: "#/components/schemas/CreateProcessInstanceRequestByKey"
-  //+      - $ref: "#/components/schemas/CreateProcessInstanceRequestById"
-  //+   CreateProcessInstanceRequestByKey:
-  //+    type: object
-  //+    allOf:
-  //+      - $ref: "#/components/schemas/CreateProcessInstanceRequestBase"
-  //     properties:
-  //       processDefinitionKey:
-  //         ...
-  //+  CreateProcessInstanceRequestById:
-  //+    type: object
-  //+    allOf:
-  //+      - $ref: "#/components/schemas/CreateProcessInstanceRequestBase"
-  //+    properties:
-  //       processDefinitionId:
-  //         ...
-  //       processDefinitionVersion:
-  //         ...
-  //+  CreateProcessInstanceRequestBase:
-  //+    type: object
-  //+    properties:
-  //       variables:
-  //         ...
-  //       tenantId:
-  //         ...
-  //       ...
-
-  return [
-    // 1. Convert the main request to a oneOf union and define the first possible type.
-    {
-      // match the start of the CreateProcessInstanceRequest object
-      from: /    CreateProcessInstanceRequest:\n      type: object/m,
-
-      // append the `oneOf` declaration to define the union type.
-      //   Then a definition for the first possible type, so that it includes the `processDefinitionKey` property.
-      to: `    CreateProcessInstanceRequest:
-      type: object
-      oneOf:
-        - $ref: "#/components/schemas/CreateProcessInstanceRequestByKey"
-        - $ref: "#/components/schemas/CreateProcessInstanceRequestById"
-    CreateProcessInstanceRequestByKey:
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/CreateProcessInstanceRequestBase"`,
-    },
-
-    // 2. Define the second possible type, to include the `processDefinitionId` property.
-    {
-      // match the start of the CreateProcessInstanceRequestByKey object, up until the `processDefinitionId` property (non-inclusive).
-      from: /    CreateProcessInstanceRequestByKey:[\s\S]*?(?=\s*processDefinitionId:)/m,
-
-      // append the second possible type definition, so that it includes the `processDefinitionId`.
-      to: `$&
-    CreateProcessInstanceRequestById:
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/CreateProcessInstanceRequestBase"
-      properties:`,
-    },
-
-    // 3. Define a base type to contain the common properties, starting before the `variables` property.
-    {
-      // match the start of the CreateProcessInstanceRequestById object, up until the `variables` property (non-inclusive).
-      from: /    CreateProcessInstanceRequestById:[\s\S]*?(?=\s*variables:)/m,
-      // append the base type definition, so that it includes all remaining properties.
-      to: `$&
-    CreateProcessInstanceRequestBase:
-      type: object
-      properties:`,
-    },
-  ];
-}
-
-function redefineEvaluateDecisionRequest(originalSpec) {
-  // Redefines the EvaluateDecisionRequest schema to describe a union of two possible request bodies.
-  //   This union type does not work upstream, but we can rewrite it here to more clearly describe the schema.
-
-  if (originalSpec.includes("EvaluateDecisionRequestBase")) {
-    // Make this a repeatable task by checking if it's run already.
-    console.log("skipping redefineEvaluateDecisionRequest...");
-    return [];
-  }
-
-  // Diff created by these changes:
-  //   EvaluateDecisionRequest:
-  //     type: object
-  //+    oneOf:
-  //+      - $ref: "#/components/schemas/EvaluateDecisionRequestByKey"
-  //+      - $ref: "#/components/schemas/EvaluateDecisionRequestById"
-  //+  EvaluateDecisionRequestByKey:
-  //+    type: object
-  //+    allOf:
-  //+      - $ref: "#/components/schemas/EvaluateDecisionRequestBase"
-  //     properties:
-  //       decisionDefinitionKey:
-  //         ...
-  //+  EvaluateDecisionRequestById:
-  //+    type: object
-  //+    allOf:
-  //+      - $ref: "#/components/schemas/EvaluateDecisionRequestBase"
-  //+    properties:
-  //       decisionDefinitionId:
-  //         ...
-  //+  EvaluateDecisionRequestBase:
-  //+    type: object
-  //+    properties:
-  //       variables:
-  //         ...
-  //       tenantId:
-  //         ...
-  //       ...
-
-  return [
-    // 1. Convert the main request to a oneOf union and define the first possible type.
-    {
-      // match the start of the EvaluateDecisionRequest object
-      from: /    EvaluateDecisionRequest:\n      type: object/m,
-
-      // append the `oneOf` declaration to define the union type.
-      //   Then a definition for the first possible type, so that it includes the `decisionDefinitionKey` property.
-      to: `    EvaluateDecisionRequest:
-      type: object
-      oneOf:
-        - $ref: "#/components/schemas/EvaluateDecisionRequestByKey"
-        - $ref: "#/components/schemas/EvaluateDecisionRequestById"
-    EvaluateDecisionRequestByKey:
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/EvaluateDecisionRequestBase"`,
-    },
-
-    // 2. Define the second possible type, to include the `decisionDefinitionId` property.
-    {
-      // match the start of the EvaluateDecisionRequestByKey object, up until the `decisionDefinitionId` property (non-inclusive).
-      from: /    EvaluateDecisionRequestByKey:[\s\S]*?(?=\s*decisionDefinitionId:)/m,
-
-      // append the second possible type definition, so that it includes the `decisionDefinitionId`.
-      to: `$&
-    EvaluateDecisionRequestById:
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/EvaluateDecisionRequestBase"
-      properties:`,
-    },
-
-    // 3. Define a base type to contain the common properties, starting before the `variables` property.
-    {
-      // match the start of the CreateProcessInstanceRequestById object, up until the `variables` property (non-inclusive).
-      from: /    EvaluateDecisionRequestById:[\s\S]*?(?=\s*variables:)/m,
-      // append the base type definition, so that it includes all remaining properties.
-      to: `$&
-    EvaluateDecisionRequestBase:
-      type: object
-      properties:`,
     },
   ];
 }
@@ -406,27 +243,14 @@ function addEventualConsistencyAdmonition(specFilePath) {
           const operationHasEventualConsistency = operation[EVENTUAL_CONSISTENCY_VENDOR_EXTENSION] === true;
 
           const operationHasStrongConsistency = operation[EVENTUAL_CONSISTENCY_VENDOR_EXTENSION] === false;
-          
-          if (operationHasEventualConsistency) {
-            // Add the admonition to the description
-            const admonition = '\n\n:::warning\nThis endpoint provides eventually consistent data. There may be a slight delay between when data is written and when it becomes available for reading.\n:::\n';
 
-            if (operation.description) {
-              operation.description += admonition;
+          const token = operationHasEventualConsistency ? '\n\n[[CONSISTENCY:EVENTUAL]]\n\n' : operationHasStrongConsistency ? '\n\n[[CONSISTENCY:STRONG]]\n\n' : '';
+          if (operation.description) {
+            operation.description = token + operation.description;
             } else {
-              operation.description = admonition.trim();
+              operation.description = token.trim();
             }
             admonitionsAdded++
-          } else {
-            if (operationHasStrongConsistency) {
-              // In an else block to avoid adding both in the case of a malformed spec
-              if (operation.description) {
-                operation.description += '\n\n:::tip\nThis endpoint provides strongly consistent data.\n:::\n';
-              } else {
-                operation.description = '\n\n:::tip\nThis endpoint provides strongly consistent data.\n:::\n';
-              }
-            }
-          }
         });
       });
     }
@@ -488,3 +312,64 @@ module.exports = {
   preGenerateDocs,
   postGenerateDocs,
 };
+
+// ---- Helpers to replace placeholder tokens with MDX components in generated files ----
+function replaceConsistencyMarkersWithComponents(outputDir) {
+  try {
+    const fs = require('fs');
+
+    const files = listFilesRecursive(outputDir).filter(f => f.endsWith('.mdx'));
+    for (const file of files) {
+      let content = fs.readFileSync(file, 'utf8');
+      const hasEC = content.includes('[[CONSISTENCY:EVENTUAL]]');
+      const hasSC = content.includes('[[CONSISTENCY:STRONG]]');
+      if (!hasEC && !hasSC) continue;
+
+      let updated = content;
+      // Ensure imports exist (insert after frontmatter if present)
+      const importEC = "import MarkerEventuallyConsistentExtension from '@site/src/mdx/MarkerEventuallyConsistentExtension';";
+      const importSC = "import MarkerStronglyConsistentExtension from '@site/src/mdx/MarkerStronglyConsistentExtension';";
+
+      const lines = updated.split('\n');
+      let insertIdx = 0;
+      if (lines[0] && lines[0].startsWith('---')) {
+        // Skip frontmatter
+        const endIdx = lines.indexOf('---', 1);
+        insertIdx = endIdx >= 0 ? endIdx + 1 : 0;
+      }
+      const alreadyHasEC = updated.includes(importEC);
+      const alreadyHasSC = updated.includes(importSC);
+      const importsToAdd = [];
+      if (hasEC && !alreadyHasEC) importsToAdd.push(importEC);
+      if (hasSC && !alreadyHasSC) importsToAdd.push(importSC);
+      if (importsToAdd.length) {
+        lines.splice(insertIdx, 0, ...importsToAdd, '');
+        updated = lines.join('\n');
+      }
+
+      // Replace tokens with components
+      if (hasEC) {
+        updated = updated.replaceAll('[[CONSISTENCY:EVENTUAL]]', '<MarkerEventuallyConsistentExtension />');
+      }
+      if (hasSC) {
+        updated = updated.replaceAll('[[CONSISTENCY:STRONG]]', '<MarkerStronglyConsistentExtension />');
+      }
+      if (updated !== content) fs.writeFileSync(file, updated, 'utf8');
+    }
+  } catch (err) {
+    console.error('❌ Error replacing consistency markers in output MDX:', err);
+  }
+}
+
+function listFilesRecursive(dir) {
+  const fs = require('fs');
+  const path = require('path');
+  const out = [];
+  for (const name of fs.readdirSync(dir)) {
+    const p = path.join(dir, name);
+    const stat = fs.statSync(p);
+    if (stat.isDirectory()) out.push(...listFilesRecursive(p));
+    else out.push(p);
+  }
+  return out;
+}
