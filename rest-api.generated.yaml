@@ -3,12 +3,12 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-08-19 10:39:23
+# File generated at: 2025-08-20 13:13:10
 
 ---
 openapi: "3.0.3"
 info:
-  title: "Orchestration Cluster REST API"
+  title: "Orchestration Cluster API"
   version: "0.1"
   contact:
     name: "Camunda Engineering"
@@ -4528,6 +4528,7 @@ paths:
         description: "The ID of the document to download."
         schema:
           type: "string"
+          description: "Document Id that uniquely identifies a document."
       - name: "storeId"
         in: "query"
         required: false
@@ -4575,6 +4576,7 @@ paths:
         description: "The ID of the document to delete."
         schema:
           type: "string"
+          description: "Document Id that uniquely identifies a document."
       - name: "storeId"
         in: "query"
         required: false
@@ -4608,6 +4610,7 @@ paths:
         description: "The ID of the document to link."
         schema:
           type: "string"
+          description: "Document Id that uniquely identifies a document."
       - name: "storeId"
         in: "query"
         required: false
@@ -4815,7 +4818,9 @@ paths:
       - "Setup"
       operationId: "createAdminUser"
       summary: "Create admin user"
-      description: "Creates a new user and assign the admin role to it."
+      description: "Creates a new user and assign the admin role to it. This endpoint\
+        \ is only usable when users are managed in the Orchestration Cluster and while\
+        \ no user is assigned to the admin role."
       requestBody:
         content:
           application/json:
@@ -6318,6 +6323,36 @@ components:
             $ref: "#/components/schemas/ElementInstanceStateEnum"
         $like:
           $ref: "#/components/schemas/LikeFilterProperty"
+    AdvancedDecisionDefinitionKeyFilter:
+      title: "Advanced filter"
+      description: "Advanced DecisionDefinitionKey filter."
+      type: "object"
+      properties:
+        $eq:
+          type: "string"
+          description: "Key for a decision definition. Only use values returned by\
+            \ the system."
+        $neq:
+          type: "string"
+          description: "Key for a decision definition. Only use values returned by\
+            \ the system."
+        $exists:
+          description: "Checks if the current property exists."
+          type: "boolean"
+        $in:
+          description: "Checks if the property matches any of the provided values."
+          type: "array"
+          items:
+            type: "string"
+            description: "Key for a decision definition. Only use values returned\
+              \ by the system."
+        $notIn:
+          description: "Checks if the property matches none of the provided values."
+          type: "array"
+          items:
+            type: "string"
+            description: "Key for a decision definition. Only use values returned\
+              \ by the system."
     AdvancedDateTimeFilter:
       title: "Advanced filter"
       description: "Advanced date-time filter."
@@ -10135,13 +10170,14 @@ components:
           type: "string"
           description: "The key of the process instance."
         decisionDefinitionKey:
-          description: "Key for a decision definition. Only use values returned by\
-            \ the system."
-          type: "string"
+          description: "The key of the decision."
+          allOf:
+          - $ref: "#/components/schemas/BasicStringFilterProperty"
         elementInstanceKey:
-          description: "Key for a element instance. Only use values returned by the\
-            \ system."
-          type: "string"
+          description: "The key of the element instance this decision instance is\
+            \ linked to."
+          allOf:
+          - $ref: "#/components/schemas/BasicStringFilterProperty"
     DecisionInstanceSearchQueryResult:
       type: "object"
       allOf:
@@ -10333,8 +10369,8 @@ components:
           type: "string"
           description: "The ID of the document store."
         documentId:
+          description: "Document Id that uniquely identifies a document."
           type: "string"
-          description: "The ID of the document."
         contentHash:
           type: "string"
           description: "The hash of the document."
@@ -10363,6 +10399,9 @@ components:
             description: "Documents that failed creation."
             items:
               $ref: "#/components/schemas/DocumentCreationFailureDetail"
+    DocumentId:
+      type: "string"
+      description: "Document Id that uniquely identifies a document."
     DocumentMetadata:
       description: "Information about the document."
       type: "object"
@@ -11244,9 +11283,9 @@ components:
           allOf:
           - $ref: "#/components/schemas/BasicStringFilterProperty"
         processInstanceKey:
-          description: "Key for a process instance. Only use values returned by the\
-            \ system."
-          type: "string"
+          description: "The process instance key of the processed item."
+          allOf:
+          - $ref: "#/components/schemas/BasicStringFilterProperty"
         state:
           type: "string"
           description: "The state of the batch operation."
@@ -11446,6 +11485,10 @@ components:
             $ref: "#/components/schemas/ProblemDetail"
     Unauthorized:
       description: "The request lacks valid authentication credentials."
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: "string"
       content:
         application/problem+json:
           schema:

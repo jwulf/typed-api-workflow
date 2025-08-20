@@ -1,6 +1,6 @@
 openapi: "3.0.3"
 info:
-  title: "Orchestration Cluster REST API"
+  title: "Orchestration Cluster API"
   version: "0.1"
   contact:
     name: "Camunda Engineering"
@@ -4745,7 +4745,7 @@ paths:
         - "Setup"
       operationId: "createAdminUser"
       summary: "Create admin user"
-      description: "Creates a new user and assign the admin role to it."
+      description: "Creates a new user and assign the admin role to it. This endpoint is only usable when users are managed in the Orchestration Cluster and while no user is assigned to the admin role."
       requestBody:
         content:
           application/json:
@@ -6349,6 +6349,28 @@ components:
             $ref: "#/components/schemas/ElementInstanceStateEnum"
         $like:
           $ref: "#/components/schemas/LikeFilterProperty"
+    AdvancedDecisionDefinitionKeyFilter:
+      title: "Advanced filter"
+      description: "Advanced DecisionDefinitionKey filter."
+      type: "object"
+      properties:
+        $eq:
+          $ref: "#/components/schemas/DecisionDefinitionKey"
+        $neq:
+          $ref: "#/components/schemas/DecisionDefinitionKey"
+        $exists:
+          description: "Checks if the current property exists."
+          type: "boolean"
+        $in:
+          description: "Checks if the property matches any of the provided values."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/DecisionDefinitionKey"
+        $notIn:
+          description: "Checks if the property matches none of the provided values."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/DecisionDefinitionKey"
     AdvancedDateTimeFilter:
       title: "Advanced filter"
       description: "Advanced date-time filter."
@@ -10172,13 +10194,15 @@ components:
             - description: "The key of the process instance."
         decisionDefinitionKey:
           description: "The key of the decision."
-          allOf:
+          oneOf:
             - $ref: "#/components/schemas/DecisionDefinitionKey"
+            - $ref: "#/components/schemas/AdvancedDecisionDefinitionKeyFilter"
         elementInstanceKey:
           description: "The key of the element instance this decision instance is\
             \ linked to."
-          allOf:
+          oneOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
+            - $ref: "#/components/schemas/AdvancedElementInstanceKeyFilter"
     DecisionInstanceSearchQueryResult:
       type: "object"
       allOf:
@@ -11262,8 +11286,9 @@ components:
             - $ref: "#/components/schemas/BasicStringFilterProperty"
         processInstanceKey:
           description: "The process instance key of the processed item."
-          allOf:
+          oneOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
+            - $ref: "#/components/schemas/AdvancedProcessInstanceKeyFilter"
         state:
           type: "string"
           description: "The state of the batch operation."
@@ -11466,6 +11491,10 @@ components:
             $ref: "#/components/schemas/ProblemDetail"
     Unauthorized:
       description: "The request lacks valid authentication credentials."
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
       content:
         application/problem+json:
           schema:
