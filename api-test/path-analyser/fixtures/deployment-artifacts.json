@@ -2,8 +2,9 @@
   "artifacts": [
     {
       "kind": "bpmnProcess",
-      "path": "bpmn/simple.bpmn",
-      "description": "Simple BPMN process with one service task"
+      "path": "bpmn/service-task.bpmn",
+      "description": "BPMN process with a service task and zeebe:taskDefinition type sampleJobType",
+      "parameters": { "jobType": "sampleJobType" }
     },
     {
       "kind": "form",

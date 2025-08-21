@@ -1,5 +1,7 @@
 import { mkdir, writeFile, readFile as readFileAsync } from 'fs/promises';
+import fsSync from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { loadGraph, loadOpenApiSemanticHints } from './graphLoader.js';
 import { generateScenariosForEndpoint } from './scenarioGenerator.js';
 import { generateFeatureCoverageForEndpoint } from './featureCoverageGenerator.js';
@@ -73,18 +75,51 @@ async function main() {
   const collection = generateScenariosForEndpoint(graph, op.operationId, { maxScenarios: 20 });
     // Augment scenarios with response shape
     const resp = responseByOp[op.operationId];
-    if (resp) {
+  if (resp) {
       for (const s of collection.scenarios) {
         s.responseShapeSemantics = resp.producedSemantics || undefined;
-  s.responseShapeFields = resp.fields.map(f => ({ name: f.name, type: f.type, semantic: (f as any).semantic, required: f.required }));
+    s.responseShapeFields = resp.fields.map(f => ({ name: f.name, type: f.type, semantic: (f as any).semantic, required: f.required }));
         if ((resp as any).nestedSlices) s.responseNestedSlices = resp.nestedSlices as any;
-  s.requestPlan = buildRequestPlan(s, resp, graph, canonical, requestIndex.byOperation);
+    if ((resp as any).nestedItems) (s as any).responseArrayItemFields = (resp as any).nestedItems;
+    s.requestPlan = buildRequestPlan(s, resp, graph, canonical, requestIndex.byOperation);
       }
     }
     const fileName = normalizeEndpointFileName(op.method, op.path);
     await writeFile(path.join(outputDir, fileName), JSON.stringify(collection, null, 2), 'utf8');
     // Feature coverage scenarios (enhanced with integration chain + rudimentary body synthesis)
   const featureCollection = generateFeatureCoverageForEndpoint(graph, op.operationId, { requestVariants: requestIndex.byOperation[op.operationId] });
+    // Expand schema-missing-required into combinations (cap at 15) before planning
+    {
+      const baseScenarios = featureCollection.scenarios;
+      const expanded: any[] = [];
+      const requiredFields = getRequiredRequestLeafFields(op.operationId, canonical);
+      const hasSchemaMissing = baseScenarios.some(s => typeof (s as any).variantKey === 'string' && (s as any).variantKey.includes('schemaMissingRequired'));
+      if (requiredFields.length && hasSchemaMissing) {
+        const originals = baseScenarios.filter(s => typeof (s as any).variantKey === 'string' && (s as any).variantKey.includes('schemaMissingRequired'));
+        const others = baseScenarios.filter(s => !(typeof (s as any).variantKey === 'string' && (s as any).variantKey.includes('schemaMissingRequired')));
+        expanded.push(...others);
+        // generate subsets of fields to include (missing others): sizes 0..n-1, cap 15
+        const fields = [...requiredFields].sort();
+  const cap = 35;
+        let budget = cap;
+        for (let k = 0; k <= Math.max(0, fields.length - 1) && budget > 0; k++) {
+          const combos = k === 0 ? [[]] : k === fields.length ? [] : kCombinations(fields, k);
+          for (const combo of combos) {
+            if (budget <= 0) break;
+            for (const orig of originals) {
+              const clone = { ...orig, id: `${orig.id}-mr-${k}-${expanded.length+1}` } as any;
+              clone.schemaMissingInclude = combo;
+              clone.name = `${orig.name} [include=${combo.join(',') || '∅'}]`;
+              clone.description = `${orig.description || ''} Include only: ${combo.join(',') || '∅'}.`;
+              expanded.push(clone);
+              budget--;
+              if (budget <= 0) break;
+            }
+          }
+        }
+        featureCollection.scenarios = expanded as any;
+      }
+    }
     // Choose a representative integration scenario to supply dependency chain (shortest non-unsatisfied with >1 ops; fallback scenario-1)
     const integrationCandidates = collection.scenarios.filter(sc => sc.id !== 'unsatisfied');
     const chainSource = integrationCandidates
@@ -93,12 +128,17 @@ async function main() {
   if (resp) {
       for (const s of featureCollection.scenarios) {
         // Graft chain if available and feature scenario currently only has endpoint op
-        if (chainSource && s.operations.length === 1 && chainSource.operations.length > 1) {
+    // Special-case: for search-like empty-negative, skip grafting to produce an empty result without prerequisites
+  const isSearchLikeOp = (op.method.toUpperCase() === 'POST' && /\/search$/.test(op.path)) || /search/i.test(op.operationId) || op.operationId === 'activateJobs';
+  const isEmptyNeg = (s as any).expectedResult && (s as any).expectedResult.kind === 'empty';
+  const isErrorScenario = (s as any).expectedResult && (s as any).expectedResult.kind === 'error';
+  if (!((isSearchLikeOp && isEmptyNeg) || isErrorScenario) && chainSource && s.operations.length === 1 && chainSource.operations.length > 1) {
           s.operations = chainSource.operations.map(o => ({ ...o }));
         }
-        s.responseShapeSemantics = resp.producedSemantics || undefined;
+  s.responseShapeSemantics = resp.producedSemantics || undefined;
   s.responseShapeFields = resp.fields.map(f => ({ name: f.name, type: f.type, semantic: (f as any).semantic, required: f.required }));
-        if ((resp as any).nestedSlices) s.responseNestedSlices = resp.nestedSlices as any;
+  if ((resp as any).nestedSlices) s.responseNestedSlices = resp.nestedSlices as any;
+  if ((resp as any).nestedItems) (s as any).responseArrayItemFields = (resp as any).nestedItems;
   s.requestPlan = buildRequestPlan(s, resp, graph, canonical, requestIndex.byOperation);
         // Validation: for JSON requests with oneOf groups, non-negative scenarios must set exactly one variant's required keys
         try {
@@ -324,6 +364,8 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
   }
   // If JSON and oneOf groups exist, figure out which fields are allowed
   const requestGroups = requestGroupsIndex?.[opId] || [];
+  // Load request defaults (operation-level overrides global)
+  const defaults = getRequestDefaultsForOperation(opId);
   let allowedFields: Set<string> | undefined;
   let forceUnionAll = false;
   let chosenVariantRequired: string[] | undefined;
@@ -366,12 +408,20 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
   }
   // Build template
   if (chosenCt === 'application/json') {
-    const template: any = {};
+  const template: any = {};
     const missing: string[] = [];
+    const isSchema400Neg = scenario?.variantKey && typeof scenario.variantKey === 'string' && scenario.variantKey.includes('schemaMissingRequired');
+    const includeSet: Set<string> | undefined = isSchema400Neg && Array.isArray((scenario as any).schemaMissingInclude)
+      ? new Set((scenario as any).schemaMissingInclude as string[]) : undefined;
     if (requestGroups.length) {
       // oneOf-aware synthesis
       if (pairFields && pairFields.length === 2) {
         for (const name of pairFields) {
+          const viaProvider = resolveProvider(opId, name, scenario);
+          if (viaProvider !== undefined) {
+            template[name] = viaProvider;
+            continue;
+          }
           const varName = camelCase((bindingMap[name] || name || 'value')) + 'Var';
           scenario.bindings ||= {};
           if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
@@ -380,6 +430,11 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
         }
       } else if (forceUnionAll && unionFieldsForGroup) {
         for (const name of unionFieldsForGroup) {
+          const viaProvider = resolveProvider(opId, name, scenario);
+          if (viaProvider !== undefined) {
+            template[name] = viaProvider;
+            continue;
+          }
           const varName = camelCase((bindingMap[name] || name || 'value')) + 'Var';
           scenario.bindings ||= {};
           if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
@@ -388,43 +443,121 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
         }
       } else if (chosenVariantRequired && chosenVariantRequired.length) {
         for (const name of chosenVariantRequired) {
+          if (includeSet && !includeSet.has(name)) continue; // omit required not selected for include
           if (allowedFields && !allowedFields.has(name)) continue;
-          const varName = camelCase((bindingMap[name] || name || 'value')) + 'Var';
-          scenario.bindings ||= {};
-          if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
-          template[name] = `${'${'}${varName}}`;
-          if (!bindingMap[name]) missing.push(name);
+          // Special-case: map domain jobType -> request.type if not explicitly bound
+          const mappedName = (name === 'type' && !bindingMap[name] && bindingMap['jobType']) ? 'jobType' : name;
+          const viaProvider = resolveProvider(opId, name, scenario);
+          if (viaProvider !== undefined) {
+            template[name] = viaProvider;
+            continue;
+          }
+          const varName = camelCase((bindingMap[mappedName] || name || 'value')) + 'Var';
+          const hasBinding = !!bindingMap[mappedName];
+          if (hasBinding) {
+            scenario.bindings ||= {};
+            if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
+            template[name] = `${'${'}${varName}}`;
+          } else if (defaults && Object.prototype.hasOwnProperty.call(defaults, name)) {
+            template[name] = (defaults as any)[name];
+          } else {
+            scenario.bindings ||= {};
+            if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
+            template[name] = `${'${'}${varName}}`;
+            if (!bindingMap[mappedName]) missing.push(name);
+          }
         }
       }
     } else {
       // Non-oneOf: use canonical required flags
       for (const f of requiredFields) {
-        if (allowedFields && !allowedFields.has(f.path.split('.').pop()!)) continue;
-        const varName = camelCase((bindingMap[f.path] || f.path.split('.').pop() || 'value')) + 'Var';
-        scenario.bindings ||= {};
-        if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
-        template[f.path.split('.').pop()!] = `${'${'}${varName}}`;
-        if (!bindingMap[f.path]) missing.push(f.path);
+        const leaf = f.path.split('.').pop()!;
+        if (includeSet && !includeSet.has(leaf)) continue; // omit required not selected for include
+        if (allowedFields && !allowedFields.has(leaf)) continue;
+        const viaProvider = resolveProvider(opId, leaf, scenario);
+        if (viaProvider !== undefined) {
+          template[leaf] = viaProvider;
+          continue;
+        }
+        // Special-case: support mapping jobType -> type
+        const hasJobType = !!bindingMap['jobType'];
+        const mapJobTypeToType = (leaf === 'type' && !bindingMap[f.path] && hasJobType);
+        const mappedParamName = mapJobTypeToType ? 'jobType' : (bindingMap[f.path] || leaf || 'value');
+        const varName = camelCase(mappedParamName) + 'Var';
+        const hasBinding = mapJobTypeToType ? true : !!bindingMap[f.path];
+        if (hasBinding) {
+          scenario.bindings ||= {};
+          if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
+          template[leaf] = `${'${'}${varName}}`;
+        } else if (defaults && Object.prototype.hasOwnProperty.call(defaults, leaf)) {
+          template[leaf] = (defaults as any)[leaf];
+        } else {
+          scenario.bindings ||= {};
+          if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
+          template[leaf] = `${'${'}${varName}}`;
+          if (!bindingMap[f.path]) missing.push(f.path);
+        }
+      }
+      // For search-like empty-negative scenarios, allow provider-injected optional filters to drive an empty result
+      const isSearchLikeOp = (opId === 'activateJobs') || /search/i.test(opId);
+      const isEmptyNeg = scenario?.expectedResult && scenario.expectedResult.kind === 'empty';
+      if (isSearchLikeOp && isEmptyNeg) {
+        for (const f of nodes.filter(n => !n.required && !n.path.includes('[]'))) {
+          const leaf = f.path.split('.').pop()!;
+          if (allowedFields && !allowedFields.has(leaf)) continue;
+          if (template[leaf] !== undefined) continue;
+          const viaProvider = resolveProvider(opId, leaf, scenario);
+          if (viaProvider !== undefined) {
+            template[leaf] = viaProvider;
+          }
+        }
       }
     }
     // Fill a few optional fields if present and we have bindings
     for (const f of nodes.filter(n => !n.required && !n.path.includes('[]'))) {
-      if (allowedFields && !allowedFields.has(f.path.split('.').pop()!)) continue;
-      const varBase = camelCase((bindingMap[f.path] || f.path.split('.').pop() || 'value')) + 'Var';
-      if (scenario.bindings?.[varBase] && !template[f.path.split('.').pop()!]) {
-        template[f.path.split('.').pop()!] = `\
-${'${'}${varBase}}`;
+      const leaf = f.path.split('.').pop()!;
+      if (allowedFields && !allowedFields.has(leaf)) continue;
+      const varBase = camelCase((bindingMap[f.path] || leaf || 'value')) + 'Var';
+      if (!template[leaf]) {
+        if (scenario.bindings?.[varBase]) {
+          template[leaf] = `${'${'}${varBase}}`;
+        } else if (defaults && Object.prototype.hasOwnProperty.call(defaults, leaf)) {
+          template[leaf] = (defaults as any)[leaf];
+        }
       }
     }
     // Fallback: ensure all domain request.* bindings are present even if canonical nodes are missing (e.g., oneOf variants)
+    const leafSet = new Set(nodes.filter(n => !n.path.includes('[]')).map(n => n.path.split('.').pop()!));
     for (const [fieldPath, param] of Object.entries(bindingMap)) {
       const leaf = fieldPath.split('.').pop()!;
+      if (!leafSet.has(leaf)) continue; // don't inject fields not in schema
       if (allowedFields && !allowedFields.has(leaf) && !forceUnionAll) continue;
       const varName = camelCase(param) + 'Var';
       scenario.bindings ||= {};
       if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
-      if (template[leaf] === undefined) template[leaf] = `\
-${'${'}${varName}}`;
+      if (template[leaf] === undefined) template[leaf] = `${'${'}${varName}}`;
+    }
+    // Post-process: if jobType binding exists but schema expects 'type', prefer mapping into 'type'
+    if (bindingMap['jobType']) {
+      const jtVar = 'jobTypeVar';
+      if (template['type'] === undefined) template['type'] = `${'${'}${jtVar}}`;
+      // ensure we don't carry a non-schema jobType field
+      if (!leafSet.has('jobType')) delete (template as any)['jobType'];
+    }
+    // Scenario-specific overrides
+    // For activateJobs negative-empty scenarios, use config-driven non-existent job type and short requestTimeout
+    if (opId === 'activateJobs' && scenario?.expectedResult && scenario.expectedResult.kind === 'empty') {
+      const opDefaults = getRequestDefaultsForOperation(opId) || {};
+      const neg = (opDefaults as any).negativeEmpty || {};
+      const nonExistentType = typeof neg.type === 'string' ? neg.type : '__NON_EXISTENT_JOB_TYPE__';
+      const shortTimeout = Number.isFinite(neg.requestTimeout) ? neg.requestTimeout : 250;
+      template['type'] = nonExistentType;
+      template['requestTimeout'] = shortTimeout as number;
+      // Seed binding for completeness, though template uses a literal
+      scenario.bindings ||= {};
+      if (!scenario.bindings['jobTypeVar'] || scenario.bindings['jobTypeVar'] === '__PENDING__') {
+        scenario.bindings['jobTypeVar'] = nonExistentType;
+      }
     }
     return { kind: 'json' as const, template };
   }
@@ -438,7 +571,11 @@ ${'${'}${varName}}`;
   const ruleId = (scenario.artifactsApplied && scenario.artifactsApplied[0]) || undefined;
       const domainRules = (graph.domain as any)?.operationArtifactRules?.[opId]?.rules || [];
       const rule = ruleId ? domainRules.find((r: any) => r.id === ruleId) : undefined;
-      const kind = rule?.artifactKind as string | undefined;
+      let kind = rule?.artifactKind as string | undefined;
+      if (!kind) {
+        // Default to BPMN process for deployments when unspecified
+        if (opId === 'createDeployment') kind = 'bpmnProcess';
+      }
       // Map artifact kind -> default fixture path
       const defaultFixtures: Record<string,string> = {
         bpmnProcess: '@@FILE:bpmn/simple.bpmn',
@@ -447,8 +584,16 @@ ${'${'}${varName}}`;
         dmnDrd: '@@FILE:dmn/drd.dmn'
       };
   // Prefer registry-defined artifact if available for this kind
-  const regFile = chooseFixtureFromRegistry(kind);
-  let fileRef = regFile || defaultFixtures[kind || ''] || '@@FILE:bpmn/simple.bpmn';
+  // If downstream requires ModelHasServiceTaskType/JobType, prefer an entry carrying a jobType parameter
+  const preferJobType = true; // simple heuristic: jobs-related ops exist; could inspect scenario.operations
+  const regHit = chooseFixtureFromRegistry(kind, preferJobType);
+  let fileRef = (regHit && regHit.ref) || defaultFixtures[kind || ''] || '@@FILE:bpmn/simple.bpmn';
+      // If registry provides a jobType parameter, bind it for later request body use
+      if (regHit?.params && typeof regHit.params.jobType === 'string') {
+        const varName = 'jobTypeVar';
+        scenario.bindings ||= {};
+        if (!scenario.bindings[varName]) scenario.bindings[varName] = regHit.params.jobType;
+      }
       template.files['resources'] = fileRef;
     }
     const tenant = nodes.find(n => n.path === 'tenantId');
@@ -484,21 +629,26 @@ ${'${'}${varName}}`;
 }
 
 // -------- Artifact Registry support ---------
-let artifactsRegistryCache: { kind: string; path: string; description?: string }[] | undefined;
-function getArtifactsRegistry(): { kind: string; path: string; description?: string }[] {
+type ArtifactRegistryEntry = { kind: string; path: string; description?: string; parameters?: Record<string, any> };
+let artifactsRegistryCache: ArtifactRegistryEntry[] | undefined;
+function getArtifactsRegistry(): ArtifactRegistryEntry[] {
   if (artifactsRegistryCache) return artifactsRegistryCache;
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
   const candidates = [
     // Invoked from api-test/path-analyser
     path.resolve(process.cwd(), 'fixtures', 'deployment-artifacts.json'),
     // Invoked from repo root
-    path.resolve(process.cwd(), 'api-test', 'path-analyser', 'fixtures', 'deployment-artifacts.json')
+    path.resolve(process.cwd(), 'api-test', 'path-analyser', 'fixtures', 'deployment-artifacts.json'),
+    // Relative to compiled module (dist/src)
+    path.resolve(moduleDir, '../fixtures/deployment-artifacts.json'),
+    path.resolve(moduleDir, '../../fixtures/deployment-artifacts.json')
   ];
   for (const p of candidates) {
     try {
-      const data = require('fs').readFileSync(p, 'utf8');
-      const json = JSON.parse(data);
-      const arr = Array.isArray(json?.artifacts) ? json.artifacts : Array.isArray(json) ? json : [];
-    artifactsRegistryCache = arr.map((e: any) => ({ kind: e.kind, path: e.path, description: e.description }));
+  const data = fsSync.readFileSync(p, 'utf8');
+    const json = JSON.parse(data);
+    const arr = Array.isArray(json?.artifacts) ? json.artifacts : Array.isArray(json) ? json : [];
+    artifactsRegistryCache = arr.map((e: any) => ({ kind: e.kind, path: e.path, description: e.description, parameters: e.parameters }));
     return artifactsRegistryCache || [];
     } catch {}
   }
@@ -506,10 +656,106 @@ function getArtifactsRegistry(): { kind: string; path: string; description?: str
   return artifactsRegistryCache;
 }
 
-function chooseFixtureFromRegistry(kind?: string): string | undefined {
+// -------- Request Defaults support ---------
+type RequestDefaults = { operations?: Record<string, Record<string, any>>; global?: Record<string, any> };
+let requestDefaultsCache: RequestDefaults | null = null;
+function loadRequestDefaults(): RequestDefaults {
+  if (requestDefaultsCache) return requestDefaultsCache;
+  const candidates = [
+    path.resolve(process.cwd(), 'request-defaults.json'),
+    path.resolve(process.cwd(), 'api-test', 'path-analyser', 'request-defaults.json')
+  ];
+  for (const p of candidates) {
+    try {
+      const data = fsSync.readFileSync(p, 'utf8');
+      const json = JSON.parse(data);
+      requestDefaultsCache = json as RequestDefaults;
+      return requestDefaultsCache;
+    } catch {}
+  }
+  requestDefaultsCache = { operations: {}, global: {} };
+  return requestDefaultsCache;
+}
+function getRequestDefaultsForOperation(opId: string): Record<string, any> | undefined {
+  const all = loadRequestDefaults();
+  const op = (all.operations && all.operations[opId]) || {};
+  const glob = all.global || {};
+  return { ...glob, ...op };
+}
+
+// -------- Helpers for schema-missing-required expansion ---------
+function getRequiredRequestLeafFields(opId: string, canonical: Record<string, CanonicalShape>): string[] {
+  const shape = canonical[opId];
+  if (!shape || !shape.requestByMediaType) return [];
+  const nodes = shape.requestByMediaType['application/json'] || [];
+  const fields = nodes
+    .filter(n => n.required && !n.path.includes('[]'))
+    .map(n => n.path.split('.').pop()!)
+    .filter(Boolean);
+  return Array.from(new Set(fields));
+}
+
+function kCombinations<T>(arr: T[], k: number): T[][] {
+  const res: T[][] = [];
+  const n = arr.length;
+  if (k <= 0 || k > n) return res;
+  const idx = Array.from({ length: k }, (_, i) => i);
+  const take = () => res.push(idx.map(i => arr[i]));
+  while (true) {
+    take();
+    let i: number;
+    for (i = k - 1; i >= 0; i--) {
+      if (idx[i] !== i + n - k) break;
+    }
+    if (i < 0) break;
+    idx[i]++;
+    for (let j = i + 1; j < k; j++) idx[j] = idx[j - 1] + 1;
+  }
+  return res;
+}
+
+// -------- Filter Providers (search filters, oneOf negatives) ---------
+type ProviderSpec = { from: 'ctx'|'const'|'enumFirst'|'base64'|'now', var?: string, value?: any };
+type ProviderConfig = { globals?: Record<string, ProviderSpec>, operations?: Record<string, Record<string, ProviderSpec>> };
+let providerConfigCache: ProviderConfig | null = null;
+function loadProviderConfig(): ProviderConfig {
+  if (providerConfigCache) return providerConfigCache;
+  const candidates = [
+    path.resolve(process.cwd(), 'filter-providers.json'),
+    path.resolve(process.cwd(), 'api-test', 'path-analyser', 'filter-providers.json')
+  ];
+  for (const p of candidates) {
+    try {
+      const data = fsSync.readFileSync(p, 'utf8');
+      providerConfigCache = JSON.parse(data) as ProviderConfig;
+      return providerConfigCache;
+    } catch {}
+  }
+  providerConfigCache = { globals: {}, operations: {} };
+  return providerConfigCache;
+}
+function resolveProvider(opId: string, field: string, scenario: any): any {
+  const cfg = loadProviderConfig();
+  const opMap = (cfg.operations && cfg.operations[opId]) || {};
+  const spec = opMap[field] || (cfg.globals && cfg.globals[field]);
+  if (!spec) return undefined;
+  switch (spec.from) {
+    case 'ctx': {
+      const vname = spec.var || (field + 'Var');
+      return scenario.bindings && scenario.bindings[vname] !== undefined ? `\${${vname}}` : undefined;
+    }
+    case 'const': return spec.value;
+    case 'base64': return typeof spec.value === 'string' ? spec.value : 'AA==';
+    case 'now': return new Date().toISOString();
+    case 'enumFirst': return undefined;
+  }
+}
+
+function chooseFixtureFromRegistry(kind?: string, preferJobType = false): { ref: string; params?: Record<string, any> } | undefined {
   if (!kind) return undefined;
   const reg = getArtifactsRegistry();
-  const hit = reg.find(e => e.kind === kind);
-  if (hit && hit.path) return `@@FILE:${hit.path}`;
+  let hit = reg.find(e => e.kind === kind && preferJobType && e.parameters && typeof e.parameters.jobType === 'string');
+  if (!hit) hit = reg.find(e => e.kind === kind);
+  if (hit && hit.path) return { ref: `@@FILE:${hit.path}`, params: hit.parameters };
   return undefined;
 }

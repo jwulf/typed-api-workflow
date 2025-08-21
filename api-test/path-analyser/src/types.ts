@@ -75,7 +75,11 @@ export interface EndpointScenario {
   responseShapeFields?: { name: string; type: string; semantic?: string; required?: boolean; }[];
   // Nested slice field shapes keyed by slice name for deep assertions
   responseNestedSlices?: Record<string, { name: string; type: string; required?: boolean }[]>;
+  // Nested array item field shapes keyed by top-level array field name (e.g., jobs -> fields on jobs[0])
+  responseArrayItemFields?: Record<string, { name: string; type: string; required?: boolean }[]>;
   requestPlan?: RequestStep[];          // concrete request assembly plan per operation (ordered)
+  // For schema 400 negatives: which required fields are included (others are omitted)
+  schemaMissingInclude?: string[];
 }
 
 export interface EndpointScenarioCollection {
@@ -109,6 +113,8 @@ export interface FeatureVariantSpec {
   // Artifact deployment coverage (from domain.operationArtifactRules)
   artifactRuleId?: string;      // e.g., 'bpmn' | 'form' | 'dmn' | 'drd'
   artifactKind?: string;        // e.g., 'bpmnProcess' | 'form' | 'dmnDecision' | 'dmnDrd'
+  // Schema negative: omit at least one required field to provoke 400
+  schemaMissingRequired?: boolean;
 }
 
 export interface GenerationSummary {
@@ -136,6 +142,8 @@ export interface ResponseShapeSummary {
   successStatus?: number; // primary success HTTP status code
   // Optional nested slice shapes, keyed by slice name
   nestedSlices?: Record<string, ResponseShapeField[]>;
+  // Optional nested item shapes for top-level arrays, keyed by array field name
+  nestedItems?: Record<string, ResponseShapeField[]>;
 }
 
 // -------- Request oneOf variant extraction ---------
@@ -153,6 +161,10 @@ export interface RequestOneOfGroupSummary {
   groupId: string;
   variants: RequestOneOfVariant[];
   unionFields: string[]; // all distinct field names across variants
+  // When true, the source schema for this oneOf group is explicitly marked as polymorphic
+  // via the vendor extension `x-polymorphic-schema: true` in the OpenAPI spec.
+  // Use this to decide whether to generate union violation negatives (union-all/pairwise).
+  isPolymorphic?: boolean;
 }
 
 export interface ExtractedRequestVariantsIndex {

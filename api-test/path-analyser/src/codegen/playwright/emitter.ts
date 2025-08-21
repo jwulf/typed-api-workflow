@@ -128,10 +128,11 @@ function renderScenarioTest(s: EndpointScenario): string {
   body.push(`      try { console.error('Response body:', await ${varName}.text()); } catch {}`);
   body.push(`    }`);
   body.push(`    expect(${varName}.status()).toBe(${step.expect.status});`);
-  // Record observation for this step (best-effort)
+  // Record observation for this step (best-effort). Only capture response shapes for 200 responses.
   body.push(`    try {`);
+  body.push(`      const __status = ${varName}.status();`);
   body.push(`      let bodyJson: any = undefined;`);
-  body.push(`      try { bodyJson = await ${varName}.json(); } catch {}`);
+  body.push(`      if (__status === 200) { try { bodyJson = await ${varName}.json(); } catch {} }`);
   body.push(`      await recordResponse({`);
   body.push(`        timestamp: new Date().toISOString(),`);
   body.push(`        operationId: '${s.operations[idx].operationId}',`);
@@ -141,14 +142,15 @@ function renderScenarioTest(s: EndpointScenario): string {
   body.push(`        isFinal: ${isFinal},`);
   body.push(`        method: '${step.method}',`);
   body.push(`        pathTemplate: ${JSON.stringify(step.pathTemplate)},`);
-  body.push(`        status: ${varName}.status(),`);
+  body.push(`        status: __status,`);
   body.push(`        expectedStatus: ${step.expect.status},`);
   body.push(`        errorScenario: ${(s as any).expectedResult && (s as any).expectedResult.kind === 'error'},`);
-  body.push(`        bodyShape: bodyJson !== undefined ? sanitizeBody(bodyJson) : undefined`);
+  body.push(`        bodyShape: (__status === 200 && bodyJson !== undefined) ? sanitizeBody(bodyJson) : undefined`);
   body.push(`      });`);
   body.push(`    } catch {}`);
   // If this is the final step and scenario expects a success body, assert presence and types
   const isErrorScenario = (s as any).expectedResult && (s as any).expectedResult.kind === 'error';
+  const isEmptyScenario = (s as any).expectedResult && (s as any).expectedResult.kind === 'empty';
   if (isFinal && hasShape && !isErrorScenario) {
       // Always parse once here so assertions can use it
       body.push(`    const json = await ${varName}.json();`);
@@ -160,11 +162,45 @@ function renderScenarioTest(s: EndpointScenario): string {
         if (f.required) {
           body.push(`    expect(${acc}).not.toBeUndefined();`);
           body.push(`    expect(${acc}).not.toBeNull();`);
-          body.push(...emitTypeAssertLines(acc, t));
+          // If this is an empty-result scenario and the field is an array, assert emptiness
+          if (isEmptyScenario && t === 'array') {
+            body.push(...emitTypeAssertLines(acc, t));
+            body.push(`    expect(Array.isArray(${acc})).toBeTruthy();`);
+            body.push(`    expect(${acc}.length).toBe(0);`);
+          } else {
+            body.push(...emitTypeAssertLines(acc, t));
+            // For non-empty scenarios and arrays, assert at least one item
+            if (!isEmptyScenario && t === 'array') {
+              body.push(`    expect(Array.isArray(${acc})).toBeTruthy();`);
+              body.push(`    expect(${acc}.length).toBeGreaterThan(0);`);
+            }
+          }
         } else {
           body.push(`    if (${acc} !== undefined && ${acc} !== null) {`);
           body.push(...emitTypeAssertLines(acc, t, '      '));
           body.push(`    }`);
+        }
+      }
+      // Deep array item field assertions for first item when available
+      if (!isEmptyScenario && plan.arrays && plan.arrays.arrayNames.length) {
+        for (const arrName of plan.arrays.arrayNames) {
+          const itemPath = 'json' + toPathAccessor(`${arrName}[0]`);
+          body.push(`    // Assert required fields on first item of ${arrName}[]`);
+          // If this is the activateJobs base scenario and array is jobs[], assert exactly one item
+          if ((s.operations[s.operations.length - 1]?.operationId === 'activateJobs') && (/\bbase\b/i.test(s.name || '')) && arrName === 'jobs') {
+            const arrAcc = 'json' + toPathAccessor(arrName);
+            body.push(`    expect(Array.isArray(${arrAcc})).toBeTruthy();`);
+            body.push(`    expect(${arrAcc}.length).toBe(1);`);
+          }
+          body.push(`    expect(${itemPath}).toBeTruthy();`);
+          const fields = plan.arrays.byArray[arrName] || [];
+          for (const f of fields) {
+            if (!f.required) continue;
+            const acc = 'json' + toPathAccessor(f.path);
+            body.push(`    expect(${acc}).not.toBeUndefined();`);
+            body.push(`    expect(${acc}).not.toBeNull();`);
+            body.push(...emitTypeAssertLines(acc, f.type || 'unknown'));
+          }
         }
       }
       // Slice object + inner required fields assertions

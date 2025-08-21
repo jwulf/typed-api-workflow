@@ -18,7 +18,7 @@ export async function loadGraph(baseDir: string): Promise<OperationGraph> {
   let parsed: any;
   try {
     parsed = JSON.parse(raw);
-    console.log(`[graphLoader] Read graph JSON from ${graphPath}`);
+  // debug: graph JSON loaded from computed path
   } catch (e) {
     throw new Error(`Failed to parse graph JSON at ${graphPath}: ${(e as Error).message}`);
   }
@@ -51,7 +51,8 @@ export async function loadGraph(baseDir: string): Promise<OperationGraph> {
       if (!op) continue;
       const opId = op.operationId || op.id || op.name;
       if (!opId) {
-        console.warn('[graphLoader] Skipping node without operationId/id/name:', Object.keys(op));
+  // warn: skipping malformed node without identifiers
+  console.warn('[graphLoader] Skipping node without operationId/id/name:', Object.keys(op));
         continue;
       }
       operations[opId] = normalizeOp(opId, op);
@@ -70,9 +71,9 @@ export async function loadGraph(baseDir: string): Promise<OperationGraph> {
   }
 
   if (Object.keys(operations).length === 0) {
-    console.warn('[graphLoader] Loaded 0 operations. Check graph path / structure.');
+  console.warn('[graphLoader] Loaded 0 operations. Check graph path / structure.');
   } else {
-    console.log(`[graphLoader] Normalized ${Object.keys(operations).length} operations; semantic producers: ${Object.keys(bySemanticProducer).length}`);
+  // debug: normalization summary
   }
 
   // Bootstrap sequences (optional)
@@ -91,7 +92,7 @@ export async function loadGraph(baseDir: string): Promise<OperationGraph> {
       });
     }
     if (bootstrapSequences.length) {
-      console.log(`[graphLoader] Loaded ${bootstrapSequences.length} bootstrap sequences.`);
+  // debug: number of bootstrap sequences loaded
     }
   }
 
@@ -102,7 +103,7 @@ export async function loadGraph(baseDir: string): Promise<OperationGraph> {
     const domainPath = path.resolve(baseDir, 'domain-semantics.json');
     const domainRaw = await readFile(domainPath, 'utf8');
     domain = JSON.parse(domainRaw);
-    console.log('[graphLoader] Loaded domain semantics sidecar.');
+  // debug: domain semantics sidecar loaded
     if (domain && domain.operationRequirements) {
       for (const [opId, req] of Object.entries(domain.operationRequirements)) {
         const node = operations[opId];
@@ -288,7 +289,7 @@ export async function loadOpenApiSemanticHints(baseDir: string): Promise<Record<
         result[opId] = { required: unique(required), optional: unique(optional) };
       }
     }
-    console.log(`[graphLoader] Extracted semantic hints for ${Object.keys(result).length} operations from OpenAPI spec.`);
+  // debug: extracted semantic hints summary
   }
   return result;
 }

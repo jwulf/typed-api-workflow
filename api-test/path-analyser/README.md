@@ -1,6 +1,6 @@
 # Path Analyser
 
-Generates endpoint scenario chains that satisfy semantic type requirements using the operation dependency graph and then (optionally) emits Playwright test suites from those scenarios.
+Generates endpoint scenario chains that satisfy semantic type requirements using the operation dependency graph and can emit Playwright test suites from those scenarios.
 
 ## Install
 
@@ -41,10 +41,10 @@ npm run codegen:playwright:all
 Outputs go to `dist/generated-tests/`:
 
 - `<operationId>.feature.spec.ts` – One test per scenario in the collection. The emitter asserts:
-	- Status code (using the extracted success status when available).
-	- Presence and type of top-level fields in the final response.
-	- For deployment responses, required inner fields for expected slices (e.g., `deployments[0].processDefinition.*`).
-	- It parses JSON once and reuses it for all assertions.
+  - Status code (using the extracted success status when available).
+  - Presence and type of top-level fields in the final response.
+  - For deployment responses, required inner fields for expected slices (e.g., `deployments[0].processDefinition.*`).
+  - It parses JSON once and reuses it for all assertions.
 
 ### Running the Generated Tests
 
@@ -58,29 +58,31 @@ Or run all generated specs (when multiple exist):
 
 ```bash
 npx playwright test dist/generated-tests
+```
+
 Note: multipart endpoints (e.g., createDeployment) use a small fixture located under `fixtures/` by default. Adjust paths or variables as needed. Multipart requests are emitted using Playwright's keyed `multipart` object with `FilePayload` entries (`{ name, mimeType, buffer }`).
 
 ### Deployment Artifact Registry and Manifest
 
 - Registry file (editable): `api-test/path-analyser/fixtures/deployment-artifacts.json`
-	- Purpose: define deployable artifacts used by tests. The planner prefers these over generic defaults.
-	- Shape:
-		- `artifacts: Array<{ kind: string; path: string; description?: string }>`
-		- `kind` must match a domain artifact kind (e.g., `bpmnProcess`, `form`, `dmnDecision`, `dmnDrd`).
-		- `path` is relative to `api-test/path-analyser/fixtures/`.
-		- `description` is free text to capture notable characteristics.
-	- Example entries are provided for BPMN, Form, and DMN.
+  - Purpose: define deployable artifacts used by tests. The planner prefers these over generic defaults.
+  - Shape:
+    - `artifacts: Array<{ kind: string; path: string; description?: string; parameters?: Record<string, any> }>`
+    - `kind` must match a domain artifact kind (e.g., `bpmnProcess`, `form`, `dmnDecision`, `dmnDrd`).
+    - `path` is relative to `api-test/path-analyser/fixtures/`.
+    - `description` is free text to capture notable characteristics.
+    - Optional `parameters` can seed scenario bindings (e.g., `{ jobType: "sampleJobType" }`).
+  - Example entries are provided for BPMN, Form, and DMN.
 
 - Output manifest (read-only, regenerated): `api-test/path-analyser/dist/output/deployment-artifacts.manifest.json`
-	- Purpose: machine-readable list of artifacts referenced by generated scenarios/tests.
-	- Shape: `{ artifacts: [{ kind, path, description? }] }`
-	- Use this file to build artifacts programmatically for a CI test environment or pre-seed step.
+  - Purpose: machine-readable list of artifacts referenced by generated scenarios/tests.
+  - Shape: `{ artifacts: [{ kind, path, description? }] }`
+  - Use this file to build artifacts programmatically for a CI test environment or pre-seed step.
 
 CreateDeployment coverage:
 - The feature generator emits one scenario per declared artifact rule (BPMN, Form, DMN Decision, DMN DRD) using the registry to select files. Assertions verify the corresponding deployment slices in the response.
-```
 
-### Environment Variables
+## Environment Variables
 
 The runtime uses a small env helper (`src/codegen/support/env.ts`):
 
@@ -91,25 +93,78 @@ Example:
 
 ```bash
 API_BASE_URL=https://api.example.com API_TOKEN=abc123 \
-	npx playwright test dist/generated-tests/searchProcessInstances.feature.spec.ts
+  npx playwright test dist/generated-tests/searchProcessInstances.feature.spec.ts
 ```
 
-### Current Test Generation Scope
+## Response Shape Recorder
+
+Purpose
+
+- Capture real runtime responses from generated tests to inform schema defaults, error mappings, and which fields are actually present.
+- Persist a sanitized JSONL log you can aggregate into a compact summary.
+
+How it works
+
+- The Playwright emitter automatically logs every request via two helpers:
+  - `recordResponse({...})` appends one JSON line per request to `dist/runtime-observations/responses.jsonl`.
+  - `sanitizeBody(value)` replaces concrete values with type-like placeholders (e.g., strings → "<string>").
+- Each observation includes: timestamp, operationId, scenarioId/name, stepIndex, isFinal, method, pathTemplate, status, expectedStatus, and optional sanitized `bodyShape`.
+- Logging is best-effort; recorder errors never fail tests.
+
+Paths
+
+- Runtime log: `dist/runtime-observations/responses.jsonl`
+- Aggregated summary: `dist/runtime-observations/summary.json`
+
+Usage
+
+1) Generate and run tests (recorder is built-in):
+
+```bash
+npm run codegen:playwright -- <operationId>
+npx playwright test dist/generated-tests/<operationId>.feature.spec.ts
+```
+
+2) Aggregate observations into a per-operation summary:
+
+```bash
+npm run observe:aggregate
+```
+
+Or run end-to-end for all endpoints:
+
+```bash
+npm run observe:run
+```
+
+What the summary contains
+
+- Per operationId:
+  - Total request count and status distribution (overall and final-step only).
+  - Top-level response keys presence frequency across final responses.
+  - One sanitized example body per observed status code.
+
+Code references
+
+- Recorder: `src/codegen/support/recorder.ts`
+- Aggregator: `src/scripts/aggregate-observations.ts`
+- Emitter integration: `src/codegen/playwright/emitter.ts` (search for `recordResponse`)
+
+## Current Test Generation Scope
 
 Implemented:
 
-- Per-scenario request plan (currently usually a single step per endpoint).
+- Per-scenario request plan (usually a single step per endpoint; multi-step when dependencies exist).
 - Status code assertion (uses extracted success status when available, default 200).
-- Hook for future variable extraction (captures semantic-labeled fields when present).
+- Field presence/type assertions for final responses.
+- Deployment slice assertions for createDeployment responses.
 
 Planned / Upcoming:
 
-- Request body template emission (including oneOf minimal/rich variants and union violation negative cases).
+- Additional negative error schema (ProblemDetail) assertions.
+- Broader oneOf variant coverage and union violation tests.
 - Filter parameter population for search endpoints.
-- Field/value assertions based on response shape metadata.
 - Path parameter binding resolution from scenario bindings.
-- Negative error schema (ProblemDetail) assertions.
-- Multi-step chained scenarios (threading extracted variables across steps).
 
 ## Development Notes
 

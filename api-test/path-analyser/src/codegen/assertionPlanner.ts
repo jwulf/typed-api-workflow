@@ -12,6 +12,7 @@ export interface AssertionSpec {
 export interface FinalStepAssertionPlan {
   topLevel: AssertionSpec[];
   slices: { expected: string[]; bySlice: Record<string, AssertionSpec[]> };
+  arrays: { arrayNames: string[]; byArray: Record<string, AssertionSpec[]> };
 }
 
 export function planFinalStepAssertions(s: EndpointScenario, step: RequestStep): FinalStepAssertionPlan {
@@ -50,6 +51,20 @@ export function planFinalStepAssertions(s: EndpointScenario, step: RequestStep):
       }));
     }
   }
+  // Array item field plans
+  const byArray: Record<string, AssertionSpec[]> = {};
+  const arrSpec = (s as any).responseArrayItemFields as Record<string, { name: string; type: string; required?: boolean }[]> | undefined;
+  const arrayNames: string[] = [];
+  if (arrSpec) {
+    for (const [arrName, defs] of Object.entries(arrSpec)) {
+      arrayNames.push(arrName);
+      byArray[arrName] = defs.map(d => ({
+        path: `${arrName}[0].${d.name}`,
+        required: !!d.required,
+        type: (d as any).type as SimpleType || 'unknown'
+      }));
+    }
+  }
 
-  return { topLevel, slices: { expected: Array.from(expected), bySlice } };
+  return { topLevel, slices: { expected: Array.from(expected), bySlice }, arrays: { arrayNames, byArray } };
 }

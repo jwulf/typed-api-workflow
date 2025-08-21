@@ -35,10 +35,10 @@ async function run() {
         await emitPlaywrightSuite(parsed, { outDir, suiteName: parsed.endpoint.operationId, mode: 'feature' });
         count++;
       } catch (e) {
-        console.warn('Skipping file (parse/emission failed):', f, (e as Error).message);
+  console.warn('Skipping file (parse/emission failed):', f, (e as Error).message);
       }
     }
-    console.log(`Generated test suites for ${count} endpoints in ${outDir}`);
+  console.log(`Generated test suites for ${count} endpoints in ${outDir}`);
     return;
   }
 

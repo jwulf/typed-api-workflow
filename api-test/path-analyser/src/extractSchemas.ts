@@ -31,6 +31,29 @@ export async function extractResponseAndRequestVariants(baseDir: string, semanti
         const components = doc.components?.schemas || {};
         const rootSchema = resolveSchema(ctSchemas[0].schema, components);
         const fields = flattenTopLevelFields(rootSchema, components);
+        // Extract nested item field shapes for top-level arrays (e.g., jobs[])
+        const nestedItems: Record<string, any[]> = {};
+        try {
+          const req = new Set(rootSchema?.required || []);
+          for (const [fname, fsch] of Object.entries<any>(rootSchema?.properties || {})) {
+            const r = resolveSchema(fsch, components);
+            if (r?.type === 'array' && r.items) {
+              const it = resolveSchema(r.items, components);
+              const itemObj = it.$ref ? resolveSchema(it, components) : it;
+              if (itemObj && (itemObj.type === 'object' || itemObj.$ref)) {
+                const o = resolveSchema(itemObj, components);
+                const innerReq = new Set(o.required || []);
+                const inner: { name: string; type: string; required?: boolean }[] = [];
+                for (const [iname, isch] of Object.entries<any>(o.properties || {})) {
+                  const ir = resolveSchema(isch, components);
+                  const t = effectiveType(ir, components);
+                  inner.push({ name: iname, type: t, required: innerReq.has(iname) });
+                }
+                if (inner.length) nestedItems[fname] = inner;
+              }
+            }
+          }
+        } catch {}
         // Extract nested slice field shapes for deployments[].{slice}
         const nestedSlices: Record<string, any[]> = {};
         try {
@@ -67,8 +90,9 @@ export async function extractResponseAndRequestVariants(baseDir: string, semanti
               producedSet.add(pascal);
             }
         }
-        const resp: ResponseShapeSummary = { operationId, contentTypes: ctSchemas.map(c=>c.ct), fields, producedSemantics: [...producedSet], successStatus: successCode ? Number(successCode) : undefined } as any;
+  const resp: ResponseShapeSummary = { operationId, contentTypes: ctSchemas.map(c=>c.ct), fields, producedSemantics: [...producedSet], successStatus: successCode ? Number(successCode) : undefined } as any;
         if (Object.keys(nestedSlices).length) (resp as any).nestedSlices = nestedSlices;
+  if (Object.keys(nestedItems).length) (resp as any).nestedItems = nestedItems;
   responses.push(resp);
       }
 
@@ -110,6 +134,8 @@ function findOneOfGroups(operationId: string, root: any, components: Record<stri
   const resolved = resolveSchema(root, components);
   // Top-level oneOf
   if (resolved.oneOf && Array.isArray(resolved.oneOf)) {
+  // vendor extension flag for genuine polymorphic unions
+  const isPolymorphic = resolved['x-polymorphic-schema'] === true;
     const variants: RequestOneOfVariant[] = resolved.oneOf.map((v: any, idx: number) => {
       const vs = resolveSchema(v, components);
       const props = vs.properties || {};
@@ -125,8 +151,8 @@ function findOneOfGroups(operationId: string, root: any, components: Record<stri
       const groupId = path.length ? path.join('.') : 'group0';
       return { groupId, variantName: vs.title || `variant${idx+1}`, required, optional, discriminator };
     });
-    const groupId = path.length ? path.join('.') : 'group0';
-    acc.push({ operationId, groupId, variants, unionFields: [...new Set(variants.flatMap(v => [...v.required, ...v.optional]))] });
+  const groupId = path.length ? path.join('.') : 'group0';
+  acc.push({ operationId, groupId, variants, unionFields: [...new Set(variants.flatMap(v => [...v.required, ...v.optional]))], isPolymorphic });
   }
   // Nested: scan properties one level deep for oneOf (shallow)
   if (depth < 3 && resolved.type === 'object' && resolved.properties) {

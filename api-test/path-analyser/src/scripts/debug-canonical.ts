@@ -13,7 +13,7 @@ async function main() {
   }
   console.log('Request media types:', Object.keys(s.requestByMediaType||{}));
   for (const [ct, nodes] of Object.entries(s.requestByMediaType||{})) {
-    console.log('  ', ct, 'fields:', nodes.map((n: any) => `${n.path}${n.required?'*':''}`));
+  console.log('  ', ct, 'fields:', nodes.map((n: any) => `${n.path}${n.required?'*':''}`));
   }
 }
 
