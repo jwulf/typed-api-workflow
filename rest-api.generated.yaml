@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-08-20 13:13:10
+# File generated at: 2025-08-21 12:06:28
 
 ---
 openapi: "3.0.3"
@@ -5735,7 +5735,8 @@ components:
           allOf:
           - $ref: "#/components/schemas/StringFilterProperty"
         tenantId:
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/StringFilterProperty"
           description: "Tenant ID of this user task."
         processDefinitionId:
           type: "string"
@@ -7714,9 +7715,12 @@ components:
       - "READ_DECISION_INSTANCE"
       - "READ_PROCESS_DEFINITION"
       - "READ_DECISION_DEFINITION"
+      - "READ_USAGE_METRIC"
       - "UPDATE"
       - "UPDATE_PROCESS_INSTANCE"
       - "UPDATE_USER_TASK"
+      - "CANCEL_PROCESS_INSTANCE"
+      - "MODIFY_PROCESS_INSTANCE"
       - "DELETE"
       - "DELETE_PROCESS"
       - "DELETE_DRD"
@@ -9808,10 +9812,12 @@ components:
             \ value. Due to system limitations, the totalItems value can be capped.\n"
           type: "boolean"
         startCursor:
+          x-semantic-provider: true
           nullable: true
           description: "The start cursor in a search query result set."
           type: "string"
         endCursor:
+          x-semantic-provider: true
           nullable: true
           description: "The end cursor in a search query result set."
           type: "string"
@@ -11239,7 +11245,6 @@ components:
       - "COMPLETED"
       - "PARTIALLY_COMPLETED"
       - "CANCELED"
-      - "INCOMPLETED"
     BatchOperationItemSearchQuerySortRequest:
       type: "object"
       properties:

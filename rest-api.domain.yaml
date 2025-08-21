@@ -5363,21 +5363,21 @@ components:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "The start cursor in a search query result set."
-          format: "StartCursor"
+          format: "base64"
           x-semantic-type: "StartCursor"
           pattern: '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=)?$'
           minLength: 2
-          maxLength: 30
+          maxLength: 300
           example: "WzIyNTE3OTk4MTM2ODcxMDJd"
     EndCursor:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - description: "The end cursor in a search query result set."
-          format: "EndCursor"
+          format: "base64"
           x-semantic-type: "EndCursor"
           pattern: '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=)?$'
           minLength: 2
-          maxLength: 30
+          maxLength: 300
           example: "WzIyNTE3OTk4MTM2ODcxMDJd"
     ProcessInstanceKey:
       allOf:
@@ -5744,7 +5744,8 @@ components:
           allOf:
             - $ref: "#/components/schemas/StringFilterProperty"
         tenantId:
-          type: "string"
+          allOf:
+            - $ref: "#/components/schemas/StringFilterProperty"
           description: "Tenant ID of this user task."
         processDefinitionId:
           type: "string"
@@ -7733,9 +7734,12 @@ components:
         - "READ_DECISION_INSTANCE"
         - "READ_PROCESS_DEFINITION"
         - "READ_DECISION_DEFINITION"
+        - "READ_USAGE_METRIC"
         - "UPDATE"
         - "UPDATE_PROCESS_INSTANCE"
         - "UPDATE_USER_TASK"
+        - "CANCEL_PROCESS_INSTANCE"
+        - "MODIFY_PROCESS_INSTANCE"
         - "DELETE"
         - "DELETE_PROCESS"
         - "DELETE_DRD"
@@ -9833,12 +9837,14 @@ components:
             \ value. Due to system limitations, the totalItems value can be capped.\n"
           type: "boolean"
         startCursor:
+          x-semantic-provider: true
           nullable: true
           description: "The cursor value for getting the previous page of results.\
             \ Use this in the `before` field of an ensuing request."
           allOf:
             - $ref: "#/components/schemas/StartCursor"
         endCursor:
+          x-semantic-provider: true
           nullable: true
           description: "The cursor value for getting the next page of results. Use\
             \ this in the `after` field of an ensuing request."
@@ -11241,7 +11247,6 @@ components:
         - "COMPLETED"
         - "PARTIALLY_COMPLETED"
         - "CANCELED"
-        - "INCOMPLETED"
     BatchOperationItemSearchQuerySortRequest:
       type: "object"
       properties:
