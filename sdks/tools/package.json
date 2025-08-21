@@ -4,7 +4,7 @@
   "description": "Post-processing script to add semantic types to generated SDKs",
   "main": "enhance-semantic-types.js",
   "scripts": {
-    "generate": "./generate-all-sdks.sh",
+  "generate": "ts-node ./generate-all-sdks.ts",
     "enhance": "node enhance-semantic-types.js rest-api.domain.yaml ./sdks",
     "build": "npm run generate",
     "test": "npm run --prefix ../tests/typescript test"

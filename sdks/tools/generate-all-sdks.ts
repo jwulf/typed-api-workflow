@@ -11,18 +11,21 @@ import { SemanticTypeEnhancer } from './enhancements/SemanticTypeEnhancer';
 import { EventuallyConsistentEnhancer } from './enhancements/EventuallyConsistentEnhancer';
 import { TracingEnhancer } from './enhancements/TracingEnhancer';
 import { TypeScriptPolymorphicSchemaEnhancer } from './enhancements/typescript/TypeScriptPolymorphicSchemaEnhancer';
+import { TypeScriptZodValidationEnhancer } from './enhancements/typescript/TypeScriptZodValidationEnhancer';
 import { ASTTypeScriptOneOfUnionEnhancer } from './enhancements/typescript/ASTTypeScriptOneOfUnionEnhancer';
 import { TypeScriptTsConfigEnhancer } from './enhancements/typescript/TypeScriptTsConfigEnhancer';
 import { TypeScriptExclusiveUnionEnhancer } from './enhancements/typescript/TypeScriptExclusiveUnionEnhancer';
 import { TypeScriptErgonomicBuildersEnhancer } from './enhancements/typescript/TypeScriptErgonomicBuildersEnhancer';
 import { TypeScriptApiMethodOverloadEnhancer } from './enhancements/typescript/TypeScriptApiMethodOverloadEnhancer';
 import { TypeScriptSemanticPropertyMapper } from './enhancements/typescript/TypeScriptSemanticPropertyMapper';
+import { TypeScriptDependencyPatchesEnhancer } from './enhancements/typescript/TypeScriptDependencyPatchesEnhancer';
 
 import { TypeScriptPostBuildStrategy } from './post-build/typescript/TypeScriptPostBuildStrategy';
 
 // Custom post-processing of generated SDKs  
 const enhancementStrategies = [
     TypeScriptTsConfigEnhancer, // Update TypeScript configuration (tsconfig.json)
+    TypeScriptDependencyPatchesEnhancer, // Patch deps (tough-cookie v4+)
     SemanticTypeEnhancer, // Enhance semantic types with validation
     TypeScriptSemanticPropertyMapper, // Map non-...Key semantic properties (e.g., cursors) to nominal TS types
     EventuallyConsistentEnhancer, // Enhance eventually consistent operations  
@@ -32,6 +35,7 @@ const enhancementStrategies = [
     TypeScriptExclusiveUnionEnhancer, // Enforce exclusive unions (XOR) for object unions
     TypeScriptErgonomicBuildersEnhancer, // Generate IDE-friendly builders for union aliases
     TypeScriptApiMethodOverloadEnhancer, // Add method overloads for APIs
+    TypeScriptZodValidationEnhancer, // Inject centralized Zod validation
 ];
 
 // Post-build tasks for generated SDKs

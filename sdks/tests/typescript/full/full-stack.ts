@@ -87,23 +87,22 @@ async function main() {
         }, headers) // .catch(e => ({body: {error: e.message, statusCode: e.statusCode}}))
         console.log('User information:', JSON.stringify(user.body, null, 2))
 
-
-        const users = await (userApi.searchUsers as any)({
-             filter: {
-                email: {
-                    $like: "%example.com%"
-                }
-            },
-            page: {
-                after: "some-process-id"
-            }
-        }, headers).catch((e: Error) => {
-            console.error(`Failed to search users: ${e.message}`);
-            if ((e as any).body) {
-               console.error(`Response body: ${JSON.stringify((e as any).body, null, 2)}`);
-            }
-             process.exit(1)
-        })
+        // const users = await userApi.searchUsers({
+        //      filter: {
+        //         email: {
+        //             $like: "%example.com%"
+        //         }
+        //     },
+        //     page: {
+        //         after: "some-process-id"
+        //     }
+        // }, headers).catch((e: Error) => {
+        //     console.error(`Failed to search users: ${e.message}`);
+        //     if ((e as any).body) {
+        //        console.error(`Response body: ${JSON.stringify((e as any).body, null, 2)}`);
+        //     }
+        //      process.exit(1)
+        // })
 
         console.log('Users information:', JSON.stringify(users.body, null, 2))
     

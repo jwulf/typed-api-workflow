@@ -9,4 +9,3 @@ We need to add cross-validation. We should run a string grepping strategy over t
 
 We still need to assert the required nature of response fields in the spec. 
 
-And why does the TS SDK take `T|undefined` for processDefinitionKey in createProcessInstance?

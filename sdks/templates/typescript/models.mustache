@@ -85,6 +85,32 @@ const arraySuffix = ">";
 const mapPrefix = "{ [key: string]: ";
 const mapSuffix = "; }";
 
+// Primitive validation helper: checks JS types against OpenAPI primitive names
+function __validatePrimitiveType(value: any, type: string): { ok: boolean; expected: string; actual: string } {
+    const t = type.toLowerCase();
+    const actual = Array.isArray(value) ? 'array' : (value === null ? 'null' : typeof value);
+    const isNum = (v: any) => typeof v === 'number' && Number.isFinite(v);
+    const integerLike = (v: any) => isNum(v) && Number.isInteger(v);
+    switch (t) {
+        case 'any':
+            return { ok: true, expected: 'any', actual };
+        case 'string':
+            return { ok: typeof value === 'string', expected: 'string', actual };
+        case 'boolean':
+            return { ok: typeof value === 'boolean', expected: 'boolean', actual };
+        case 'number':
+        case 'double':
+        case 'float':
+            return { ok: isNum(value), expected: t, actual };
+        case 'integer':
+        case 'long':
+            return { ok: integerLike(value), expected: t, actual };
+        default:
+            // Unknown primitive label; treat as pass-through
+            return { ok: true, expected: t, actual };
+    }
+}
+
 export class ObjectSerializer {
     public static findCorrectType(data: any, expectedType: string) {
         if (data == undefined) {
@@ -125,6 +151,19 @@ export class ObjectSerializer {
         if (data == undefined) {
             return data;
         } else if (primitives.indexOf(type.toLowerCase()) !== -1) {
+            // Primitive type validation (configurable via CAMUNDA_SDK_VALIDATION)
+            const __vmode = (typeof process !== 'undefined' && (process as any).env && (process as any).env.CAMUNDA_SDK_VALIDATION) || 'strict';
+            if (__vmode !== 'none') {
+                const { ok, expected, actual } = __validatePrimitiveType(data, type);
+                if (!ok) {
+                    const msg = `Primitive validation failed (serialize): expected ${expected}, got ${actual}`;
+                    if (__vmode === 'warn') {
+                        if (typeof console !== 'undefined' && console.warn) { console.warn(msg); }
+                    } else {
+                        throw new Error(msg);
+                    }
+                }
+            }
             return data;
         } else if (endsWith(type, nullableSuffix)) {
             let subType: string = type.slice(0, -nullableSuffix.length); // Type | null => Type
@@ -180,6 +219,19 @@ export class ObjectSerializer {
         if (data == undefined) {
             return data;
         } else if (primitives.indexOf(type.toLowerCase()) !== -1) {
+            // Primitive type validation (configurable via CAMUNDA_SDK_VALIDATION)
+            const __vmode = (typeof process !== 'undefined' && (process as any).env && (process as any).env.CAMUNDA_SDK_VALIDATION) || 'strict';
+            if (__vmode !== 'none') {
+                const { ok, expected, actual } = __validatePrimitiveType(data, type);
+                if (!ok) {
+                    const msg = `Primitive validation failed (deserialize): expected ${expected}, got ${actual}`;
+                    if (__vmode === 'warn') {
+                        if (typeof console !== 'undefined' && console.warn) { console.warn(msg); }
+                    } else {
+                        throw new Error(msg);
+                    }
+                }
+            }
             return data;
         } else if (endsWith(type, nullableSuffix)) {
             let subType: string = type.slice(0, -nullableSuffix.length); // Type | null => Type
