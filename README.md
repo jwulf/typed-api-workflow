@@ -8,12 +8,12 @@ It uses camunda/camunda, camunda/camunda-8-js-sdk, and camunda/camunda-docs.
 
 ## Structure
 
-- `rest-api.yml` - This file contains the latest version of the REST API specification. It is used as the source for generating the domain file and the generated file.
+- `rest-api.yaml` - This file contains the latest version of the REST API specification. It is used as the source for generating the domain file and the generated file.
 - `rest-api.domain.yaml` - This file contains the domain typed REST API specification. It is hand made from the `rest-api.yaml` file and contains additional domain information.
 - `rest-api.generated.yaml` - This file is generated from the `rest-api.domain.yaml` file. It contains a generated REST API specification compatible with the Camunda codebase.
 - `java/openapi-camunda-key-flattener/src/` - This directory contains the source code for the transformation from the domain file to the generated file. This tool rewrites all schemas that extend `CamundaKey` as the primitive `string`. It is a pre-processing step that produces a version of the API spec that is compatible with the existing build chain in camunda/camunda.
-= `java/rest-api-consistency-analyzer` - This tool analyses the controllers in the Zeebe gateway and reasons about their eventual consistency. It then checks the spec to assert that all eventually consistent endpoints have the `x-eventually-consistent` vendor extension on them. It also picks up other issues as a side-effect (like method mismatch between the spec and a controller).
-- `vaccum` - Vacuum linting for the generated spec
+- `java/rest-api-consistency-analyzer` - This tool analyses the controllers in the Zeebe gateway and reasons about their eventual consistency. It then checks the spec to assert that all eventually consistent endpoints have the `x-eventually-consistent` vendor extension on them. It also picks up other issues as a side-effect (like method mismatch between the spec and a controller).
+- `vacuum` - Vacuum linting for the generated spec
 - `functions` - Spectral functions for linting the domain spec
 - `docs-patch` - a patch for `camunda-docs/api/camunda/generate-strategy.js` to support the docs pre-processing of the new features in the spec.
 - `camunda` - checkout camunda/camunda here for scripts to fetch the upstream rest-api.yaml
@@ -101,7 +101,7 @@ Congratulations! You have successfully updated the domain typed REST API for Cam
 
 - Run `npm run camunda:es:stop` to stop any running Elasticsearch Docker container.
 - Run `npm run camunda:es:start` to start an ES container. (Alternative: open the file `operate/docker-compose.yml` in IntelliJ and click the green arrow next to the elasticsearch service to start it).
-- Run `npm run silence:elastic` to suppress deprecation warnings in the logs.
+- Run `npm run camunda:es:shhh` to suppress deprecation warnings in the logs.
 
 - Run `npm run camunda:clean` to delete the data directory from any previous run of Camunda.
 - Open the file `src/main/java/io/camunda/application/StandaloneCamunda.java` from camunda/camunda in IntelliJ.
@@ -160,3 +160,32 @@ The Playwright-based API tests (under `api-test/path-analyser`) deploy sample ar
 	- Machine-readable list of artifacts actually referenced by generated scenarios/tests, suitable for programmatic build/packaging.
 
 See `api-test/path-analyser/README.md` for details.
+
+## Response Shape Recorder
+
+The generated Playwright tests can record real response shapes and aggregate them into a compact summary to guide schema defaults and error handling.
+
+Purpose
+
+- Capture sanitized runtime responses from test runs (status, top-level keys, example bodies).
+- Help spot optional vs required fields and document error behavior.
+
+How it works
+
+- The path-analyser emitter calls a recorder on every request.
+- Observations are appended to a JSONL file: `api-test/path-analyser/dist/runtime-observations/responses.jsonl`.
+- An aggregator script produces: `api-test/path-analyser/dist/runtime-observations/summary.json`.
+
+Usage
+
+- From the path-analyser package:
+	- Generate tests and run them, then aggregate:
+		- `cd api-test/path-analyser && npm run observe:run`
+	- Or aggregate existing logs only:
+		- `cd api-test/path-analyser && npm run observe:aggregate`
+
+- From the repo root (shortcuts):
+	- `npm run testsuite:observe:run`
+	- `npm run testsuite:observe:aggregate`
+
+Details and troubleshooting in `api-test/path-analyser/README.md`.

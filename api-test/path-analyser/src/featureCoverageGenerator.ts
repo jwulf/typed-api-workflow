@@ -7,13 +7,16 @@ interface FeatureCoverageOptions {
   requestVariants?: RequestOneOfGroupSummary[]; // injected extracted request variant groups
   // Cap for pairwise oneOf negatives per endpoint to avoid explosion
   oneOfPairwiseMax?: number;
+  // Cap total scenarios per endpoint for feature coverage
+  maxScenariosPerEndpoint?: number;
 }
 
 const DEFAULT_OPTS: FeatureCoverageOptions = {
   maxOptionalPairs: 20,
   includeAllOptionalsThreshold: 5,
   generateNegative: true,
-  oneOfPairwiseMax: 10
+  oneOfPairwiseMax: 10,
+  maxScenariosPerEndpoint: 35
 };
 
 export function generateFeatureCoverageForEndpoint(graph: OperationGraph, endpointOpId: string, opts: Partial<FeatureCoverageOptions> = {}): EndpointScenarioCollection {
@@ -22,6 +25,17 @@ export function generateFeatureCoverageForEndpoint(graph: OperationGraph, endpoi
   const required = [...endpoint.requires.required];
   const optional = [...endpoint.requires.optional];
   const variants: FeatureVariantSpec[] = [];
+  // Determine if endpoint has a JSON request body (only these get schemaWrongType variants)
+  const hasJsonBody = (() => {
+    try {
+      const reqs = (graph as any).domain?.requestBodies?.[endpointOpId];
+      if (Array.isArray(reqs)) {
+        return reqs.some((r: any) => typeof r?.contentType === 'string' && r.contentType.includes('application/json'));
+      }
+    } catch {}
+    // Fallback heuristic: methods that typically have bodies
+    return ['POST', 'PUT', 'PATCH'].includes(endpoint.method.toUpperCase());
+  })();
 
   // Artifact coverage: if domain has artifact rules for this operation, generate a base variant per rule
   const artifactRules = graph.domain?.operationArtifactRules?.[endpointOpId]?.rules || [];
@@ -57,6 +71,10 @@ export function generateFeatureCoverageForEndpoint(graph: OperationGraph, endpoi
     try {
       // Derive required request fields from canonical shapes at emit time, so just mark here; combinations created in build
       variants.push({ endpointId: endpointOpId, optionals: [], disjunctionChoices: [], artifactSemantics: [], expectedResult: 'error', negative: true, schemaMissingRequired: true });
+      // Wrong-type negatives (type violations) — only for endpoints with JSON bodies; combos expanded later during request synthesis
+      if (hasJsonBody) {
+        variants.push({ endpointId: endpointOpId, optionals: [], disjunctionChoices: [], artifactSemantics: [], expectedResult: 'error', negative: true, schemaWrongType: true });
+      }
     } catch {}
   }
 
@@ -95,7 +113,10 @@ export function generateFeatureCoverageForEndpoint(graph: OperationGraph, endpoi
     }
   }
 
-  const scenarios: EndpointScenario[] = variants.map((v, i) => buildScenarioFromVariant(graph, endpointOpId, v, i + 1));
+  let scenarios: EndpointScenario[] = variants.map((v, i) => buildScenarioFromVariant(graph, endpointOpId, v, i + 1));
+  // Enforce global cap per endpoint
+  const cap = options.maxScenariosPerEndpoint ?? 35;
+  if (scenarios.length > cap) scenarios = scenarios.slice(0, cap);
 
   return {
     endpoint: toRef(endpoint),
@@ -112,7 +133,7 @@ function buildScenarioFromVariant(graph: OperationGraph, endpointId: string, var
   const produced = new Set<string>();
   const bindings: Record<string,string> = {};
   // Heuristic: search-style endpoints (POST .../search) are lenient and return 200 on oneOf violations
-  const isSearchStyle = endpoint && endpoint.method.toUpperCase() === 'POST' && /\/search$/.test(endpoint.path);
+  const isSearchStyle = !!endpoint && endpoint.method.toUpperCase() === 'POST' && ( /\/search$/.test(endpoint.path) || /search/i.test(endpoint.operationId) || endpoint.operationId === 'activateJobs');
   // Synthetic bindings for negative variant
   if (variant.negative) {
     for (const o of variant.optionals) {
@@ -140,7 +161,11 @@ function buildScenarioFromVariant(graph: OperationGraph, endpointId: string, var
     variant.requestVariantName === 'union-all' ||
     (typeof variant.requestVariantName === 'string' && variant.requestVariantName.startsWith('pair:'))
   )) ? (isSearchStyle ? { kind: 'nonEmpty' } : { kind: 'error', code: '400' })
-    : (variant.schemaMissingRequired ? { kind: 'error', code: '400' } : { kind: variant.expectedResult }),
+    : (variant.schemaMissingRequired
+      ? { kind: 'error', code: '400' }
+      : (variant.schemaWrongType
+        ? (isSearchStyle ? { kind: 'empty' } : { kind: 'error', code: '400' })
+        : { kind: variant.expectedResult })),
     coverageTags: buildCoverageTags(variant),
     filtersUsed: variant.optionals,
     syntheticBindings: variant.negative ? Object.keys(bindings) : undefined,
@@ -162,6 +187,7 @@ function buildVariantKey(v: FeatureVariantSpec): string {
   if (v.optionals.length) parts.push('opt=' + v.optionals.sort().join('+'));
   if (v.negative) parts.push('neg');
   if (v.schemaMissingRequired) parts.push('schemaMissingRequired');
+  if (v.schemaWrongType) parts.push('schemaWrongType');
   if (v.requestVariantGroup) parts.push(`oneOf=${v.requestVariantGroup}:${v.requestVariantName}`);
   return parts.join('|') || 'base';
 }
@@ -170,6 +196,7 @@ function buildCoverageTags(v: FeatureVariantSpec): string[] {
   const tags: string[] = [];
   v.optionals.forEach(o => tags.push('optional:' + o));
   if (v.negative) tags.push('negative');
+  if (v.schemaWrongType) tags.push('schemaWrongType');
   if (v.requestVariantGroup) tags.push(`oneOf:${v.requestVariantGroup}:${v.requestVariantName}`);
   return tags;
 }
@@ -185,6 +212,7 @@ function buildFeatureScenarioName(operationId: string, v: FeatureVariantSpec, in
     return `${operationId} - oneOf ${v.requestVariantGroup} union violation (${index})`;
   }
   if (v.schemaMissingRequired) return `${operationId} - negative missing required (${index})`;
+  if (v.schemaWrongType) return `${operationId} - negative wrong type (${index})`;
   if (v.negative) return `${operationId} - negative empty (${index})`;
   if (v.requestVariantGroup) {
     if (v.requestVariantName === 'union-all') return `${operationId} - oneOf ${v.requestVariantGroup} union violation (${index})`;
@@ -198,7 +226,7 @@ function buildFeatureScenarioName(operationId: string, v: FeatureVariantSpec, in
 
 function buildFeatureScenarioDescription(endpoint: any, v: FeatureVariantSpec): string {
   const base = `Invoke ${endpoint.operationId} (${endpoint.method.toUpperCase()} ${endpoint.path})`;
-  const isSearchStyle = endpoint && endpoint.method.toUpperCase() === 'POST' && /\/search$/.test(endpoint.path);
+  const isSearchStyle = !!endpoint && endpoint.method.toUpperCase() === 'POST' && ( /\/search$/.test(endpoint.path) || /search/i.test(endpoint.operationId) || endpoint.operationId === 'activateJobs');
   if (v.artifactRuleId) return `${base} deploying ${v.artifactRuleId.toUpperCase()} artifact.`;
   // Special-case union-all negative before generic negative description
   if (v.requestVariantGroup && typeof v.requestVariantName === 'string' && v.requestVariantName.startsWith('pair:')) {
@@ -209,6 +237,7 @@ function buildFeatureScenarioDescription(endpoint: any, v: FeatureVariantSpec): 
     return `${base} with invalid oneOf payload containing ALL fields from group '${v.requestVariantGroup}' variants (union violation)${isSearchStyle ? '' : ' expecting 400 error'}.`;
   }
   if (v.schemaMissingRequired) return `${base} with a required field omitted to provoke 400 schema validation error.`;
+  if (v.schemaWrongType) return `${base} with one or more fields set to the wrong type${isSearchStyle ? ' expecting 200 with empty result' : ' expecting 400 schema validation error'}.`;
   if (v.negative) return `${base} expecting empty result set; no producing setup provided for optionals.`;
   if (v.requestVariantGroup) {
   if (v.requestVariantName === 'union-all') return `${base} with invalid oneOf payload containing ALL fields from group '${v.requestVariantGroup}' variants (union violation) expecting 400 error.`;

@@ -80,6 +80,8 @@ export interface EndpointScenario {
   requestPlan?: RequestStep[];          // concrete request assembly plan per operation (ordered)
   // For schema 400 negatives: which required fields are included (others are omitted)
   schemaMissingInclude?: string[];
+  // For schema wrong-type negatives: which leaf fields should be assigned wrong types
+  schemaWrongTypeInclude?: string[];
 }
 
 export interface EndpointScenarioCollection {
@@ -115,6 +117,8 @@ export interface FeatureVariantSpec {
   artifactKind?: string;        // e.g., 'bpmnProcess' | 'form' | 'dmnDecision' | 'dmnDrd'
   // Schema negative: omit at least one required field to provoke 400
   schemaMissingRequired?: boolean;
+  // Schema negative: send wrong type for one or more fields to provoke 400
+  schemaWrongType?: boolean;
 }
 
 export interface GenerationSummary {

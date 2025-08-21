@@ -88,12 +88,13 @@ async function main() {
     await writeFile(path.join(outputDir, fileName), JSON.stringify(collection, null, 2), 'utf8');
     // Feature coverage scenarios (enhanced with integration chain + rudimentary body synthesis)
   const featureCollection = generateFeatureCoverageForEndpoint(graph, op.operationId, { requestVariants: requestIndex.byOperation[op.operationId] });
-    // Expand schema-missing-required into combinations (cap at 15) before planning
+    // Expand schema-missing-required into combinations (cap at 35) before planning
     {
       const baseScenarios = featureCollection.scenarios;
       const expanded: any[] = [];
       const requiredFields = getRequiredRequestLeafFields(op.operationId, canonical);
       const hasSchemaMissing = baseScenarios.some(s => typeof (s as any).variantKey === 'string' && (s as any).variantKey.includes('schemaMissingRequired'));
+      const hasSchemaWrongType = baseScenarios.some(s => typeof (s as any).variantKey === 'string' && (s as any).variantKey.includes('schemaWrongType'));
       if (requiredFields.length && hasSchemaMissing) {
         const originals = baseScenarios.filter(s => typeof (s as any).variantKey === 'string' && (s as any).variantKey.includes('schemaMissingRequired'));
         const others = baseScenarios.filter(s => !(typeof (s as any).variantKey === 'string' && (s as any).variantKey.includes('schemaMissingRequired')));
@@ -119,6 +120,52 @@ async function main() {
         }
         featureCollection.scenarios = expanded as any;
       }
+      // Expand wrong-type negatives similarly, but operate on a small subset of fields to keep within cap
+      if (requiredFields.length && hasSchemaWrongType) {
+        const base = featureCollection.scenarios;
+        const originals = base.filter(s => typeof (s as any).variantKey === 'string' && (s as any).variantKey.includes('schemaWrongType')) as any[];
+        const others = base.filter(s => !(typeof (s as any).variantKey === 'string' && (s as any).variantKey.includes('schemaWrongType')));
+        const result: any[] = [];
+        result.push(...others);
+        const fields = [...requiredFields].sort();
+        const capWT = 35;
+        let budget = Math.max(1, Math.min(capWT, 10)); // limit wrong-type combos to at most 10 per endpoint
+        // Create single-field wrong-type and small pairs first
+        const combos1: string[][] = fields.map(f => [f]);
+        for (const c of combos1) {
+          if (budget <= 0) break;
+          for (const orig of originals) {
+            const clone = { ...orig, id: `${orig.id}-wt-1-${result.length+1}` } as any;
+            clone.schemaWrongTypeInclude = c;
+            clone.name = `${orig.name} [wrongType=${c.join('+')}]`;
+            clone.description = `${orig.description || ''} Wrong type fields: ${c.join(',')}.`;
+            result.push(clone);
+            budget--;
+            if (budget <= 0) break;
+          }
+        }
+        // Optionally add a couple of 2-field combos if budget remains
+        if (budget > 0) {
+          const combos2 = kCombinations(fields, 2);
+          for (const c of combos2) {
+            if (budget <= 0) break;
+            for (const orig of originals) {
+              const clone = { ...orig, id: `${orig.id}-wt-2-${result.length+1}` } as any;
+              clone.schemaWrongTypeInclude = c;
+              clone.name = `${orig.name} [wrongType=${c.join('+')}]`;
+              clone.description = `${orig.description || ''} Wrong type fields: ${c.join(',')}.`;
+              result.push(clone);
+              budget--;
+              if (budget <= 0) break;
+            }
+          }
+        }
+        featureCollection.scenarios = result as any;
+      }
+    }
+    // Final guardrail: enforce max scenarios per endpoint after expansions (cap 35)
+    if (featureCollection.scenarios.length > 35) {
+      featureCollection.scenarios = featureCollection.scenarios.slice(0, 35);
     }
     // Choose a representative integration scenario to supply dependency chain (shortest non-unsatisfied with >1 ops; fallback scenario-1)
     const integrationCandidates = collection.scenarios.filter(sc => sc.id !== 'unsatisfied');
@@ -131,8 +178,10 @@ async function main() {
     // Special-case: for search-like empty-negative, skip grafting to produce an empty result without prerequisites
   const isSearchLikeOp = (op.method.toUpperCase() === 'POST' && /\/search$/.test(op.path)) || /search/i.test(op.operationId) || op.operationId === 'activateJobs';
   const isEmptyNeg = (s as any).expectedResult && (s as any).expectedResult.kind === 'empty';
-  const isErrorScenario = (s as any).expectedResult && (s as any).expectedResult.kind === 'error';
-  if (!((isSearchLikeOp && isEmptyNeg) || isErrorScenario) && chainSource && s.operations.length === 1 && chainSource.operations.length > 1) {
+  const isOneOfPair = Array.isArray((s as any).requestVariants) && (s as any).requestVariants.some((rv: any) => typeof rv.variant === 'string' && rv.variant.startsWith('pair:'));
+  const isUnionAll = Array.isArray((s as any).exclusivityViolations) && (s as any).exclusivityViolations.some((t: string) => t.includes('oneOf:') && t.endsWith('union-all'));
+  const skipGraft = (isSearchLikeOp && isEmptyNeg) || isUnionAll || isOneOfPair;
+  if (!skipGraft && chainSource && s.operations.length === 1 && chainSource.operations.length > 1) {
           s.operations = chainSource.operations.map(o => ({ ...o }));
         }
   s.responseShapeSemantics = resp.producedSemantics || undefined;
@@ -411,8 +460,11 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
   const template: any = {};
     const missing: string[] = [];
     const isSchema400Neg = scenario?.variantKey && typeof scenario.variantKey === 'string' && scenario.variantKey.includes('schemaMissingRequired');
+    const isSchemaWrongType = scenario?.variantKey && typeof scenario.variantKey === 'string' && scenario.variantKey.includes('schemaWrongType');
     const includeSet: Set<string> | undefined = isSchema400Neg && Array.isArray((scenario as any).schemaMissingInclude)
       ? new Set((scenario as any).schemaMissingInclude as string[]) : undefined;
+    const wrongTypeSet: Set<string> | undefined = isSchemaWrongType && Array.isArray((scenario as any).schemaWrongTypeInclude)
+      ? new Set((scenario as any).schemaWrongTypeInclude as string[]) : undefined;
     if (requestGroups.length) {
       // oneOf-aware synthesis
       if (pairFields && pairFields.length === 2) {
@@ -425,7 +477,12 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
           const varName = camelCase((bindingMap[name] || name || 'value')) + 'Var';
           scenario.bindings ||= {};
           if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
-          template[name] = `${'${'}${varName}}`;
+          // If wrong-type negative applies for this field, inject a mismatched type
+          if (wrongTypeSet && wrongTypeSet.has(name)) {
+            template[name] = 12345; // force number where a string is expected
+          } else {
+            template[name] = `${'${'}${varName}}`;
+          }
           if (!bindingMap[name]) missing.push(name);
         }
       } else if (forceUnionAll && unionFieldsForGroup) {
@@ -438,7 +495,11 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
           const varName = camelCase((bindingMap[name] || name || 'value')) + 'Var';
           scenario.bindings ||= {};
           if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
-          template[name] = `${'${'}${varName}}`;
+          if (wrongTypeSet && wrongTypeSet.has(name)) {
+            template[name] = 12345;
+          } else {
+            template[name] = `${'${'}${varName}}`;
+          }
           if (!bindingMap[name]) missing.push(name);
         }
       } else if (chosenVariantRequired && chosenVariantRequired.length) {
@@ -457,13 +518,25 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
           if (hasBinding) {
             scenario.bindings ||= {};
             if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
-            template[name] = `${'${'}${varName}}`;
+            if (wrongTypeSet && wrongTypeSet.has(name)) {
+              template[name] = 12345;
+            } else {
+              template[name] = `${'${'}${varName}}`;
+            }
           } else if (defaults && Object.prototype.hasOwnProperty.call(defaults, name)) {
-            template[name] = (defaults as any)[name];
+            if (wrongTypeSet && wrongTypeSet.has(name)) {
+              template[name] = 12345;
+            } else {
+              template[name] = (defaults as any)[name];
+            }
           } else {
             scenario.bindings ||= {};
             if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
-            template[name] = `${'${'}${varName}}`;
+            if (wrongTypeSet && wrongTypeSet.has(name)) {
+              template[name] = 12345;
+            } else {
+              template[name] = `${'${'}${varName}}`;
+            }
             if (!bindingMap[mappedName]) missing.push(name);
           }
         }
@@ -488,13 +561,25 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
         if (hasBinding) {
           scenario.bindings ||= {};
           if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
-          template[leaf] = `${'${'}${varName}}`;
+          if (wrongTypeSet && wrongTypeSet.has(leaf)) {
+            template[leaf] = 12345;
+          } else {
+            template[leaf] = `${'${'}${varName}}`;
+          }
         } else if (defaults && Object.prototype.hasOwnProperty.call(defaults, leaf)) {
-          template[leaf] = (defaults as any)[leaf];
+          if (wrongTypeSet && wrongTypeSet.has(leaf)) {
+            template[leaf] = 12345;
+          } else {
+            template[leaf] = (defaults as any)[leaf];
+          }
         } else {
           scenario.bindings ||= {};
           if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
-          template[leaf] = `${'${'}${varName}}`;
+          if (wrongTypeSet && wrongTypeSet.has(leaf)) {
+            template[leaf] = 12345;
+          } else {
+            template[leaf] = `${'${'}${varName}}`;
+          }
           if (!bindingMap[f.path]) missing.push(f.path);
         }
       }
@@ -535,7 +620,13 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
       const varName = camelCase(param) + 'Var';
       scenario.bindings ||= {};
       if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
-      if (template[leaf] === undefined) template[leaf] = `${'${'}${varName}}`;
+      if (template[leaf] === undefined) {
+        if (wrongTypeSet && wrongTypeSet.has(leaf)) {
+          template[leaf] = 12345;
+        } else {
+          template[leaf] = `${'${'}${varName}}`;
+        }
+      }
     }
     // Post-process: if jobType binding exists but schema expects 'type', prefer mapping into 'type'
     if (bindingMap['jobType']) {
