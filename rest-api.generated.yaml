@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-08-21 12:06:28
+# File generated at: 2025-08-22 13:18:35
 
 ---
 openapi: "3.0.3"
@@ -5490,6 +5490,10 @@ components:
       type: "string"
       description: "Key for a decision definition. Only use values returned by the\
         \ system."
+    DecisionEvaluationInstanceKey:
+      type: "string"
+      description: "Key for a decision evaluation instance. Only use values returned\
+        \ by the system."
     DecisionEvaluationKey:
       type: "string"
       description: "Key for a decision evaluation. Only use values returned by the\
@@ -10052,6 +10056,9 @@ components:
         decisionDefinitionKey:
           type: "string"
           description: "The unique key identifying the decision which was evaluate."
+        decisionEvaluationInstanceKey:
+          type: "string"
+          description: "The unique key identifying this decision evaluation instance."
     MatchedDecisionRuleItem:
       type: "object"
       description: "A decision rule that matched within this decision evaluation."

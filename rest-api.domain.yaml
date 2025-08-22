@@ -5472,6 +5472,13 @@ components:
             \ the system."
           format: "DecisionDefinitionKey"
           x-semantic-type: "DecisionDefinitionKey"
+    DecisionEvaluationInstanceKey:
+      allOf:
+        - $ref: "#/components/schemas/CamundaKey"
+        - description: "Key for a decision evaluation instance. Only use values returned by\
+            \ the system."
+          format: "DecisionEvaluationInstanceKey"
+          x-semantic-type: "DecisionEvaluationInstanceKey"
     DecisionEvaluationKey:
       allOf: 
         - $ref: "#/components/schemas/CamundaKey"
@@ -10072,6 +10079,10 @@ components:
           allOf:
             - $ref: "#/components/schemas/DecisionDefinitionKey"
             - description: "The unique key identifying the decision which was evaluate."
+        decisionEvaluationInstanceKey:
+          allOf:
+            - $ref: "#/components/schemas/DecisionEvaluationInstanceKey"
+            - description: The unique key identifying this decision evaluation instance.
     MatchedDecisionRuleItem:
       type: "object"
       description: "A decision rule that matched within this decision evaluation."
