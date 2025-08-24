@@ -74,7 +74,10 @@ public class CamundaKeyFlattener {
         // Step 5: Inject metadata
         injectMetadata(root);
 
-        // Step 6: Write with dynamic header comment
+    // Step 6: Sanitize domain-only operational metadata (remove from generated spec)
+    removeOperationMetadata(root);
+
+    // Step 7: Write with dynamic header comment
         String headerComment = generateHeaderComment();
         try (FileWriter writer = new FileWriter(output)) {
             writer.write(headerComment);
@@ -599,6 +602,54 @@ public class CamundaKeyFlattener {
                         if (!notInProperty.has("description") && notInProperty.has("type") && 
                             "array".equals(notInProperty.get("type").asText())) {
                             notInProperty.put("description", "Checks if the property matches none of the provided values.");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Removes OperationMetadata schemas (and their variants) plus any x-operation-kind vendor extensions
+     * from the generated specification so that downstream linters (Vacuum) see a simplified spec.
+     */
+    private static void removeOperationMetadata(JsonNode root) {
+        if (!(root instanceof ObjectNode)) return;
+        ObjectNode objRoot = (ObjectNode) root;
+        JsonNode schemasNode = root.at("/components/schemas");
+        if (schemasNode != null && schemasNode.isObject()) {
+            ObjectNode schemasObj = (ObjectNode) schemasNode;
+            // Names to remove
+            List<String> toRemove = Arrays.asList(
+                "OperationMetadata",
+                "CommandOperation",
+                "QueryOperation",
+                "CreateOperation",
+                "PatchOperation",
+                "DeleteOperation",
+                "EventOperation",
+                "UpdateOperation",
+                "BatchCommandOperation"
+            );
+            for (String name : toRemove) {
+                if (schemasObj.has(name)) {
+                    schemasObj.remove(name);
+                }
+            }
+        }
+
+        // Traverse paths -> operations and remove x-operation-kind vendor extension
+        JsonNode paths = objRoot.get("paths");
+        if (paths != null && paths.isObject()) {
+            for (Iterator<String> pit = paths.fieldNames(); pit.hasNext(); ) {
+                String pName = pit.next();
+                JsonNode pathItem = paths.get(pName);
+                if (pathItem != null && pathItem.isObject()) {
+                    ObjectNode pathObj = (ObjectNode) pathItem;
+                    for (String method : Arrays.asList("get","post","put","patch","delete","head","options","trace")) {
+                        JsonNode op = pathObj.get(method);
+                        if (op != null && op.isObject()) {
+                            ((ObjectNode) op).remove("x-operation-kind");
                         }
                     }
                 }

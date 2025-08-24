@@ -38,6 +38,23 @@ function renderScenarioTest(s: EndpointScenario): string {
   const title = `${s.id} - ${escapeQuotes(s.name||'scenario')}`;
   const body: string[] = [];
   body.push(`test('${title}', async ({ request }) => {`);
+  if ((s as any).description) {
+    const desc = String((s as any).description).trim();
+    // Wrap long description lines at ~100 chars for readability
+    const wrapped: string[] = [];
+    const words = desc.split(/\s+/);
+    let line = '';
+    for (const w of words) {
+      if ((line + ' ' + w).trim().length > 100) {
+        wrapped.push(line.trim());
+        line = w;
+      } else {
+        line += (line ? ' ' : '') + w;
+      }
+    }
+    if (line) wrapped.push(line.trim());
+    wrapped.forEach(l => body.push('  // ' + l));
+  }
   body.push(`  const baseUrl = buildBaseUrl();`);
   body.push(`  const ctx: Record<string, any> = {};`);
   // Collect extraction target variable names across all steps

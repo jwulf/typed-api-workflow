@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=./schemas/openapi-operation-metadata-extensions.schema.json
 openapi: "3.0.3"
 info:
   title: "Orchestration Cluster API"
@@ -58,6 +59,9 @@ paths:
   /topology:
     get:
       x-eventually-consistent: false
+      x-operation-kind:
+        - $ref: "#/components/schemas/OperationMetadata"
+          kind: "query"
       tags:
         - "Cluster"
       operationId: "getTopology"
@@ -93,6 +97,9 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       x-eventually-consistent: false
+      x-operation-kind: 
+        - $ref: "#/components/schemas/OperationMetadata"
+          kind: "query"
   /authentication/me:
     get:
       tags:
@@ -116,6 +123,9 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       x-eventually-consistent: false
+      x-operation-kind:
+        - $ref: "#/components/schemas/OperationMetadata"
+          kind: "query"     
   /jobs/activation:
     post:
       tags:
@@ -124,6 +134,10 @@ paths:
       summary: "Activate jobs"
       description: "Iterate through all known partitions and activate jobs up to the\
         \ requested maximum.\n"
+      x-eventually-consistent: false
+      x-operation-kind:
+        $ref: "#/components/schemas/OperationMetadata"
+        kind: command
       requestBody:
         required: true
         content:
@@ -145,7 +159,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
-      x-eventually-consistent: false
   /jobs/search:
     post:
       tags:
@@ -175,6 +188,9 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       x-eventually-consistent: true
+      x-operation-kind:
+        - $ref: "#/components/schemas/OperationMetadata"
+          kind: "query"
   /jobs/{jobKey}/failure:
     post:
       tags:
@@ -218,6 +234,9 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
+      x-operation-kind:
+        - $ref: "#/components/schemas/OperationMetadata"
+          kind: "command"
   /jobs/{jobKey}/error:
     post:
       tags:
@@ -262,6 +281,9 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
+      x-operation-kind:
+        - $ref: "#/components/schemas/OperationMetadata"
+          kind: "command"
   /jobs/{jobKey}/completion:
     post:
       tags:
@@ -306,6 +328,9 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
+      x-operation-kind:
+        - $ref: "#/components/schemas/OperationMetadata"
+          kind: "command"
   /jobs/{jobKey}:
     patch:
       tags:
@@ -349,6 +374,9 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
+      x-operation-kind:
+        - $ref: "#/components/schemas/OperationMetadata"
+          kind: "patch"
   /incidents/{incidentKey}/resolution:
     post:
       tags:
@@ -386,6 +414,9 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
+      x-operation-kind:
+        - $ref: "#/components/schemas/OperationMetadata"
+          kind: "command"
   /tenants:
     post:
       tags:
@@ -416,11 +447,17 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
+        "409":
+          description: "Tenant with this id already exists."
         "500":
           $ref: "#/components/responses/InternalServerError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
+      x-operation-kind:
+        - $ref: "#/components/schemas/OperationMetadata"
+          kind: "create"
+          duplicatePolicy: "conflict"
   /tenants/{tenantId}:
     get:
       tags:
@@ -457,6 +494,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       x-eventually-consistent: true
+      x-operation-kind: 
+        kind: "query"
     put:
       tags:
         - "Tenant"
@@ -498,6 +537,8 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
+      x-operation-kind:
+        kind: "update"
     delete:
       tags:
         - "Tenant"
@@ -529,6 +570,8 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
+      x-operation-kind:
+        kind: "delete"
   /tenants/{tenantId}/users/{username}:
     put:
       tags:
@@ -633,6 +676,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/TenantUserSearchResult"
       x-eventually-consistent: true
+      x-operation-kind:
+        kind: "query"
   /tenants/{tenantId}/clients/search:
     post:
       tags:
@@ -662,6 +707,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/TenantClientSearchResult"
       x-eventually-consistent: true
+      x-operation-kind:
+        kind: "query"
   /tenants/{tenantId}/groups/search:
     post:
       tags:
@@ -691,6 +738,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/TenantGroupSearchResult"
       x-eventually-consistent: true
+      x-operation-kind:
+        kind: "query"
   /tenants/{tenantId}/roles/search:
     post:
       tags:
@@ -720,6 +769,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/RoleSearchQueryResult"
       x-eventually-consistent: true
+      x-operation-kind:
+        kind: "query"
   /tenants/{tenantId}/clients/{clientId}:
     put:
       tags:
@@ -5386,6 +5437,7 @@ components:
             \ system."
           format: "ProcessInstanceKey"
           x-semantic-type: "ProcessInstanceKey"
+          example: "2251799813690746"
     DeploymentKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
@@ -5405,6 +5457,7 @@ components:
             \ the system."
           format: "ProcessDefinitionKey"
           x-semantic-type: "ProcessDefinitionKey"
+          example: "2251799813686749"
     ElementInstanceKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
@@ -10850,20 +10903,30 @@ components:
           description: "Terminates the process instance after a specific BPMN element\
             \ is completed or terminated.\n"
     CreateProcessInstanceResult:
+      required: 
+       - "processDefinitionId"
+       - "processDefinitionKey"
+       - "processDefinitionVersion"
+       - "tenantId"
+       - "variables"
+       - "processInstanceKey"
       type: "object"
       properties:
         processDefinitionId:
           description: "The BPMN process ID of the process definition which was used\
             \ to create the process.\ninstance\n"
           type: "string"
+          example: "my-process-model-1"
         processDefinitionVersion:
           description: "The version of the process definition which was used to create\
             \ the process instance.\n"
           type: "integer"
           format: "int32"
+          example: 3
         tenantId:
           description: "The tenant ID of the created process instance."
           type: "string"
+          example: "<default>"
         variables:
           additionalProperties: true
           description: "All the variables visible in the root scope."
@@ -11498,6 +11561,181 @@ components:
       required:
         - "sourceElementId"
         - "targetElementId"
+    OperationMetadata:
+      description: "Information about the operation effect characteristics. Suitable for reasoning about the idempotency and safety of operations"
+      type: object
+      discriminator:
+        propertyName: kind
+      oneOf:
+        - description: "Command operation metadata"
+          $ref: '#/components/schemas/CommandOperation'
+        - description: "Query (read-only) operation metadata"
+          $ref: '#/components/schemas/QueryOperation'
+        - description: "Create operation metadata (resource creation)"
+          $ref: '#/components/schemas/CreateOperation' 
+        - description: "Patch (partial update) operation metadata"
+          $ref: "#/components/schemas/PatchOperation"
+        - description: "Delete operation metadata"
+          $ref: "#/components/schemas/DeleteOperation"
+        - description: "Event operation metadata (fire-and-forget)"
+          $ref: "#/components/schemas/EventOperation"
+        - description: "Update (full idempotent update) operation metadata"
+          $ref: "#/components/schemas/UpdateOperation"
+        - description: "Batch command operation metadata"
+          $ref: "#/components/schemas/BatchCommandOperation"
+    CommandOperation:
+      description: "A non-idempotent state transition / process action"
+      type: "object"
+      properties:
+        kind:
+          type: "string"
+          enum: ["command"]
+        idempotent:
+          description: "Idempotent operations cause at-most one effect regardless of how many times that are called."
+          type: "boolean"
+          default: false
+        safe:
+          description: "Safe operations do not mutate the state of the Camunda engine."
+          type: boolean
+          default: false
+      required: ["kind"]
+    QueryOperation:
+      description: "A pure read operation. May return a different state with each call, but causes no effect with each call."
+      type: "object"
+      properties:
+        kind:
+          type: "string"
+          enum: ["query"]
+        idempotent:
+          description: "Idempotent operations cause at-most one effect regardless of how many times that are called."
+          type: "boolean"
+          default: true
+        safe:
+          description: "Safe operations do not mutate the state of the Camunda engine."
+          type: "boolean"
+          default: true
+      required: ["kind"]
+    CreateOperation:
+      description: "Creates a new resource. The duplicatePolicy describes what happens when you make the same request more than once."
+      type: "object"
+      properties:
+        kind:
+          type: "string"
+          enum: ["create"]
+        idempotent:
+          description: "Idempotent operations cause at-most one effect regardless of how many times that are called. Explicit override; otherwise inferred from duplicatePolicy."
+          type: "boolean"
+          default: false
+        safe:
+          description: "Safe operations do not mutate state."
+          type: "boolean"
+          default: false
+        duplicatePolicy:
+          description: "Server behavior when the identical create request is repeated:\
+            \n - conflict (subsequent identical request → 409; creates none; NOT idempotent)\
+            \n - return-existing (subsequent identical request → 200/201 with same representation; idempotent)\
+            \n - ignore (subsequent identical request → 2xx minimal body, no new resource; idempotent)\
+            \n - upsert (creates if absent, otherwise updates in place producing same final state; idempotent)\
+            \n - merge (each call adds/accumulates something; NOT idempotent)\
+            \n - batch-partial (mixed: per item may create or conflict; whole-call classification becomes non-idempotent unless every item stabilized)"
+          type: "string"
+          enum: ["conflict", "return-existing", "ignore", "upsert", "merge", "batch-partial"]
+        idempotencyMechanism:
+          description: "How this operation calculates idempotency:\
+            \ - natural-key (server uses unique natural key(s) in body/path)\
+            \ - body-hash (semantic or byte hash dedupe)\
+            \ - idempotency-key (client supplies Idempotency-Key header)\
+            \ - server-token (client obtains token then submits)\
+            \ - none (default)"
+          type: "string"
+          enum: ["natural-key", "body-hash", "idempotency-key", "server-token", "none"]
+          default: "none"
+        idempotencyScope:
+          description: "Scope within which idempotency applies (resource = same logical resource identity, request = exact same payload, key+payload = Idempotency-Key + payload tuple)."
+          type: "string"
+          enum: ["resource", "request", "key+payload"]
+          default: "request"
+      required: ["kind", "duplicatePolicy"]
+    PatchOperation:
+      description: "Updates a resource."
+      type: "object"
+      properties:
+        kind:
+          type: "string"
+          enum: ["patch"]
+        idempotent:
+          description: "Idempotent operations cause at-most one effect regardless of how many times that are called."
+          type: "boolean"
+          default: false
+        safe:
+          description: "Safe operations do not mutate the state of the Camunda engine."
+          type: "boolean"
+          default: false
+      required: ["kind"]
+    DeleteOperation:
+      description: "Deletes a resource."
+      type: "object"
+      properties:
+        kind:
+          type: "string"
+          enum: ["delete"]
+        idempotent:
+          description: "Idempotent operations cause at-most one effect regardless of how many times that are called."
+          type: "boolean"
+          default: true
+        safe:
+          description: "Safe operations do not mutate the state of the Camunda engine."
+          type: "boolean"
+          default: false
+      required: ["kind"]
+    EventOperation:
+      description: "Fire-and-forget notification. May fan out."
+      type: "object"
+      properties:
+        kind:
+          type: "string"
+          enum: ["event"]
+        idempotent:
+          description: "Idempotent operations cause at-most one effect regardless of how many times that are called."
+          type: "boolean"
+          default: false
+        safe:
+          description: "Safe operations do not mutate the state of the Camunda engine."
+          type: "boolean"
+          default: false
+      required: ["kind"]
+    UpdateOperation:
+      description: "Updates a resource."
+      type: "object"
+      properties:
+        kind:
+          type: "string"
+          enum: ["update"]
+        idempotent:
+          description: "Idempotent operations cause at-most one effect regardless of how many times that are called."
+          type: "boolean"
+          default: true
+        safe:
+          description: "Safe operations do not mutate the state of the Camunda engine."
+          type: "boolean"
+          default: false
+      required: ["kind"]
+    BatchCommandOperation:
+      description: "Updates a resource."
+      type: object
+      properties:
+        kind:
+          type: "string"
+          enum: ["batch-command"]
+        idempotent:
+          description: "Idempotent operations cause at-most one effect regardless of how many times that are called."
+          type: "boolean"
+          default: true
+        safe:
+          description: "Safe operations do not mutate the state of the Camunda engine."
+          type: "boolean"
+          default: false
+      required: ["kind"]
   responses:
     InternalServerError:
       description: "An internal error occurred while processing the request.\n"
@@ -11510,7 +11748,7 @@ components:
       headers:
         WWW-Authenticate:
           schema:
-            type: string
+            type: "string"
       content:
         application/problem+json:
           schema:

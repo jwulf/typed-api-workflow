@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OpenAPI 3.0 Operation Metadata Extensions",
+  "description": "Adds IntelliSense for x-operation-kind extension objects with operational semantics fields (duplicatePolicy, idempotencyMechanism, etc). This schema purposefully validates only the vendor extension surface so it can layer on top of any OpenAPI editor experience.",
+  "type": "object",
+  "properties": {
+    "paths": {
+      "type": "object",
+      "patternProperties": {
+        "^/": {
+          "type": "object",
+            "patternProperties": {
+              "^(get|post|put|patch|delete|head|options|trace)$": {
+                "type": "object",
+                "properties": {
+                  "x-operation-kind": { "$ref": "#/definitions/OperationKindExtension" }
+                },
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "definitions": {
+    "OperationKindExtension": {
+      "description": "Either a single operation metadata object or an array (to allow future layering).",
+      "oneOf": [
+        { "$ref": "#/definitions/OperationKindObject" },
+        {
+          "type": "array",
+          "items": { "$ref": "#/definitions/OperationKindObject" },
+          "minItems": 1
+        }
+      ]
+    },
+    "OperationKindObject": {
+      "type": "object",
+      "properties": {
+        "$ref": {
+          "type": "string",
+          "description": "(Optional) Reference back to components/schemas/OperationMetadata so downstream tooling can still detect the canonical schema source."
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["query", "create", "update", "patch", "delete", "command", "event", "batch-command"],
+          "description": "Coarse semantic category for the operation."
+        },
+        "duplicatePolicy": {
+          "type": "string",
+            "enum": ["conflict", "return-existing", "ignore", "upsert", "merge", "batch-partial"],
+            "description": "Behavior when an identical create request is repeated. Determines idempotency classification."
+        },
+        "idempotent": {
+          "type": "boolean",
+          "description": "Explicit override of inferred idempotency. Leave unset to let tooling derive from duplicatePolicy/kind."
+        },
+        "safe": {
+          "type": "boolean",
+          "description": "True if operation causes no state mutation (pure read)."
+        },
+        "idempotencyMechanism": {
+          "type": "string",
+          "enum": ["natural-key", "body-hash", "idempotency-key", "server-token", "none"],
+          "default": "none",
+          "description": "Mechanism used by the server to detect duplicate submissions."
+        },
+        "idempotencyScope": {
+          "type": "string",
+          "enum": ["resource", "request", "key+payload"],
+          "default": "request",
+          "description": "Scope within which duplicate detection guarantees apply."
+        },
+        "idempotencyKeyHeader": {
+          "type": "string",
+          "description": "Header name required when idempotencyMechanism = idempotency-key (defaults to 'Idempotency-Key')."
+        }
+      },
+      "required": ["kind"],
+      "additionalProperties": true,
+      "examples": [
+        {"kind": "query", "idempotent": true, "safe": true},
+        {"kind": "create", "duplicatePolicy": "conflict", "idempotent": false},
+        {"kind": "create", "duplicatePolicy": "return-existing", "idempotencyMechanism": "natural-key"},
+        {"kind": "create", "duplicatePolicy": "ignore", "idempotencyMechanism": "idempotency-key", "idempotencyKeyHeader": "Idempotency-Key"}
+      ]
+    }
+  },
+  "additionalProperties": true
+}

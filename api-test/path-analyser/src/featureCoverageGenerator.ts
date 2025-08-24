@@ -61,8 +61,9 @@ export function generateFeatureCoverageForEndpoint(graph: OperationGraph, endpoi
     variants.push({ endpointId: endpointOpId, optionals: [...optional], disjunctionChoices: [], artifactSemantics: [...optional], expectedResult: 'nonEmpty' });
   }
 
-  // Negative empty-result variant (if no required semantics)
-  if (options.generateNegative && required.length === 0) {
+  // Negative empty-result variant: only for search-like endpoints (query style or activateJobs) with no required semantics
+  const isSearchLike = endpoint.method.toUpperCase() === 'POST' && (/\/search$/.test(endpoint.path) || /search/i.test(endpoint.operationId) || endpoint.operationId === 'activateJobs');
+  if (options.generateNegative && required.length === 0 && isSearchLike) {
     variants.push({ endpointId: endpointOpId, optionals: [], disjunctionChoices: [], artifactSemantics: [], expectedResult: 'empty', negative: true });
   }
 
@@ -238,7 +239,7 @@ function buildFeatureScenarioDescription(endpoint: any, v: FeatureVariantSpec): 
   }
   if (v.schemaMissingRequired) return `${base} with a required field omitted to provoke 400 schema validation error.`;
   if (v.schemaWrongType) return `${base} with one or more fields set to the wrong type${isSearchStyle ? ' expecting 200 with empty result' : ' expecting 400 schema validation error'}.`;
-  if (v.negative) return `${base} expecting empty result set; no producing setup provided for optionals.`;
+  if (v.negative) return `${base} expecting empty result set (querying with filters / identifiers that match no existing resources).`;
   if (v.requestVariantGroup) {
   if (v.requestVariantName === 'union-all') return `${base} with invalid oneOf payload containing ALL fields from group '${v.requestVariantGroup}' variants (union violation) expecting 400 error.`;
     if (v.requestVariantRichness === 'rich') return `${base} using oneOf group '${v.requestVariantGroup}' variant '${v.requestVariantName}' with all optional fields present.`;

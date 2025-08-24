@@ -15,7 +15,7 @@ async function main() {
     let signals = "move_signal"
 
     while (true) {
-        console.log('Ready to send move signal...')
+        console.log('Ready to send move_signal...')
         await waitForAnyKey()
 
         const response = await Signal.broadcastSignal({

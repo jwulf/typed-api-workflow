@@ -14,7 +14,7 @@
     "docs:generate": "npm run docs:copy:patches && npm run docs:copy:spec && npm run --prefix camunda-docs api:generate:camunda",
     "docs:start": "npm run --prefix camunda-docs start",
     "docs:push": "cd camunda-docs && git add . && git commit -m\"updated docs\" && git fetch origin && git rebase origin/main -X ours && git push --force-with-lease",
-    "spec:go": "npm run spec:generate && npm run lint && npm run spec:install && npm run spec:build && npm run spec:verify",
+  "spec:go": "npm run spec:generate && npm run lint && npm run spec:install && npm run spec:build && npm run spec:verify",
     "spec:install": "cp rest-api.generated.yaml camunda/zeebe/gateway-protocol/src/main/proto/rest-api.yaml",
     "spec:build": "cd camunda && ./mvnw package -Dquickly -T1C",
     "spec:verify": "cd camunda && ./mvnw verify -DskipChecks -DskipUTs -T1C -Dquickly",
@@ -23,7 +23,7 @@
     "lint": "npm run lint:domain && npm run lint:generated",
     "lint:original": "vacuum lint rest-api.yaml --ruleset vacuum/vacuum-ruleset.yaml --functions vacuum/vacuum-rules --details --no-clip --errors",
     "lint:domain": "spectral lint rest-api.domain.yaml",
-    "lint:generated": "vacuum lint rest-api.generated.yaml --ruleset vacuum/vacuum-ruleset.yaml --functions vacuum/vacuum-rules --details --no-clip --errors",
+    "lint:generated": "vacuum lint rest-api.generated.yaml --ruleset vacuum/vacuum-ruleset.yaml --functions vacuum/vacuum-rules --details --no-clip --errors --all-results",
     "sdks:install": "cd sdks/tools && npm install",
     "sdks:generate": "npm run sdks:install && npm run sdks:clean && cd sdks/tools && npx ts-node ./generate-all-sdks.ts",
     "sdks:clean": "cross-env rimraf sdks/generated/*",
@@ -35,10 +35,10 @@
     "test:sdks": "npm run sdks:install && cd sdks/tools && npm run test",
     "test:typescript": "cd sdks/tests/typescript && npm test",
     "test:ts:integration": "cd sdks/tests/typescript && npx jest integration",
-    "testsuite:generate": "cd api-test/semantic-graph-extractor && npm run extract-graph && cd ../path-analyser && npm run build && node dist/src/index.js && npm run codegen:playwright:all"
-  ,
-  "testsuite:observe:aggregate": "cd api-test/path-analyser && npm run observe:aggregate",
-  "testsuite:observe:run": "cd api-test/path-analyser && npm run observe:run"
+    "testsuite:generate": "cd api-test/semantic-graph-extractor && npm run extract-graph && cd ../path-analyser && npm run build && node dist/src/index.js && npm run codegen:playwright:all",
+    "testsuite:observe:aggregate": "cd api-test/path-analyser && npm run observe:aggregate",
+    "testsuite:observe:run": "cd api-test/path-analyser && npm run observe:run",
+    "validate": "concurrently -k -p \"[{name}]\" -n \"SERVER,DOCS,SDK\" -c \"yellow.bold,cyan.bold,magenta.bold\" \"npm run spec:go\" \"npm run docs:generate\" \"npm run sdks:generate\""
   },
   "keywords": [],
   "author": "",
@@ -47,6 +47,7 @@
   "description": "",
   "devDependencies": {
     "@types/jest": "^30.0.0",
+    "concurrently": "^9.2.0",
     "cross-env": "^10.0.0",
     "nodemon": "^3.1.10",
     "npm-run-all": "^4.1.5",

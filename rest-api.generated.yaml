@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-08-22 13:18:35
+# File generated at: 2025-08-24 17:02:49
 
 ---
 openapi: "3.0.3"
@@ -135,6 +135,7 @@ paths:
       summary: "Activate jobs"
       description: "Iterate through all known partitions and activate jobs up to the\
         \ requested maximum.\n"
+      x-eventually-consistent: false
       requestBody:
         required: true
         content:
@@ -156,7 +157,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
-      x-eventually-consistent: false
   /jobs/search:
     post:
       tags:
@@ -432,6 +432,8 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
+        "409":
+          description: "Tenant with this id already exists."
         "500":
           $ref: "#/components/responses/InternalServerError"
         "503":
@@ -10856,20 +10858,30 @@ components:
         description: "Terminates the process instance after a specific BPMN element\
           \ is completed or terminated.\n"
     CreateProcessInstanceResult:
+      required:
+      - "processDefinitionId"
+      - "processDefinitionKey"
+      - "processDefinitionVersion"
+      - "tenantId"
+      - "variables"
+      - "processInstanceKey"
       type: "object"
       properties:
         processDefinitionId:
           description: "The BPMN process ID of the process definition which was used\
             \ to create the process.\ninstance\n"
           type: "string"
+          example: "my-process-model-1"
         processDefinitionVersion:
           description: "The version of the process definition which was used to create\
             \ the process instance.\n"
           type: "integer"
           format: "int32"
+          example: 3
         tenantId:
           description: "The tenant ID of the created process instance."
           type: "string"
+          example: "<default>"
         variables:
           additionalProperties: true
           description: "All the variables visible in the root scope."

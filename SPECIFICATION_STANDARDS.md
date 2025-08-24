@@ -1,5 +1,9 @@
 # Camunda 8 Public API OpenAPI Specification Standards
 
+The Camunda 8 Public API specification is a compile-time guarantee of predictable runtime interoperability between systems that correctly implement the specification. 
+
+It enables static reasoning about the runtime behaviour of the integrated system of the Camunda engine and customer application code.
+
 ## Camunda Keys
 
 Marked by: 
@@ -132,3 +136,62 @@ The schema component is used in the following way:
   - Documentation. Adds a note that the endpoint is eventually consistent.
 - `x-eventually-consistent: false`
   - Documentation. Adds a note that the endpoint is strongly consistent.
+
+  ## Operation Kind
+
+Recommendation on x-operation-kind:
+
+Core enum (keep minimal, expressive):
+
+query (pure read/search, safe)
+create (new resource, not idempotent unless natural key)
+update (PUT full replace, idempotent)
+patch (partial mutate, not guaranteed idempotent)
+delete (idempotent)
+command (state transition / process action, not idempotent)
+event (fire-and-forget notification; may fan out)
+batchCommand (large async or multi-item command) (You can alias search to query; no separate kind needed.)
+Why not collapse further:
+
+Differentiating create vs command drives client retry & eventual consistency handling (e.g. replay-safe only if idempotent).
+batchCommand flags higher latency / polling patterns.
+Derived flags (auto, overrideable):
+
+safe: true only for query
+idempotent: true for query, update, delete; false otherwise unless overridden
+eventual: keep existing x-eventually-consistent (orthogonal)
+Spec shape: 
+x-operation: 
+  kind: command 
+  idempotent: false # optional override 
+  safe: false # optional (derived) 
+
+
+Mapping examples (from your spec):
+
+search* → query
+get* → query
+create*, *publication, *deployment, *user (initial setup) → create
+update*, set*, put variable updates → update (or patch if partial)
+activateJobs, completeJob, failJob, throwJobError, resolveIncident, publishMessage, correlateMessage, broadcastSignal, cancel*, modify*, migrate*, assign*/unassign*, evaluateDecision → command
+batch operation control (suspend/resume/cancel) → command (or batchCommand if you want special handling)
+delete* (explicit deletion endpoints or POST /resources/{key}/deletion) → delete (even if POST wrapper; semantic override clarifies)
+Edge cases:
+
+POST endpoints that delete (e.g. /resources/{resourceKey}/deletion): mark kind: delete to reflect semantics.
+Evaluate decision (no durable state) could be command but with idempotent: true (or introduce compute if you prefer; optional).
+Lint rules:
+
+Require x-operation.kind.
+Warn if HTTP verb inconsistent (e.g. GET with kind != query).
+Warn if POST with kind=create but 200 w/o Location/identifier (maybe should be command or query).
+Warn if update kind but non-idempotent flagged.
+Adoption steps:
+
+Add extension keys progressively.
+Generator consumes explicit; falls back to heuristic only if missing (with warning).
+After coverage >90%, enforce presence.
+
+
+---
+Semantics of DeployResource (idempotent if not new resource, otherwise idempotent)

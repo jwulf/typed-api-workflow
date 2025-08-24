@@ -4,6 +4,8 @@ functions:
   - enforceCamundaKeys
   - enforceCamundaKeyPathParams
   - vendorExtensionWhitelist
+  - duplicatePolicyConsistency
+  - idempotencyKeyHeaderPresent
 
 rules:
   key-properties-must-extend-camunda-key:
@@ -52,6 +54,11 @@ rules:
           - "x-semantic-type"
           - "x-polymorphic-schema"
           - "x-semantic-provider"
+          - "x-operation-kind"
+          - "x-duplicate-policy"
+          - "x-idempotency-mechanism"
+          - "x-idempotency-key-header"
+          - "x-idempotency-scope"
 
   endpoints-must-have-consistency-declaration:
     description: "All endpoints must have x-eventually-consistent vendor extension."
@@ -78,6 +85,49 @@ rules:
     then:
       function: falsy
 
+  create-operation-must-have-duplicate-policy:
+    description: Create operations must declare x-duplicate-policy (phase 2+)
+    given: "$..paths[*][*]"
+    severity: warn  # upgrade to error after migration
+    then:
+      function: duplicatePolicyConsistency
+      functionOptions:
+        requirePolicyForCreate: true
+
+  duplicate-policy-not-on-non-create:
+    description: x-duplicate-policy only valid on create operations
+    given: "$..paths[*][*]"
+    severity: error
+    then:
+      function: duplicatePolicyConsistency
+      functionOptions:
+        forbidPolicyOnNonCreate: true
+
+  duplicate-policy-idempotency-alignment:
+    description: x-duplicate-policy must align with idempotent flag
+    given: "$..paths[*][*]"
+    severity: error
+    then:
+      function: duplicatePolicyConsistency
+      functionOptions:
+        enforceAlignment: true
+
+  idempotency-mechanism-header:
+    description: idempotency-key mechanism requires matching header parameter
+    given: "$..paths[*][*]"
+    severity: error
+    then:
+      function: idempotencyKeyHeaderPresent
+
+  conflict-mechanism-warning:
+    description: conflict duplicate policy should not use advanced idempotency mechanism
+    given: "$..paths[*][*]"
+    severity: warn
+    then:
+      function: duplicatePolicyConsistency
+      functionOptions:
+        warnConflictWithMechanism: true
+
 overrides:
   - files:
       - "rest-api.yaml"
@@ -87,3 +137,8 @@ overrides:
       key-property-ref-must-point-to-camundakey-or-subtype: "off"
       key-properties-must-extend-camunda-key: "off"
       endpoints-must-have-consistency-declaration: "off"
+
+  - files:
+      - "rest-api.domain.yaml"
+    rules:
+      no-$ref-siblings: "off"

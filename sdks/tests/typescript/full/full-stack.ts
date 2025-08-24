@@ -15,7 +15,6 @@ import {
     UserApi, 
     JobApi,
     AuthenticationApi,
-    EndCursor
 } from '../../../generated/typescript'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -104,7 +103,7 @@ async function main() {
         //      process.exit(1)
         // })
 
-        console.log('Users information:', JSON.stringify(users.body, null, 2))
+        // console.log('Users information:', JSON.stringify(users.body, null, 2))
     
 
         // Load the test BPMN file
