@@ -54,55 +54,9 @@ public record AnalysisReport(
         System.out.printf("  • Correctly documented endpoints: %d%n", correctlyMarkedEndpoints.size());
         System.out.printf("  • Hidden endpoints (excluded from spec): %d%n", hiddenEndpoints.size());
         System.out.println();
-
-        // Fatal Errors
+        // Early indicator only; detailed fatal errors moved to end for easier visibility
         if (hasFatalErrors()) {
-            System.out.println("❌ FATAL ERRORS:");
-            
-            if (!unmatchedControllerEndpoints.isEmpty()) {
-                System.out.printf("  • Controller endpoints missing from OpenAPI spec: %d%n", unmatchedControllerEndpoints.size());
-                unmatchedControllerEndpoints.forEach(endpoint ->
-                    System.out.printf("    - %s%n", endpoint));
-                System.out.println();
-            }
-
-            if (!missingExtensionEndpoints.isEmpty()) {
-                System.out.printf("  • Endpoints missing x-eventually-consistent extension: %d%n", missingExtensionEndpoints.size());
-                missingExtensionEndpoints.forEach(endpoint ->
-                    System.out.printf("    - %s%n", endpoint));
-                System.out.println();
-            }
-
-            if (!incorrectExtensionEndpoints.isEmpty()) {
-                System.out.printf("  • Endpoints with incorrect x-eventually-consistent extension: %d%n", incorrectExtensionEndpoints.size());
-                incorrectExtensionEndpoints.forEach(endpoint ->
-                    System.out.printf("    - %s%n", endpoint));
-                System.out.println();
-            }
-
-            if (!endpointsMissingConsistencyDeclaration.isEmpty()) {
-                System.out.printf("  • OpenAPI endpoints missing consistency declaration: %d%n", endpointsMissingConsistencyDeclaration.size());
-                System.out.println("    (All endpoints must have either x-eventually-consistent: true or x-eventually-consistent: false)");
-                endpointsMissingConsistencyDeclaration.forEach(endpoint ->
-                    System.out.printf("    - %s%n", endpoint));
-                System.out.println();
-            }
-
-            if (!hiddenEndpointsInSpec.isEmpty()) {
-                System.out.printf("  • Hidden endpoints incorrectly documented in spec: %d%n", hiddenEndpointsInSpec.size());
-                System.out.println("    (Endpoints annotated with @Hidden should NOT appear in OpenAPI spec)");
-                hiddenEndpointsInSpec.forEach(endpoint ->
-                    System.out.printf("    - %s%n", endpoint));
-                System.out.println();
-            }
-
-            if (!pathLevelExtensionViolations.isEmpty()) {
-                System.out.printf("  • Paths with x-eventually-consistent declared at path level: %d%n", pathLevelExtensionViolations.size());
-                System.out.println("    (x-eventually-consistent should only be declared at operation/method level for proper granularity)");
-                pathLevelExtensionViolations.forEach(violation ->
-                    System.out.printf("    - %s%n", violation));
-                System.out.println();
-            }
+            System.out.println("❌ Fatal errors detected (see detailed list at end of report).\n");
         }
 
         // Warnings
@@ -139,6 +93,58 @@ public record AnalysisReport(
             hiddenEndpoints.forEach(endpoint ->
                 System.out.printf("  %s%n", endpoint));
             System.out.println();
+        }
+
+        // Detailed Fatal Errors (moved to end)
+        if (hasFatalErrors()) {
+            System.out.println("❌ FATAL ERRORS (detailed):");
+
+            if (!unmatchedControllerEndpoints.isEmpty()) {
+                System.out.printf("  • Controller endpoints missing from OpenAPI spec: %d%n", unmatchedControllerEndpoints.size());
+                unmatchedControllerEndpoints.forEach(endpoint ->
+                    System.out.printf("    - %s%n", endpoint));
+                System.out.println();
+            }
+
+            if (!missingExtensionEndpoints.isEmpty()) {
+                System.out.printf("  • Controller annotated eventual, but spec has NO consistency declaration (spec canonical): %d%n", missingExtensionEndpoints.size());
+                System.out.println("    (Remove controller annotation or add explicit declaration to spec; spec is treated as source of truth)");
+                missingExtensionEndpoints.forEach(endpoint ->
+                    System.out.printf("    - %s%n", endpoint));
+                System.out.println();
+            }
+
+            if (!incorrectExtensionEndpoints.isEmpty()) {
+                System.out.printf("  • Controller consistency annotation disagrees with spec (spec canonical): %d%n", incorrectExtensionEndpoints.size());
+                System.out.println("    (Update controller annotation to match the spec's declared consistency)");
+                incorrectExtensionEndpoints.forEach(endpoint ->
+                    System.out.printf("    - %s%n", endpoint));
+                System.out.println();
+            }
+
+            if (!endpointsMissingConsistencyDeclaration.isEmpty()) {
+                System.out.printf("  • OpenAPI endpoints missing consistency declaration: %d%n", endpointsMissingConsistencyDeclaration.size());
+                System.out.println("    (All endpoints must have either x-eventually-consistent: true or x-eventually-consistent: false)");
+                endpointsMissingConsistencyDeclaration.forEach(endpoint ->
+                    System.out.printf("    - %s%n", endpoint));
+                System.out.println();
+            }
+
+            if (!hiddenEndpointsInSpec.isEmpty()) {
+                System.out.printf("  • Hidden endpoints incorrectly documented in spec: %d%n", hiddenEndpointsInSpec.size());
+                System.out.println("    (Endpoints annotated with @Hidden should NOT appear in OpenAPI spec)");
+                hiddenEndpointsInSpec.forEach(endpoint ->
+                    System.out.printf("    - %s%n", endpoint));
+                System.out.println();
+            }
+
+            if (!pathLevelExtensionViolations.isEmpty()) {
+                System.out.printf("  • Paths with x-eventually-consistent declared at path level: %d%n", pathLevelExtensionViolations.size());
+                System.out.println("    (x-eventually-consistent should only be declared at operation/method level for proper granularity)");
+                pathLevelExtensionViolations.forEach(violation ->
+                    System.out.printf("    - %s%n", violation));
+                System.out.println();
+            }
         }
 
         System.out.println("=".repeat(80));

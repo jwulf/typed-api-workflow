@@ -16,6 +16,6 @@ mvn clean compile -q
 
 # Run the analyzer
 echo "🚀 Running analysis..."
-mvn exec:java -Dexec.args="$PROJECT_ROOT/zeebe/gateway-rest/src/main/java/io/camunda/zeebe/gateway/rest/controller $PROJECT_ROOT/zeebe/gateway-protocol/src/main/proto/rest-api.yaml" -q
+mvn exec:java -Dexec.args="$PROJECT_ROOT/zeebe/gateway-rest/src/main/java/io/camunda/zeebe/gateway/rest/controller $PROJECT_ROOT/../rest-api.domain.yaml" # $PROJECT_ROOT/zeebe/gateway-protocol/src/main/proto/rest-api.yaml" -q
 
 echo "✅ Analysis complete!"

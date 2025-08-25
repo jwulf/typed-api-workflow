@@ -111,29 +111,45 @@ public class OpenApiParser {
 
     private int findLineNumber(String content, String pathName, String methodName) {
         String[] lines = content.split("\n");
-
-        boolean foundPath = false;
+        boolean inTargetPath = false;
         for (int i = 0; i < lines.length; i++) {
-            String line = lines[i].trim();
+            String rawLine = lines[i];
+            String trimmed = rawLine.trim();
 
-            // Look for the path
-            if (!foundPath && line.startsWith(pathName + ":")) {
-                foundPath = true;
+            // Detect entering target path (top-level path lines start at column 0 after optional leading comments)
+            if (!inTargetPath && trimmed.startsWith(pathName + ":") && isTopLevelPathLine(rawLine)) {
+                inTargetPath = true;
                 continue;
             }
 
-            // If we found the path, look for the method
-            if (foundPath && line.startsWith(methodName + ":")) {
-                return i + 1; // Line numbers are 1-based
-            }
-
-            // If we hit another path, reset
-            if (foundPath && line.endsWith(":") && !line.startsWith(" ") && !line.startsWith("\t")) {
-                foundPath = false;
+            if (inTargetPath) {
+                // Found method declaration inside this path block
+                if (trimmed.startsWith(methodName + ":")) {
+                    return i + 1; // 1-based
+                }
+                // Detect start of a new path (only if line looks like a path key at top level)
+                if (isTopLevelPathLine(rawLine) && trimmed.endsWith(":") && trimmed.startsWith("/")) {
+                    // New path began before we found the method -> abort
+                    inTargetPath = false;
+                    // Don't continue; allow detection of next path in same iteration
+                    if (trimmed.startsWith(pathName + ":")) {
+                        inTargetPath = true; // rare case of identical path repeated
+                    }
+                }
             }
         }
+        return -1;
+    }
 
-        return -1; // Not found
+    private boolean isTopLevelPathLine(String rawLine) {
+        // A top-level path line begins without leading indentation (no space or tab) after trimming left comments
+        // We simply check first non-whitespace char is '/'
+        for (int i = 0; i < rawLine.length(); i++) {
+            char c = rawLine.charAt(i);
+            if (c == ' ' || c == '\t') continue;
+            return c == '/';
+        }
+        return false;
     }
 
     private int findPathLineNumber(String content, String pathName) {

@@ -100,16 +100,20 @@ public class RestApiConsistencyAnalyzer {
                 continue;
             }
 
-            // FATAL: Check consistency annotation matches extension
-            boolean controllerHasAnnotation = controllerEndpoint.hasRequiresSecondaryStorage();
-            boolean openApiHasExtension = matchingOpenApiEndpoint.hasEventuallyConsistentExtension();
+            // FATAL: Check consistency annotation vs spec declaration
+            boolean controllerHasAnnotation = controllerEndpoint.hasRequiresSecondaryStorage(); // controller declares eventual consistency
+            boolean openApiDeclaredEventually = matchingOpenApiEndpoint.isEventuallyConsistent(); // spec explicitly true
+            boolean openApiDeclaredStrongly = matchingOpenApiEndpoint.isStronglyConsistent();     // spec explicitly false
+            boolean openApiHasDeclaration = matchingOpenApiEndpoint.hasConsistencyDeclaration();  // spec has explicit true/false
 
-            if (controllerHasAnnotation && openApiHasExtension) {
+            if (controllerHasAnnotation && openApiDeclaredEventually) {
+                // Both say eventual -> correct
                 correctlyMarkedEndpoints.add(formatEndpoint(controllerEndpoint, "✅ Eventually Consistent"));
-            } else if (!controllerHasAnnotation && matchingOpenApiEndpoint.isStronglyConsistent()) {
+            } else if (!controllerHasAnnotation && openApiDeclaredStrongly) {
+                // Both say strong -> correct
                 correctlyMarkedEndpoints.add(formatEndpoint(controllerEndpoint, "✅ Strongly Consistent"));
-            } else if (controllerHasAnnotation && !openApiHasExtension) {
-                // FATAL: Controller says eventually consistent, but spec doesn't declare it
+            } else if (controllerHasAnnotation && !openApiHasDeclaration) {
+                // Controller declares eventual but spec omits declaration entirely
                 String details = String.format("%s (Controller: %s.%s:%d, OpenAPI line: %d)",
                     controllerEndpoint.getSignature(),
                     controllerEndpoint.className(),
@@ -117,12 +121,18 @@ public class RestApiConsistencyAnalyzer {
                     controllerEndpoint.lineNumber(),
                     matchingOpenApiEndpoint.lineNumber());
                 missingExtensionEndpoints.add(details);
-            } else {
-                // FATAL: Controller says strongly consistent, but spec says eventually consistent
+            } else if (openApiHasDeclaration && (controllerHasAnnotation != openApiDeclaredEventually)) {
+                // Spec declares explicit value that disagrees with controller (either:
+                //  controller eventual vs spec strong, or controller strong vs spec eventual)
                 String details = String.format("%s (OpenAPI line: %d)",
                     controllerEndpoint.getSignature(),
                     matchingOpenApiEndpoint.lineNumber());
                 incorrectExtensionEndpoints.add(details);
+            } else if (!openApiHasDeclaration) {
+                // Controller strong, spec missing declaration -> spec side issue will be reported
+                // in endpointsMissingConsistencyDeclaration; no extra entry needed here.
+            } else {
+                // Should not reach here; fallback safety (could log if needed)
             }
         }
 
