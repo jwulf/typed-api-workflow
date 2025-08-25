@@ -93,6 +93,8 @@ export interface EndpointScenario {
   requestPlan?: RequestStep[];          // concrete request assembly plan per operation (ordered)
   // For schema 400 negatives: which required fields are included (others are omitted)
   schemaMissingInclude?: string[];
+  // For schema 400 negatives: explicit list of required fields we intentionally suppress/omit
+  schemaMissingSuppress?: string[];
   // For schema wrong-type negatives: which leaf fields should be assigned wrong types
   schemaWrongTypeInclude?: string[];
   // Duplicate invocation testing (for conditional idempotency / duplicatePolicy conflict)

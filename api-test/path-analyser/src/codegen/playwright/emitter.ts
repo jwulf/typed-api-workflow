@@ -133,12 +133,21 @@ function renderScenarioTest(s: EndpointScenario): string {
       body.push(`    const ${bodyVar} = ${json};`);
       // Preflight assertion for schema-missing-required negatives: ensure omitted fields truly absent
       if (/schema-missing-required/i.test((s as any).variantKey || '') || /negative missing required/.test(s.name || '')) {
-        body.push(`    // Preflight omit verification`);
-        body.push(`    if (/activateJobs/.test('${step.operationId}')) {`);
-  body.push(`      const includeMatch = /\\[include=([^\\]]*)\\]/.exec(${JSON.stringify(s.name || '')});`);
-        body.push(`      const included = includeMatch ? (includeMatch[1] === '∅' ? [] : includeMatch[1].split(',').filter(Boolean)) : [];`);
-        body.push(`      const cluster = ['type','timeout','maxJobsToActivate'];`);
-        body.push(`      for (const f of cluster) { if (!included.includes(f)) { if (Object.prototype.hasOwnProperty.call(${bodyVar}, f)) { throw new Error('Omitted field present in body: '+f); } } }`);
+        const includeLit = JSON.stringify((s as any).schemaMissingInclude || []);
+        const suppressLit = JSON.stringify((s as any).schemaMissingSuppress || []);
+  body.push(`    // Preflight omit verification (metadata-driven)`);
+  body.push(`    {`);
+  body.push(`      const suppress: string[] = ${suppressLit};`);
+  body.push(`      for (const f of suppress) { if (Object.prototype.hasOwnProperty.call(${bodyVar}, f)) { throw new Error('Omitted field present in body: '+f); } }`);
+  body.push(`    }`);
+      }
+      // Wrong-type negatives: ensure declared wrongType fields are present (we mutate them upstream).
+      if (/schemaWrongType/i.test((s as any).variantKey || '') || /negative wrong type/.test(s.name || '')) {
+        const wrongTypeLit = JSON.stringify((s as any).schemaWrongTypeInclude || []);
+        body.push(`    // Preflight wrong-type verification (metadata-driven)`);
+        body.push(`    {`);
+        body.push(`      const wrongFields: string[] = ${wrongTypeLit};`);
+        body.push(`      for (const f of wrongFields) { if (!Object.prototype.hasOwnProperty.call(${bodyVar}, f)) { throw new Error('Wrong-type field missing in body (expected mutated): '+f); } }`);
         body.push(`    }`);
       }
   // NOTE: Previously the emitter performed an activateJobs-specific strip of omitted required
