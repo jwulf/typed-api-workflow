@@ -4763,6 +4763,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: true
     put:
+      x-eventually-consistent: true
       tags:
         - "User"
       operationId: "updateUser"
@@ -4802,7 +4803,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
-      x-eventually-consistent: false
   /setup/user:
     post:
       tags:
