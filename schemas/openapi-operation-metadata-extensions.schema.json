@@ -13,7 +13,8 @@
               "^(get|post|put|patch|delete|head|options|trace)$": {
                 "type": "object",
                 "properties": {
-                  "x-operation-kind": { "$ref": "#/definitions/OperationKindExtension" }
+                  "x-operation-kind": { "$ref": "#/definitions/OperationKindExtension" },
+                  "x-conditional-idempotency": { "$ref": "#/definitions/ConditionalIdempotencyExtension" }
                 },
                 "additionalProperties": true
               }
@@ -85,6 +86,30 @@
         {"kind": "create", "duplicatePolicy": "conflict", "idempotent": false},
         {"kind": "create", "duplicatePolicy": "return-existing", "idempotencyMechanism": "natural-key"},
         {"kind": "create", "duplicatePolicy": "ignore", "idempotencyMechanism": "idempotency-key", "idempotencyKeyHeader": "Idempotency-Key"}
+      ]
+    }
+    ,
+    "ConditionalIdempotencyExtension": {
+      "type": "object",
+      "description": "Declares a conditional idempotency window keyed by one or more request fields.",
+      "properties": {
+        "keyFields": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "Request body field names forming the conditional idempotency key." },
+        "window": { 
+          "type": "object",
+          "properties": {
+            "field": { "type": "string", "description": "Request body field holding TTL in ms." },
+            "unit": { "type": "string", "enum": ["ms"], "description": "Time unit for TTL window (currently only ms)." }
+          },
+          "required": ["field", "unit"],
+          "additionalProperties": true
+        },
+        "duplicatePolicy": { "type": "string", "enum": ["ignore"], "description": "Behavior for duplicate submissions within window (currently only ignore)." },
+        "appliesWhen": { "type": "string", "enum": ["key-present"], "description": "Condition under which the rule applies (presence of all keyFields)." }
+      },
+      "required": ["keyFields", "window", "duplicatePolicy", "appliesWhen"],
+      "additionalProperties": true,
+      "examples": [
+        {"keyFields": ["messageId"], "window": {"field": "timeToLive", "unit": "ms"}, "duplicatePolicy": "ignore", "appliesWhen": "key-present"}
       ]
     }
   },

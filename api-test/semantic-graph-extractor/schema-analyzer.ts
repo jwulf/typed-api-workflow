@@ -149,6 +149,40 @@ export class SchemaAnalyzer {
     // Classify operation type
     const operationType = this.classifyOperation(operation, path, method);
     
+    // Extract x-operation-kind (operation metadata). Accept object or array, prefer first object with kind field.
+    let opMeta: any | undefined;
+    const rawKind = (operation as any)['x-operation-kind'];
+    if (rawKind) {
+      if (Array.isArray(rawKind)) {
+        opMeta = rawKind.find(o => o && typeof o === 'object' && (o.kind || o.duplicatePolicy || o.idempotencyMechanism));
+      } else if (typeof rawKind === 'object') {
+        opMeta = rawKind;
+      }
+    }
+    const operationMetadata = opMeta ? {
+      kind: opMeta.kind,
+      duplicatePolicy: opMeta.duplicatePolicy,
+      idempotent: opMeta.idempotent,
+      safe: opMeta.safe,
+      idempotencyMechanism: opMeta.idempotencyMechanism,
+      idempotencyScope: opMeta.idempotencyScope,
+      idempotencyKeyHeader: opMeta.idempotencyKeyHeader
+    } : undefined;
+
+    // Extract conditional idempotency extension
+    const cond = (operation as any)['x-conditional-idempotency'];
+    let conditionalIdempotency: any | undefined;
+    if (cond && typeof cond === 'object') {
+      if (Array.isArray(cond.keyFields) && cond.keyFields.length && cond.window && typeof cond.window.field === 'string') {
+        conditionalIdempotency = {
+          keyFields: [...cond.keyFields],
+          window: { field: cond.window.field, unit: cond.window.unit },
+          duplicatePolicy: cond.duplicatePolicy,
+          appliesWhen: cond.appliesWhen
+        };
+      }
+    }
+
     return {
       operationId: operation.operationId,
       method: method.toUpperCase(),
@@ -162,7 +196,9 @@ export class SchemaAnalyzer {
       eventuallyConsistent: operation['x-eventually-consistent'],
       operationType,
       idempotent: this.isIdempotent(method, operation),
-      cacheable: this.isCacheable(method, operation)
+      cacheable: this.isCacheable(method, operation),
+      operationMetadata,
+      conditionalIdempotency
     };
   }
   

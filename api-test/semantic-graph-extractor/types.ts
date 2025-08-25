@@ -240,6 +240,10 @@ export interface Operation {
   sideEffects?: SideEffect[];
   idempotent?: boolean;
   cacheable?: boolean;
+  // Operation metadata (from x-operation-kind)
+  operationMetadata?: OperationMetadata;
+  // Conditional idempotency extension (x-conditional-idempotency)
+  conditionalIdempotency?: ConditionalIdempotencySpec;
 }
 
 export enum OperationType {
@@ -369,6 +373,24 @@ export interface InvalidExample {
 export interface ValueGenerationRule {
   type: 'random' | 'boundary' | 'pattern' | 'enum';
   rule: string;
+}
+
+// Operation metadata vendor extension representation
+export interface OperationMetadata {
+  kind?: string; // query|create|update|patch|delete|command|event|batch-command
+  duplicatePolicy?: string; // conflict|return-existing|ignore|upsert|merge|batch-partial
+  idempotent?: boolean;
+  safe?: boolean;
+  idempotencyMechanism?: string; // natural-key|body-hash|idempotency-key|server-token|none
+  idempotencyScope?: string; // resource|request|key+payload
+  idempotencyKeyHeader?: string; // required header name if mechanism=idempotency-key
+}
+
+export interface ConditionalIdempotencySpec {
+  keyFields: string[];
+  window: { field: string; unit: string };
+  duplicatePolicy: string; // currently 'ignore'
+  appliesWhen: string; // 'key-present'
 }
 
 // NEW: Root Dependency Analysis interfaces

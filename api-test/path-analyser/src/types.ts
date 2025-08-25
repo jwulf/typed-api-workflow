@@ -20,6 +20,19 @@ export interface OperationNode extends OperationRef {
   domainDisjunctions?: string[][];          // each inner array: satisfy at least one
   domainProduces?: string[];                // domain states/capabilities produced
   domainImplicitAdds?: string[];            // implicit states added on success
+  // Operation metadata vendor extension passthrough (from semantic graph extractor)
+  operationMetadata?: {
+    kind?: string;
+    duplicatePolicy?: string; // e.g. conflict | ignore | overwrite
+    idempotent?: boolean;
+  };
+  // Conditional idempotency spec (vendor extension x-conditional-idempotency)
+  conditionalIdempotency?: {
+    keyFields: string[];
+    window: { field: string; unit: string };
+    duplicatePolicy: string; // e.g. ignore
+    appliesWhen: string;     // e.g. key-present
+  };
 }
 
 export interface OperationGraph {
@@ -82,6 +95,14 @@ export interface EndpointScenario {
   schemaMissingInclude?: string[];
   // For schema wrong-type negatives: which leaf fields should be assigned wrong types
   schemaWrongTypeInclude?: string[];
+  // Duplicate invocation testing (for conditional idempotency / duplicatePolicy conflict)
+  duplicateTest?: {
+    mode: 'conditional' | 'conflict';
+    policy: string;               // duplicatePolicy value
+    secondStatus?: number;        // expected status of second (final) call
+    keyFields?: string[];         // key fields driving duplication
+    windowField?: string;         // name of TTL window field if conditional
+  };
 }
 
 export interface EndpointScenarioCollection {
@@ -119,6 +140,12 @@ export interface FeatureVariantSpec {
   schemaMissingRequired?: boolean;
   // Schema negative: send wrong type for one or more fields to provoke 400
   schemaWrongType?: boolean;
+  // Duplicate invocation variant (adds a second call of endpoint within scenario)
+  duplicateTest?: {
+    mode: 'conditional' | 'conflict';
+    policy: string;
+    secondStatus?: number;
+  };
 }
 
 export interface GenerationSummary {

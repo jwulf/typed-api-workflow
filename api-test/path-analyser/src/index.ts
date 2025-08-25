@@ -110,6 +110,16 @@ async function main() {
             for (const orig of originals) {
               const clone = { ...orig, id: `${orig.id}-mr-${k}-${expanded.length+1}` } as any;
               clone.schemaMissingInclude = combo;
+              // Pre-compute suppress list (required fields not in include)
+              const requiredClusterOverrides: Record<string,string[]> = {
+                activateJobs: ['type','timeout','maxJobsToActivate']
+              };
+              const cluster = fields.length ? fields : (requiredClusterOverrides[op.operationId] || fields);
+              clone.schemaMissingSuppress = cluster.filter(f => !combo.includes(f));
+              // CONTRACT: schemaMissingInclude lists the required fields we intentionally KEEP.
+              // schemaMissingSuppress lists required fields (including endpoint-specific cluster augmentations)
+              // we intentionally DROP. Synthesis will skip or remove suppressed fields in one final pass so
+              // emitter stays generic.
               clone.name = `${orig.name} [include=${combo.join(',') || '∅'}]`;
               clone.description = `${orig.description || ''} Include only: ${combo.join(',') || '∅'}.`;
               expanded.push(clone);
@@ -189,6 +199,23 @@ async function main() {
   if ((resp as any).nestedSlices) s.responseNestedSlices = resp.nestedSlices as any;
   if ((resp as any).nestedItems) (s as any).responseArrayItemFields = (resp as any).nestedItems;
   s.requestPlan = buildRequestPlan(s, resp, graph, canonical, requestIndex.byOperation);
+  // Carry forward suppress metadata (already on scenario) no action needed here except sanity (noop)
+        // Consolidation fix: ensure schemaMissingRequired variants truly omit excluded required fields
+        try {
+          const isMissingReq = typeof (s as any).variantKey === 'string' && (s as any).variantKey.includes('schemaMissingRequired');
+          const includeArr: string[] | undefined = Array.isArray((s as any).schemaMissingInclude) ? (s as any).schemaMissingInclude : undefined;
+          if (isMissingReq && includeArr) {
+            const finalStep = s.requestPlan?.[s.requestPlan.length - 1];
+            if (finalStep?.bodyTemplate && finalStep.bodyKind === 'json') {
+              const reqFields = getRequiredRequestLeafFields(op.operationId, canonical);
+              for (const rf of reqFields) {
+                if (!includeArr.includes(rf) && Object.prototype.hasOwnProperty.call(finalStep.bodyTemplate, rf)) {
+                  delete finalStep.bodyTemplate[rf];
+                }
+              }
+            }
+          }
+        } catch {}
         // Validation: for JSON requests with oneOf groups, non-negative scenarios must set exactly one variant's required keys
         try {
           const final = s.requestPlan?.[s.requestPlan.length - 1];
@@ -353,6 +380,13 @@ function buildRequestPlan(scenario: any, resp: any, graph: any, canonical: Recor
       if (extract.length) step.extract = (step.extract||[]).concat(extract);
     }
     steps.push(step);
+    // If this is the final step and scenario has duplicateTest, append a duplicate invocation
+    if (isFinal && scenario.duplicateTest) {
+      const dup: any = { ...step, expect: { status: scenario.duplicateTest.secondStatus || (scenario.duplicateTest.mode === 'conflict' ? 409 : 200) } };
+      // Mark duplicate step for emitter logic
+      dup.notes = (dup.notes ? dup.notes + '; ' : '') + 'duplicate-invocation';
+      steps.push(dup);
+    }
   }
   return steps;
 }
@@ -459,10 +493,13 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
   if (chosenCt === 'application/json') {
   const template: any = {};
     const missing: string[] = [];
-    const isSchema400Neg = scenario?.variantKey && typeof scenario.variantKey === 'string' && scenario.variantKey.includes('schemaMissingRequired');
+  // Detect missing-required negative either by original variantKey marker or by presence of expansion metadata
+  const isSchema400Neg = (scenario?.variantKey && typeof scenario.variantKey === 'string' && scenario.variantKey.includes('schemaMissingRequired')) || Array.isArray((scenario as any).schemaMissingInclude);
     const isSchemaWrongType = scenario?.variantKey && typeof scenario.variantKey === 'string' && scenario.variantKey.includes('schemaWrongType');
     const includeSet: Set<string> | undefined = isSchema400Neg && Array.isArray((scenario as any).schemaMissingInclude)
       ? new Set((scenario as any).schemaMissingInclude as string[]) : undefined;
+    const omitSet: Set<string> | undefined = isSchema400Neg && Array.isArray((scenario as any).schemaMissingSuppress)
+      ? new Set((scenario as any).schemaMissingSuppress as string[]) : undefined;
     const wrongTypeSet: Set<string> | undefined = isSchemaWrongType && Array.isArray((scenario as any).schemaWrongTypeInclude)
       ? new Set((scenario as any).schemaWrongTypeInclude as string[]) : undefined;
     if (requestGroups.length) {
@@ -504,6 +541,7 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
         }
       } else if (chosenVariantRequired && chosenVariantRequired.length) {
         for (const name of chosenVariantRequired) {
+          if (omitSet && omitSet.has(name)) continue;
           if (includeSet && !includeSet.has(name)) continue; // omit required not selected for include
           if (allowedFields && !allowedFields.has(name)) continue;
           // Special-case: map domain jobType -> request.type if not explicitly bound
@@ -545,6 +583,7 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
       // Non-oneOf: use canonical required flags
       for (const f of requiredFields) {
         const leaf = f.path.split('.').pop()!;
+        if (omitSet && omitSet.has(leaf)) continue;
         if (includeSet && !includeSet.has(leaf)) continue; // omit required not selected for include
         if (allowedFields && !allowedFields.has(leaf)) continue;
         const viaProvider = resolveProvider(opId, leaf, scenario);
@@ -599,7 +638,7 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
       }
     }
     // Fill a few optional fields if present and we have bindings
-    for (const f of nodes.filter(n => !n.required && !n.path.includes('[]'))) {
+  for (const f of nodes.filter(n => !n.required && !n.path.includes('[]'))) {
       const leaf = f.path.split('.').pop()!;
       if (allowedFields && !allowedFields.has(leaf)) continue;
       const varBase = camelCase((bindingMap[f.path] || leaf || 'value')) + 'Var';
@@ -611,12 +650,14 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
         }
       }
     }
-    // Fallback: ensure all domain request.* bindings are present even if canonical nodes are missing (e.g., oneOf variants)
+  // Fallback: ensure all domain request.* bindings are present even if canonical nodes are missing (e.g., oneOf variants).
     const leafSet = new Set(nodes.filter(n => !n.path.includes('[]')).map(n => n.path.split('.').pop()!));
     for (const [fieldPath, param] of Object.entries(bindingMap)) {
       const leaf = fieldPath.split('.').pop()!;
       if (!leafSet.has(leaf)) continue; // don't inject fields not in schema
       if (allowedFields && !allowedFields.has(leaf) && !forceUnionAll) continue;
+      // For schemaMissingRequired negatives, do not re-add omitted required fields
+      if (isSchema400Neg && includeSet && !includeSet.has(leaf) && requiredFields.some(rf => rf.path.endsWith('.'+leaf) || rf.path.split('.').pop() === leaf)) continue;
       const varName = camelCase(param) + 'Var';
       scenario.bindings ||= {};
       if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
@@ -629,11 +670,31 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
       }
     }
     // Post-process: if jobType binding exists but schema expects 'type', prefer mapping into 'type'
-    if (bindingMap['jobType']) {
+  if (bindingMap['jobType']) {
       const jtVar = 'jobTypeVar';
-      if (template['type'] === undefined) template['type'] = `${'${'}${jtVar}}`;
+      if (template['type'] === undefined) {
+        // If this is a schema-missing-required negative and 'type' was intentionally omitted, do NOT map it in.
+    if (!(isSchema400Neg && (omitSet?.has('type') || (includeSet && !includeSet.has('type'))))) {
+          template['type'] = `${'${'}${jtVar}}`;
+        }
+      }
       // ensure we don't carry a non-schema jobType field
       if (!leafSet.has('jobType')) delete (template as any)['jobType'];
+    }
+    // Final single-pass omission enforcement (contract):
+    // - schemaMissingInclude = fields we intentionally keep
+    // - schemaMissingSuppress = fields we intentionally drop (precomputed)
+    // We compute union of: requiredFields (canonical), chosenVariantRequired (oneOf), plus endpoint cluster hint for activateJobs.
+    if (isSchema400Neg && (includeSet || omitSet)) {
+      const unionRequired = new Set<string>();
+      for (const f of requiredFields) { const leaf = f.path.split('.').pop(); if (leaf) unionRequired.add(leaf); }
+      for (const n of (chosenVariantRequired || [])) unionRequired.add(n);
+      if (opId === 'activateJobs') ['type','timeout','maxJobsToActivate'].forEach(n => unionRequired.add(n));
+      for (const n of unionRequired) {
+        const shouldKeep = includeSet ? includeSet.has(n) : false;
+        const explicitlyDrop = omitSet ? omitSet.has(n) : false;
+        if ((!shouldKeep || explicitlyDrop) && Object.prototype.hasOwnProperty.call(template, n)) delete template[n];
+      }
     }
     // Scenario-specific overrides
     // For activateJobs negative-empty scenarios, use config-driven non-existent job type and short requestTimeout
@@ -650,6 +711,7 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
         scenario.bindings['jobTypeVar'] = nonExistentType;
       }
     }
+  // Removed prior absolute guard (folded into unified omission pass above).
     return { kind: 'json' as const, template };
   }
   if (chosenCt === 'multipart/form-data') {

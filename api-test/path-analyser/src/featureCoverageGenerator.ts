@@ -79,6 +79,18 @@ export function generateFeatureCoverageForEndpoint(graph: OperationGraph, endpoi
     } catch {}
   }
 
+  // Duplicate invocation variants (only for create/command endpoints with duplicatePolicy or conditionalIdempotency)
+  const meta = (endpoint as any).operationMetadata;
+  const cond = (endpoint as any).conditionalIdempotency;
+  // Conflict duplicate: expect second call 409 when duplicatePolicy === 'conflict'
+  if (meta?.duplicatePolicy === 'conflict') {
+    variants.push({ endpointId: endpointOpId, optionals: [], disjunctionChoices: [], artifactSemantics: [], expectedResult: 'error', negative: true, duplicateTest: { mode: 'conflict', policy: meta.duplicatePolicy, secondStatus: 409 } });
+  }
+  // Conditional idempotency duplicate: second call should be ignored (reuse 200 with same response semantics)
+  if (cond && cond.duplicatePolicy === 'ignore') {
+    variants.push({ endpointId: endpointOpId, optionals: [], disjunctionChoices: [], artifactSemantics: [], expectedResult: 'nonEmpty', duplicateTest: { mode: 'conditional', policy: cond.duplicatePolicy, secondStatus: 200 } });
+  }
+
   // Request oneOf variants (minimal per variant)
   if (options.requestVariants && options.requestVariants.length) {
     for (const group of options.requestVariants) {
@@ -172,6 +184,15 @@ function buildScenarioFromVariant(graph: OperationGraph, endpointId: string, var
     syntheticBindings: variant.negative ? Object.keys(bindings) : undefined,
     bindings
   };
+  if (variant.duplicateTest) {
+    scenario.duplicateTest = {
+      mode: variant.duplicateTest.mode,
+      policy: variant.duplicateTest.policy,
+      secondStatus: variant.duplicateTest.secondStatus,
+      keyFields: (endpoint as any).conditionalIdempotency?.keyFields,
+      windowField: (endpoint as any).conditionalIdempotency?.window?.field
+    };
+  }
   if (variant.requestVariantGroup && variant.requestVariantName) {
     scenario.requestVariants = [{ groupId: variant.requestVariantGroup, variant: variant.requestVariantName, richness: variant.requestVariantRichness || 'minimal' }];
     if (variant.negative && variant.requestVariantName === 'union-all') scenario.exclusivityViolations = [`oneOf:${variant.requestVariantGroup}:union-all`];
@@ -203,6 +224,10 @@ function buildCoverageTags(v: FeatureVariantSpec): string[] {
 }
 
 function buildFeatureScenarioName(operationId: string, v: FeatureVariantSpec, index: number): string {
+  if (v.duplicateTest) {
+    if (v.duplicateTest.mode === 'conflict') return `${operationId} - duplicate conflict (${index})`;
+    if (v.duplicateTest.mode === 'conditional') return `${operationId} - conditional duplicate ignore (${index})`;
+  }
   if (v.artifactRuleId) return `${operationId} - ${v.artifactRuleId} (${index})`;
   // Special-case union-all negative before generic negative naming
   if (v.requestVariantGroup && typeof v.requestVariantName === 'string' && v.requestVariantName.startsWith('pair:')) {
@@ -227,6 +252,10 @@ function buildFeatureScenarioName(operationId: string, v: FeatureVariantSpec, in
 
 function buildFeatureScenarioDescription(endpoint: any, v: FeatureVariantSpec): string {
   const base = `Invoke ${endpoint.operationId} (${endpoint.method.toUpperCase()} ${endpoint.path})`;
+  if (v.duplicateTest) {
+    if (v.duplicateTest.mode === 'conflict') return `${base} twice with identical payload expecting second ${v.duplicateTest.secondStatus || 409} due to duplicatePolicy=conflict.`;
+    if (v.duplicateTest.mode === 'conditional') return `${base} twice with identical key fields triggering conditional idempotency (duplicatePolicy=ignore) expecting second ${v.duplicateTest.secondStatus || 200} with no side-effects.`;
+  }
   const isSearchStyle = !!endpoint && endpoint.method.toUpperCase() === 'POST' && ( /\/search$/.test(endpoint.path) || /search/i.test(endpoint.operationId) || endpoint.operationId === 'activateJobs');
   if (v.artifactRuleId) return `${base} deploying ${v.artifactRuleId.toUpperCase()} artifact.`;
   // Special-case union-all negative before generic negative description

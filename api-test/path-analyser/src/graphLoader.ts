@@ -204,7 +204,9 @@ function normalizeOp(opId: string, op: any): OperationNode {
     requires: { required, optional },
     edges: op.edges ?? op.outgoingEdges ?? op.dependencies ?? op.deps ?? [],
   providerMap: Object.keys(providerMap).length ? providerMap : undefined,
-  eventuallyConsistent: op.eventuallyConsistent === true || op['x-eventually-consistent'] === true
+  eventuallyConsistent: op.eventuallyConsistent === true || op['x-eventually-consistent'] === true,
+  operationMetadata: op.operationMetadata || undefined,
+  conditionalIdempotency: op.conditionalIdempotency || undefined
   };
 }
 

@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { EndpointScenarioCollection, EndpointScenario, RequestStep } from '../../types.js';
+import { seedBinding } from '../support/seeding.js';
 import { planFinalStepAssertions } from '../assertionPlanner.js';
 
 interface EmitOptions {
@@ -25,6 +26,7 @@ function buildSuiteSource(collection: EndpointScenarioCollection, opts: EmitOpti
   // Import env helpers from compiled support location relative to generated tests
   lines.push("import { buildBaseUrl, authHeaders } from '../src/codegen/support/env';");
   lines.push("import { recordResponse, sanitizeBody } from '../src/codegen/support/recorder';");
+  lines.push("import { seedBinding } from '../src/codegen/support/seeding';");
   lines.push('');
   lines.push(`test.describe('${suiteName}', () => {`);
   for (const scenario of collection.scenarios) {
@@ -38,6 +40,7 @@ function renderScenarioTest(s: EndpointScenario): string {
   const title = `${s.id} - ${escapeQuotes(s.name||'scenario')}`;
   const body: string[] = [];
   body.push(`test('${title}', async ({ request }) => {`);
+  body.push(`  let __seededTenant = false;`);
   if ((s as any).description) {
     const desc = String((s as any).description).trim();
     // Wrap long description lines at ~100 chars for readability
@@ -68,12 +71,40 @@ function renderScenarioTest(s: EndpointScenario): string {
   }
   if ((s as any).bindings && Object.keys((s as any).bindings).length) {
     body.push('  // Seed scenario bindings');
+    // Collect vars referenced in body/multipart templates so we can auto-seed PENDING ones actually used.
+    const templateVars = new Set<string>();
+    function collectVarsFromTemplate(obj: any) {
+      if (!obj || typeof obj !== 'object') return;
+      for (const val of Object.values(obj)) {
+        if (typeof val === 'string') {
+          const m = val.match(/^\$\{([^}]+)\}$/); // "${varName}"
+          if (m) templateVars.add(m[1]);
+        } else if (typeof val === 'object') collectVarsFromTemplate(val);
+      }
+    }
+    if (s.requestPlan) {
+      for (const step of s.requestPlan) {
+        if (step.bodyTemplate) collectVarsFromTemplate(step.bodyTemplate as any);
+        if (step.multipartTemplate) collectVarsFromTemplate(step.multipartTemplate as any);
+      }
+    }
     for (const [k,v] of Object.entries((s as any).bindings)) {
-      if (v === '__PENDING__') continue; // placeholder for extraction
-      if (extractionVars.has(k)) continue; // real value will be extracted later
+      if (v === '__PENDING__') {
+        if (!templateVars.has(k)) continue; // Not referenced in a template
+        if (extractionVars.has(k)) continue; // Will be provided by extraction
+        // Use centralized seeding util at runtime (generate inside test execution for deterministic mode support)
+        body.push(`  if (ctx['${k}'] === undefined) { ctx['${k}'] = seedBinding('${k}'); }`);
+        if (k === 'tenantIdVar') body.push(`  __seededTenant = true;`);
+        continue;
+      }
+      if (extractionVars.has(k)) continue;
       body.push(`  ctx['${k}'] = ${JSON.stringify(v)};`);
+      if (k === 'tenantIdVar') body.push(`  __seededTenant = true;`);
     }
   }
+  // Ensure tenantIdVar default sourced from seeding rules (configurable) only once
+  body.push(`  if (!__seededTenant && ctx['tenantIdVar'] === undefined) { ctx['tenantIdVar'] = seedBinding('tenantIdVar'); __seededTenant = true; }`);
+  body.push(`  const __tenantIdIsDefault = ctx['tenantIdVar'] === '<default>';`);
   if (!s.requestPlan) {
     body.push('  // No request plan available');
     body.push('});');
@@ -85,6 +116,12 @@ function renderScenarioTest(s: EndpointScenario): string {
     const method = step.method.toLowerCase();
   const isFinal = idx === (s.requestPlan!.length - 1);
   const hasShape = Array.isArray((s as any).responseShapeFields) && (s as any).responseShapeFields.length > 0;
+    // Ensure prerequisite createProcessInstance always supplies a processDefinitionKey when available
+    if (step.operationId === 'createProcessInstance' && step.bodyKind === 'json') {
+      if (!step.bodyTemplate || Object.keys(step.bodyTemplate).length === 0) {
+        step.bodyTemplate = { processDefinitionKey: '${processDefinitionKeyVar}' } as any;
+      }
+    }
     // Basic body handling placeholder
     body.push(`  // Step ${idx+1}: ${step.operationId}`);
     body.push(`  {`);
@@ -94,6 +131,20 @@ function renderScenarioTest(s: EndpointScenario): string {
       const json = JSON.stringify(step.bodyTemplate, null, 4)
         .replace(/"\\?\$\{([^}]+)\}"/g, (_,v)=>'ctx["'+v+'"]');
       body.push(`    const ${bodyVar} = ${json};`);
+      // Preflight assertion for schema-missing-required negatives: ensure omitted fields truly absent
+      if (/schema-missing-required/i.test((s as any).variantKey || '') || /negative missing required/.test(s.name || '')) {
+        body.push(`    // Preflight omit verification`);
+        body.push(`    if (/activateJobs/.test('${step.operationId}')) {`);
+  body.push(`      const includeMatch = /\\[include=([^\\]]*)\\]/.exec(${JSON.stringify(s.name || '')});`);
+        body.push(`      const included = includeMatch ? (includeMatch[1] === '∅' ? [] : includeMatch[1].split(',').filter(Boolean)) : [];`);
+        body.push(`      const cluster = ['type','timeout','maxJobsToActivate'];`);
+        body.push(`      for (const f of cluster) { if (!included.includes(f)) { if (Object.prototype.hasOwnProperty.call(${bodyVar}, f)) { throw new Error('Omitted field present in body: '+f); } } }`);
+        body.push(`    }`);
+      }
+  // NOTE: Previously the emitter performed an activateJobs-specific strip of omitted required
+  // fields for schema-missing-required negative scenarios. Body synthesis (index.ts
+  // buildRequestBodyFromCanonical) now guarantees those required fields are never added
+  // in the first place, so no emitter-side mutation is needed.
     } else if (step.bodyKind === 'multipart' && step.multipartTemplate) {
       // multipart template format: { fields: Record<string,string>, files: Record<string,string> }
       const tpl = JSON.stringify(step.multipartTemplate, null, 4)
@@ -103,11 +154,12 @@ function renderScenarioTest(s: EndpointScenario): string {
     const opts: string[] = [];
     opts.push('headers: await authHeaders()');
     if (step.bodyKind === 'json' && step.bodyTemplate) opts.push(`data: ${bodyVar}`);
-    if (step.bodyKind === 'multipart' && step.multipartTemplate) {
+  if (step.bodyKind === 'multipart' && step.multipartTemplate) {
       // Convert template to Playwright's expected multipart shape: a keyed object map
       // Files are passed as { name, mimeType, buffer }
       body.push(`    const multipart: Record<string, any> = {};`);
   body.push(`    for (const [k,v] of Object.entries(${bodyVar}.fields||{})) {`);
+  body.push(`      if (k === 'tenantId' && __tenantIdIsDefault) continue;`);
   body.push(`      if (v !== undefined && v !== null) multipart[k] = String(v);`);
   body.push(`    }`);
   body.push(`    for (const [k,v] of Object.entries(${bodyVar}.files||{})) {
@@ -152,7 +204,8 @@ function renderScenarioTest(s: EndpointScenario): string {
   body.push(`      if (__status === 200) { try { bodyJson = await ${varName}.json(); } catch {} }`);
   body.push(`      await recordResponse({`);
   body.push(`        timestamp: new Date().toISOString(),`);
-  body.push(`        operationId: '${s.operations[idx].operationId}',`);
+  // Use the step's declared operationId instead of indexing scenario.operations (which may have fewer entries than request steps, e.g. duplicate tests)
+  body.push(`        operationId: '${step.operationId}',`);
   body.push(`        scenarioId: '${s.id}',`);
   body.push(`        scenarioName: ${JSON.stringify(s.name || '')},`);
   body.push(`        stepIndex: ${idx},`);
@@ -316,3 +369,6 @@ function emitTypeAssertLines(accExpr: string, typeName: string, indent = '    ')
     default: return [`${indent}/* unknown type: ${typeName} */`];
   }
 }
+
+// Produce a seeded value expression for a binding variable name (string generation focus).
+// buildSeedExpression removed in favor of centralized seeding (seedBinding)

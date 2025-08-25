@@ -2,6 +2,24 @@
 
 Generates endpoint scenario chains that satisfy semantic type requirements using the operation dependency graph and can emit Playwright test suites from those scenarios.
 
+## Overview / Current State
+
+The analyser ingests an operation dependency graph enriched with `operationMetadata` and optional `conditionalIdempotency` vendor extensions. It derives a bounded feature coverage scenario set per endpoint and now supports:
+
+- Duplicate invocation scenarios:
+  - Conflict policy (`duplicatePolicy=conflict`) – second call expects 409.
+  - Conditional idempotent policy (`x-conditional-idempotency` with `duplicatePolicy=ignore`) – second call expects same success status (e.g. 200) with no side-effects (future verification planned).
+- Multi-step `requestPlan` sequences (e.g. duplicate tests) even if `operations[]` lists the logical endpoint once.
+- Centralized dynamic value seeding via `src/codegen/support/seed-rules.json` (configurable patterns, deterministic mode with `TEST_SEED`).
+- Automatic default tenant id injection using a seeding rule (`tenantIdVar -> <default>` unless provided or extracted).
+
+Scenario JSON key fields:
+- `duplicateTest` – metadata for duplicate scenarios (`mode`, `policy`, `secondStatus`, optional `keyFields`, `windowField`).
+- `requestPlan` – ordered steps, each with status expectation, body/multipart templates, optional `extract` bindings.
+- `responseShapeFields` / `responseShapeSemantics` – drive final step assertions.
+
+Examples: See `dist/feature-output/post--messages--publication-scenarios.json` (conditional idempotent duplicate) and `post--tenants-scenarios.json` (conflict duplicate).
+
 ## Install
 
 ```bash
@@ -40,11 +58,12 @@ npm run codegen:playwright:all
 
 Outputs go to `dist/generated-tests/`:
 
-- `<operationId>.feature.spec.ts` – One test per scenario in the collection. The emitter asserts:
-  - Status code (using the extracted success status when available).
-  - Presence and type of top-level fields in the final response.
-  - For deployment responses, required inner fields for expected slices (e.g., `deployments[0].processDefinition.*`).
-  - It parses JSON once and reuses it for all assertions.
+- `<operationId>.feature.spec.ts` – One test per scenario. Assertions include:
+  - Status code.
+  - Presence & type of top-level response fields for success scenarios.
+  - Deployment slice assertions for `createDeployment` (expected artifact slices).
+  - Duplicate invocation second-step status (conflict or conditional ignore).
+  - Single parse of JSON body reused across assertions.
 
 ### Running the Generated Tests
 
@@ -88,6 +107,7 @@ The runtime uses a small env helper (`src/codegen/support/env.ts`):
 
 - `API_BASE_URL` – Base URL of the target API (default: `http://localhost:8080`).
 - `API_TOKEN` – Bearer token used for `Authorization` header (default: `dev-token`).
+- `TEST_SEED` – If set, enables deterministic seeded value generation (stable outputs for `seedBinding`).
 
 Example:
 
@@ -154,17 +174,66 @@ Code references
 
 Implemented:
 
-- Per-scenario request plan (usually a single step per endpoint; multi-step when dependencies exist).
-- Status code assertion (uses extracted success status when available, default 200).
+- Multi-step request plans.
+- Status code assertions (success / negative variants).
 - Field presence/type assertions for final responses.
-- Deployment slice assertions for createDeployment responses.
+- Deployment slice assertions (createDeployment).
+- Duplicate invocation scenario generation (conflict & conditional ignore).
+- Centralized seeding (correlation keys, ids, names, tenant id default) via JSON registry.
 
 Planned / Upcoming:
 
-- Additional negative error schema (ProblemDetail) assertions.
-- Broader oneOf variant coverage and union violation tests.
+- Error schema (ProblemDetail) body assertions.
+- oneOf / union violation expansion.
 - Filter parameter population for search endpoints.
-- Path parameter binding resolution from scenario bindings.
+- Path parameter binding resolution.
+- Duplicate conditional idempotency side-effect verification and response equality checks.
+- Tag-based selective execution (e.g. duplicate-only run).
+- Key field echo validation (request key appears in success / conflict error payload).
+
+## Seeding & Dynamic Data
+
+Dynamic test data is provided at runtime using `seedBinding(varName)` (`src/codegen/support/seeding.ts`) driven by `src/codegen/support/seed-rules.json`.
+
+Default `seed-rules.json`:
+
+```json
+{
+  "rules": [
+    { "match": "tenantIdVar", "template": "<default>" },
+    { "match": "/(correlation)/i", "template": "corr-${runId}-${counter:corr}-${rand:4}" },
+    { "match": "/(key|id)$/i", "template": "${var}-${runId}-${counter:id}-${rand:6}" },
+    { "match": "/name/i", "template": "${var}-${rand:8}" },
+    { "match": "*", "template": "${var}-${rand:6}" }
+  ]
+}
+```
+
+Template tokens:
+- `${var}` variable name
+- `${runId}` stable per generation run (deterministic under `TEST_SEED`)
+- `${counter:bucket}` incrementing counter per bucket
+- `${rand:n}` random base36 segment length `n` (deterministic under `TEST_SEED`)
+
+Auto-seeding occurs only if:
+1. Binding is `"__PENDING__"`.
+2. Placeholder `${varName}` appears in a request template.
+3. Binding is not satisfied via extraction earlier in the plan.
+
+## Configuration Files
+
+- `src/codegen/support/seed-rules.json` – seeding patterns.
+- `domain-semantics.json` / `.schema.json` – domain semantic definitions.
+- `fixtures/deployment-artifacts.json` – deployment artifact registry.
+- `dist/feature-output/*-scenarios.json` – generated scenario collections.
+
+## Regeneration Shortcut
+
+Rebuild everything (scenarios + tests):
+
+```bash
+npm run regenerate
+```
 
 ## Development Notes
 
