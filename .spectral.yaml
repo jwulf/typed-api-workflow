@@ -6,6 +6,7 @@ functions:
   - vendorExtensionWhitelist
   - duplicatePolicyConsistency
   - idempotencyKeyHeaderPresent
+  - conditionalIdempotencyStructure
 
 rules:
   key-properties-must-extend-camunda-key:
@@ -59,6 +60,7 @@ rules:
           - "x-idempotency-mechanism"
           - "x-idempotency-key-header"
           - "x-idempotency-scope"
+          - "x-conditional-idempotency"
 
   endpoints-must-have-consistency-declaration:
     description: "All endpoints must have x-eventually-consistent vendor extension."
@@ -111,6 +113,14 @@ rules:
       function: duplicatePolicyConsistency
       functionOptions:
         enforceAlignment: true
+
+  conditional-idempotency-structure:
+    description: x-conditional-idempotency vendor extension must have required structure
+    message: "{{error}}"
+    given: "$..paths[*][*]"
+    severity: error
+    then:
+      function: conditionalIdempotencyStructure
 
   idempotency-mechanism-header:
     description: idempotency-key mechanism requires matching header parameter

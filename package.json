@@ -38,7 +38,7 @@
     "testsuite:generate": "cd api-test/semantic-graph-extractor && npm run extract-graph && cd ../path-analyser && npm run build && node dist/src/index.js && npm run codegen:playwright:all",
     "testsuite:observe:aggregate": "cd api-test/path-analyser && npm run observe:aggregate",
     "testsuite:observe:run": "cd api-test/path-analyser && npm run observe:run",
-    "validate": "concurrently -k -p \"[{name}]\" -n \"SERVER,DOCS,SDK\" -c \"yellow.bold,cyan.bold,magenta.bold\" \"npm run spec:go\" \"npm run docs:generate\" \"npm run sdks:generate\""
+    "validate": "concurrently -p \"[{name}]\" -n \"SERVER,DOCS,SDK\" -c \"yellow.bold,cyan.bold,magenta.bold\" \"npm run spec:go\" \"npm run docs:generate\" \"npm run sdks:generate\""
   },
   "keywords": [],
   "author": "",

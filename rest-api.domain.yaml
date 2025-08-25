@@ -4292,6 +4292,19 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
+      # Operational semantics: command (not a create). Conditionally idempotent only when messageId is supplied.
+      # Duplicate publishes with identical messageId inside the timeToLive window produce no additional effect.
+      x-operation-kind:
+        - $ref: "#/components/schemas/OperationMetadata"
+          kind: "command"
+          idempotent: false
+      x-conditional-idempotency:
+        keyFields: ["messageId"]
+        window:
+          field: "timeToLive"
+          unit: "ms"
+        duplicatePolicy: "ignore"
+        appliesWhen: "key-present"
   /messages/correlation:
     post:
       tags:
