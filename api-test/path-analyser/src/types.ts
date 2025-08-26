@@ -97,6 +97,8 @@ export interface EndpointScenario {
   schemaMissingSuppress?: string[];
   // For schema wrong-type negatives: which leaf fields should be assigned wrong types
   schemaWrongTypeInclude?: string[];
+  // Detailed mapping for wrong-type negatives: field -> expected vs sent (mutated) type
+  schemaWrongTypeDetail?: { field: string; expectedType: string; sentType: string }[];
   // Duplicate invocation testing (for conditional idempotency / duplicatePolicy conflict)
   duplicateTest?: {
     mode: 'conditional' | 'conflict';

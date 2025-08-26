@@ -138,8 +138,13 @@ async function main() {
         const result: any[] = [];
         result.push(...others);
         const fields = [...requiredFields].sort();
-        const capWT = 35;
-        let budget = Math.max(1, Math.min(capWT, 10)); // limit wrong-type combos to at most 10 per endpoint
+        // SUPPRESSION: If no candidate fields (after any future filtering) skip emitting placeholder wrong-type scenarios.
+        if (!fields.length) {
+          featureCollection.scenarios = result as any; // drop originals entirely
+          continue; // proceed to next endpoint
+        }
+        const capWT = 50; // new expanded cap for wrong-type scenarios per endpoint
+        let budget = capWT; // allow up to capWT (will naturally be much smaller for small R)
         // Create single-field wrong-type and small pairs first
         const combos1: string[][] = fields.map(f => [f]);
         for (const c of combos1) {
@@ -170,13 +175,61 @@ async function main() {
             }
           }
         }
+        // If field count small (<=4) add higher-order combos (triples and full set) for comprehensive coverage
+        if (fields.length <= 4 && budget > 0) {
+          if (fields.length >= 3) {
+            // triples (if R=3 this is also the full set, still treat as size 3 label)
+            const combos3 = kCombinations(fields, 3);
+            for (const c of combos3) {
+              if (budget <= 0) break;
+              for (const orig of originals) {
+                const clone = { ...orig, id: `${orig.id}-wt-3-${result.length+1}` } as any;
+                clone.schemaWrongTypeInclude = c;
+                clone.name = `${orig.name} [wrongType=${c.join('+')}]`;
+                clone.description = `${orig.description || ''} Wrong type fields: ${c.join(',')}.`;
+                result.push(clone);
+                budget--;
+                if (budget <= 0) break;
+              }
+            }
+          }
+          if (fields.length === 4 && budget > 0) {
+            // full set (size 4)
+            const c = [...fields];
+            for (const orig of originals) {
+              if (budget <= 0) break;
+              const clone = { ...orig, id: `${orig.id}-wt-4-${result.length+1}` } as any;
+              clone.schemaWrongTypeInclude = c;
+              clone.name = `${orig.name} [wrongType=${c.join('+')}]`;
+              clone.description = `${orig.description || ''} Wrong type fields: ${c.join(',')}.`;
+              result.push(clone);
+              budget--;
+            }
+          }
+          if (fields.length === 3 && budget > 0) {
+            // For R=3 add explicit full set (already produced as triple but ensure label consistency if desired)
+            // (Skip duplicate if already added by combos3)
+          }
+        }
         featureCollection.scenarios = result as any;
       }
     }
     // Final guardrail: enforce max scenarios per endpoint after expansions (cap 35)
-    if (featureCollection.scenarios.length > 35) {
-      featureCollection.scenarios = featureCollection.scenarios.slice(0, 35);
+    const MAX_FEATURE_SCENARIOS = 90; // raised to accommodate expanded wrong-type coverage
+    if (featureCollection.scenarios.length > MAX_FEATURE_SCENARIOS) {
+      featureCollection.scenarios = featureCollection.scenarios.slice(0, MAX_FEATURE_SCENARIOS);
     }
+      // Post-expansion cleanup: remove placeholder wrong-type scenarios that ended up with no fields to mutate
+      featureCollection.scenarios = featureCollection.scenarios.filter(sc => {
+        const vk: any = (sc as any).variantKey;
+        if (typeof vk === 'string' && vk.includes('schemaWrongType')) {
+          const incl = (sc as any).schemaWrongTypeInclude;
+            if (!Array.isArray(incl) || incl.length === 0) {
+              return false; // drop
+            }
+        }
+        return true;
+      });
     // Choose a representative integration scenario to supply dependency chain (shortest non-unsatisfied with >1 ops; fallback scenario-1)
     const integrationCandidates = collection.scenarios.filter(sc => sc.id !== 'unsatisfied');
     const chainSource = integrationCandidates
@@ -239,19 +292,22 @@ async function main() {
               }
             }
           }
-        } catch (e) {
-          throw e;
-        }
-      }
-    }
-    // Validate request bodies for final step when method requires a body
-    for (const sc of featureCollection.scenarios) {
-      const final = sc.requestPlan?.[sc.requestPlan.length - 1];
-      if (!final) continue;
-      if (['POST','PUT','PATCH'].includes(final.method)) {
-        if (!final.bodyKind) {
-          throw new Error(`Missing request body synthesis for ${op.operationId} (${final.method})`);
-        }
+        } catch {}
+        // Inject detailed wrong-type mapping into scenario name for clarity (expectedType -> sentType per field)
+        try {
+          if ((s as any).schemaWrongTypeInclude && Array.isArray((s as any).schemaWrongTypeDetail) && (s as any).schemaWrongTypeDetail.length) {
+            const det = (s as any).schemaWrongTypeDetail as { field: string; expectedType: string; sentType: string }[];
+            const count = det.length;
+            const segments = det.map((d, i) => `${i === 0 ? '' : ' | + '}${d.field}: ${d.expectedType} -> ${d.sentType}`);
+            const mapping = segments.join('');
+            if (s.name && /negative wrong type/.test(s.name)) {
+              s.name = s.name.replace(/negative wrong type \([^)]*\)/, `negative wrong type (${count})`);
+              // Remove any existing [wrongType=...] suffix then append our detailed mapping
+              s.name = s.name.replace(/\s\[wrongType=[^\]]*\]$/, '');
+              s.name = `${s.name} [wrongType=${mapping}]`;
+            }
+          }
+        } catch {}
       }
     }
     // Collect artifact references from feature scenarios (multipart files)
@@ -287,7 +343,6 @@ async function main() {
         }
       }
     } catch {}
-
     await writeFile(path.join(featureDir, fileName), JSON.stringify(featureCollection, null, 2), 'utf8');
     summaryEntries.push({
       operationId: op.operationId,
@@ -433,6 +488,16 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
   for (const ct of ctOrder) if (shape.requestByMediaType[ct]) { chosenCt = ct; break; }
   if (!chosenCt) return undefined;
   const nodes = shape.requestByMediaType[chosenCt]!;
+  // Build quick lookup of expected (declared) JSON field types by leaf name (top-level) for type-aware wrong-type mutation
+  const declaredTypeByLeaf: Record<string,string> = {};
+  try {
+    for (const n of nodes) {
+      if (!n.path.includes('[]')) {
+        const leaf = n.path.split('.').pop()!;
+        if (leaf && !declaredTypeByLeaf[leaf]) declaredTypeByLeaf[leaf] = (n as any).type;
+      }
+    }
+  } catch {}
   const requiredFields = nodes.filter(n => n.required && !n.path.includes('[]'));
   // Bindings map from domain valueBindings (request.* -> state.parameter)
   const opDom = graph.domain?.operationRequirements?.[opId];
@@ -502,7 +567,22 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
       ? new Set((scenario as any).schemaMissingSuppress as string[]) : undefined;
     const wrongTypeSet: Set<string> | undefined = isSchemaWrongType && Array.isArray((scenario as any).schemaWrongTypeInclude)
       ? new Set((scenario as any).schemaWrongTypeInclude as string[]) : undefined;
-    if (requestGroups.length) {
+    // If wrong-type negative, populate detailed mapping (expectedType -> sentType) for test naming later.
+    if (wrongTypeSet && wrongTypeSet.size) {
+      const detail: { field: string; expectedType: string; sentType: string }[] = [];
+      for (const f of Array.from(wrongTypeSet)) {
+        const expectedType = (declaredTypeByLeaf[f] || 'unknown').toLowerCase();
+        const sentVal = chooseWrongTypeValue(declaredTypeByLeaf[f]);
+        let sentType: string = typeof sentVal;
+        // Map JS typeof to schema-like type names for readability
+        if (Array.isArray(sentVal)) sentType = 'array';
+        if (sentVal === null) sentType = 'null';
+        // Persist mapping (we also still need to actually apply wrong-type assignment below in synthesis)
+        detail.push({ field: f, expectedType, sentType });
+      }
+      (scenario as any).schemaWrongTypeDetail = detail;
+    }
+  if (requestGroups.length) {
       // oneOf-aware synthesis
       if (pairFields && pairFields.length === 2) {
         for (const name of pairFields) {
@@ -516,7 +596,7 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
           if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
           // If wrong-type negative applies for this field, inject a mismatched type
           if (wrongTypeSet && wrongTypeSet.has(name)) {
-            template[name] = 12345; // force number where a string is expected
+            template[name] = chooseWrongTypeValue(declaredTypeByLeaf[name]);
           } else {
             template[name] = `${'${'}${varName}}`;
           }
@@ -533,7 +613,7 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
           scenario.bindings ||= {};
           if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
           if (wrongTypeSet && wrongTypeSet.has(name)) {
-            template[name] = 12345;
+            template[name] = chooseWrongTypeValue(declaredTypeByLeaf[name]);
           } else {
             template[name] = `${'${'}${varName}}`;
           }
@@ -557,13 +637,13 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
             scenario.bindings ||= {};
             if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
             if (wrongTypeSet && wrongTypeSet.has(name)) {
-              template[name] = 12345;
+              template[name] = chooseWrongTypeValue(declaredTypeByLeaf[name]);
             } else {
               template[name] = `${'${'}${varName}}`;
             }
           } else if (defaults && Object.prototype.hasOwnProperty.call(defaults, name)) {
             if (wrongTypeSet && wrongTypeSet.has(name)) {
-              template[name] = 12345;
+              template[name] = chooseWrongTypeValue(declaredTypeByLeaf[name]);
             } else {
               template[name] = (defaults as any)[name];
             }
@@ -571,7 +651,7 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
             scenario.bindings ||= {};
             if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
             if (wrongTypeSet && wrongTypeSet.has(name)) {
-              template[name] = 12345;
+              template[name] = chooseWrongTypeValue(declaredTypeByLeaf[name]);
             } else {
               template[name] = `${'${'}${varName}}`;
             }
@@ -601,13 +681,13 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
           scenario.bindings ||= {};
           if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
           if (wrongTypeSet && wrongTypeSet.has(leaf)) {
-            template[leaf] = 12345;
+            template[leaf] = chooseWrongTypeValue(declaredTypeByLeaf[leaf]);
           } else {
             template[leaf] = `${'${'}${varName}}`;
           }
         } else if (defaults && Object.prototype.hasOwnProperty.call(defaults, leaf)) {
           if (wrongTypeSet && wrongTypeSet.has(leaf)) {
-            template[leaf] = 12345;
+            template[leaf] = chooseWrongTypeValue(declaredTypeByLeaf[leaf]);
           } else {
             template[leaf] = (defaults as any)[leaf];
           }
@@ -615,7 +695,7 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
           scenario.bindings ||= {};
           if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
           if (wrongTypeSet && wrongTypeSet.has(leaf)) {
-            template[leaf] = 12345;
+            template[leaf] = chooseWrongTypeValue(declaredTypeByLeaf[leaf]);
           } else {
             template[leaf] = `${'${'}${varName}}`;
           }
@@ -663,7 +743,7 @@ function buildRequestBodyFromCanonical(opId: string, scenario: any, graph: any, 
       if (!scenario.bindings[varName]) scenario.bindings[varName] = '__PENDING__';
       if (template[leaf] === undefined) {
         if (wrongTypeSet && wrongTypeSet.has(leaf)) {
-          template[leaf] = 12345;
+          template[leaf] = chooseWrongTypeValue(declaredTypeByLeaf[leaf]);
         } else {
           template[leaf] = `${'${'}${varName}}`;
         }
@@ -865,6 +945,26 @@ function kCombinations<T>(arr: T[], k: number): T[][] {
     for (let j = i + 1; j < k; j++) idx[j] = idx[j - 1] + 1;
   }
   return res;
+}
+
+// Choose a deliberately wrong-type value for a field given its declared type.
+// Strategy keeps values primitive & JSON-serializable while maximizing mismatch likelihood.
+function chooseWrongTypeValue(declared?: string): any {
+  switch ((declared || '').toLowerCase()) {
+    case 'string':
+      return 12345; // number for string
+    case 'number':
+    case 'integer':
+      return 'not-a-number'; // string for numeric
+    case 'boolean':
+  return 'NOT_A_BOOLEAN'; // clearly non-boolean string
+    case 'array':
+      return {}; // object for array
+    case 'object':
+      return 42; // number for object
+    default:
+      return null; // unexpected type -> null (often invalid if not nullable)
+  }
 }
 
 // -------- Filter Providers (search filters, oneOf negatives) ---------

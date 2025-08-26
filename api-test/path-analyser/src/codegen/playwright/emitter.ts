@@ -143,11 +143,66 @@ function renderScenarioTest(s: EndpointScenario): string {
       }
       // Wrong-type negatives: ensure declared wrongType fields are present (we mutate them upstream).
       if (/schemaWrongType/i.test((s as any).variantKey || '') || /negative wrong type/.test(s.name || '')) {
-        const wrongTypeLit = JSON.stringify((s as any).schemaWrongTypeInclude || []);
-        body.push(`    // Preflight wrong-type verification (metadata-driven)`);
+        const wrongTypeFields = (s as any).schemaWrongTypeInclude || [];
+        const detail = (s as any).schemaWrongTypeDetail || [];
+        // Build expected type map for precise mismatch selection
+        const expectedMap: Record<string,string> = {};
+        for (const d of detail) { expectedMap[d.field] = (d.expectedType || '').toLowerCase(); }
+        const wrongTypeLit = JSON.stringify(wrongTypeFields);
+        const expectedMapLit = JSON.stringify(expectedMap);
+        body.push(`    // Preflight wrong-type mutation + verification (metadata-driven)`);
         body.push(`    {`);
         body.push(`      const wrongFields: string[] = ${wrongTypeLit};`);
-        body.push(`      for (const f of wrongFields) { if (!Object.prototype.hasOwnProperty.call(${bodyVar}, f)) { throw new Error('Wrong-type field missing in body (expected mutated): '+f); } }`);
+        body.push(`      const expected: Record<string,string> = ${expectedMapLit};`);
+        body.push(`      const mismatchValue = (exp: string): any => {`);
+        body.push(`        switch ((exp||'').toLowerCase()) {`);
+        body.push(`          case 'string': return 12345; // number for string`);
+        body.push(`          case 'number':`);
+        body.push(`          case 'integer': return 'not-a-number'; // non-numeric string for number/integer`);
+  body.push(`          case 'boolean': return 'NOT_A_BOOLEAN'; // non-coercible string for boolean`);
+        body.push(`          case 'array': return {}; // object for array`);
+        body.push(`          case 'object': return 42; // number for object`);
+        body.push(`          default: return null;`);
+        body.push(`        }`);
+        body.push(`      };`);
+        body.push(`      for (const f of wrongFields) {`);
+        body.push(`        const exp = expected[f];`);
+        body.push(`        // Always (re)assign a deliberate mismatch based on expected type; ignore existing value type.`);
+        body.push(`        ${bodyVar}[f] = mismatchValue(exp);`);
+        body.push(`      }`);
+        body.push(`      // Explicit guarantee: if 'type' is designated wrong-type and still a string, force numeric mismatch`);
+        body.push(`      if (wrongFields.includes('type') && typeof ${bodyVar}['type'] === 'string') { ${bodyVar}['type'] = 999; }`);
+        body.push(`    }`);
+      }
+      // oneOf union-all negative: ensure >=2 unique variant required sets satisfied
+      if (Array.isArray((s as any).exclusivityViolations) && (s as any).exclusivityViolations.some((t: string) => t.startsWith('oneOf:') && t.endsWith(':union-all'))) {
+        const tokens = (s as any).exclusivityViolations.filter((t: string) => t.startsWith('oneOf:') && t.endsWith(':union-all')) as string[];
+        // We can only validate structure using a lightweight heuristic: count how many variant required sets appear fully
+        // Because variant required sets are not serialized in scenario metadata, we approximate using body keys & token group ids (diagnostic only)
+        body.push(`    // PRECHECK: oneOf union-all structural violation verification`);
+        body.push(`    {`);
+        body.push(`      const bodyKeys = new Set(Object.keys(${bodyVar}));`);
+        body.push(`      const unionTokens: string[] = ${JSON.stringify(tokens)};`);
+        body.push(`      // NOTE: Detailed variant required key lists unavailable at emit-time; we assert a simple heuristic: union token present AND body has > 2 keys from its group.`);
+        body.push(`      // (Future enhancement: embed variant required key sets into scenario metadata for precise counting.)`);
+        body.push(`      if (!unionTokens.length) { throw new Error('Expected union-all token for negative but none found'); }`);
+        body.push(`      // Heuristic minimal assurance: require at least 3 JSON keys total for union-all negative (more than a single variant typical set).`);
+        body.push(`      if (bodyKeys.size < 3) { throw new Error('Union-all negative preflight failed: body has too few fields to plausibly violate oneOf (keys='+[...bodyKeys].join(',')+')'); }`);
+        body.push(`    }`);
+      }
+      // Mutual exclusivity negatives (tokens like exclusive:a+b[+c]) ensure all conflict fields present together
+      if (Array.isArray((s as any).exclusivityViolations) && (s as any).exclusivityViolations.some((t: string) => t.startsWith('exclusive:'))) {
+        const exTokens = (s as any).exclusivityViolations.filter((t: string) => t.startsWith('exclusive:')) as string[];
+        body.push(`    // PRECHECK: mutual exclusivity negative verification`);
+        body.push(`    {`);
+        body.push(`      const bodyKeys = new Set(Object.keys(${bodyVar}));`);
+        body.push(`      const tokens: string[] = ${JSON.stringify(exTokens)};`);
+        body.push(`      for (const tok of tokens) {`);
+        body.push(`        const spec = tok.slice('exclusive:'.length);`);
+        body.push(`        const fields = spec.split('+').filter(Boolean);`);
+        body.push(`        const missing = fields.filter(f => !bodyKeys.has(f));`);
+        body.push(`        if (missing.length) { throw new Error('Exclusivity negative preflight failed: fields missing: '+missing.join(',')); }`);
+        body.push(`      }`);
         body.push(`    }`);
       }
   // NOTE: Previously the emitter performed an activateJobs-specific strip of omitted required

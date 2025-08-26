@@ -177,7 +177,7 @@ function buildScenarioFromVariant(graph: OperationGraph, endpointId: string, var
     : (variant.schemaMissingRequired
       ? { kind: 'error', code: '400' }
       : (variant.schemaWrongType
-        ? (isSearchStyle ? { kind: 'empty' } : { kind: 'error', code: '400' })
+        ? { kind: 'error', code: '400' }
         : { kind: variant.expectedResult })),
     coverageTags: buildCoverageTags(variant),
     filtersUsed: variant.optionals,
@@ -267,7 +267,8 @@ function buildFeatureScenarioDescription(endpoint: any, v: FeatureVariantSpec): 
     return `${base} with invalid oneOf payload containing ALL fields from group '${v.requestVariantGroup}' variants (union violation)${isSearchStyle ? '' : ' expecting 400 error'}.`;
   }
   if (v.schemaMissingRequired) return `${base} with a required field omitted to provoke 400 schema validation error.`;
-  if (v.schemaWrongType) return `${base} with one or more fields set to the wrong type${isSearchStyle ? ' expecting 200 with empty result' : ' expecting 400 schema validation error'}.`;
+  if (v.schemaWrongType) return `${base} with one or more fields set to the wrong type expecting 400 schema validation error.`;
+  // NOTE: Detailed wrong-type mapping appended later in emitter when schemaWrongTypeDetail present.
   if (v.negative) return `${base} expecting empty result set (querying with filters / identifiers that match no existing resources).`;
   if (v.requestVariantGroup) {
   if (v.requestVariantName === 'union-all') return `${base} with invalid oneOf payload containing ALL fields from group '${v.requestVariantGroup}' variants (union violation) expecting 400 error.`;
