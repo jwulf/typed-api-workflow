@@ -143,42 +143,85 @@ function flattenPathParams(originalSpec) {
       if (!Array.isArray(parameters)) continue;
 
       for (const param of parameters) {
-        if (param.schema && param.schema.$ref) {
+        if (!param.schema) continue;
+
+        // Helper to resolve a chain of allOf/$ref to a primitive base schema
+        function resolveChain(firstSchemaName) {
+          let currentName = firstSchemaName;
+            let safety = 0;
+            let example;
+          while (currentName && safety < 10) {
+            safety++;
+            const current = schemas[currentName];
+            if (!current) break;
+            if (current.example && example === undefined) example = current.example;
+            if (current.type) {
+              return { base: current, example };
+            }
+            // Descend one more level if there is an allOf with a $ref
+            const nextRef = current.allOf && current.allOf.find(e => e.$ref);
+            if (!nextRef) break;
+            const m = nextRef.$ref.match(/^#\/components\/schemas\/(.+)$/);
+            if (!m) break;
+            currentName = m[1];
+          }
+          return null;
+        }
+
+        // Case 1: Direct $ref (previous behaviour)
+        if (param.schema.$ref) {
           const ref = param.schema.$ref;
           const match = ref.match(/^#\/components\/schemas\/(.+)$/);
-          if (!match) continue;
+          if (match) {
+            const schemaName = match[1];
+            const schema = schemas[schemaName];
+            if (schema && schema.allOf) {
+              const refSchema = schema.allOf.find(e => e.$ref);
+              const extraProps = schema.allOf.find(e => e.description || e.type || e.example);
+              const baseMatch = refSchema?.$ref?.match(/^#\/components\/schemas\/(.+)$/);
+              if (baseMatch) {
+                const resolution = resolveChain(baseMatch[1]);
+                if (resolution && resolution.base.type) {
+                  const { base, example } = resolution;
+                  // Avoid double-wrapping formats like string<string<...>>
+                  const existingFormat = base.format || '';
+                  const wrappedFormat = existingFormat.includes('<') ? existingFormat : `string<${schemaName}>`;
+                  param.schema = {
+                    type: base.type,
+                    format: wrappedFormat,
+                    // Intentionally omit pattern/minLength/maxLength so they don't surface in docs
+                    example: extraProps?.example || base.example || example,
+                    description: extraProps?.description || base.description,
+                  };
+                }
+              }
+            }
+          }
+          continue;
+        }
 
-          const schemaName = match[1];
-          const schema = schemas[schemaName];
-          if (!schema || !schema.allOf) continue;
-
-          // Flatten one level of allOf: [ {$ref}, {description} ]
-          const refSchema = schema.allOf.find((entry) => entry.$ref);
-          const extraProps = schema.allOf.find(
-            (entry) => entry.description || entry.type
-          );
-
-          const baseMatch = refSchema?.$ref?.match(
-            /^#\/components\/schemas\/(.+)$/
-          );
-          if (!baseMatch) continue;
-
-          const baseSchema = schemas[baseMatch[1]];
-          if (!baseSchema) continue;
-
-          // Merge baseSchema + extraProps
-          const merged = {
-            type: baseSchema.type,
-            format: `string<${schemaName}>`, // baseSchema.format,
-            pattern: baseSchema.pattern,
-            example: baseSchema.example,
-            minLength: baseSchema.minLength,
-            maxLength: baseSchema.maxLength,
-            description: extraProps?.description || baseSchema.description,
+        // Case 2: Parameter schema itself is an allOf wrapper pointing (possibly indirectly) to a primitive string
+        if (param.schema.allOf) {
+          // Find first $ref inside this allOf
+          const firstRefEntry = param.schema.allOf.find(e => e.$ref);
+          if (!firstRefEntry) continue;
+          const refMatch = firstRefEntry.$ref.match(/^#\/components\/schemas\/(.+)$/);
+          if (!refMatch) continue;
+          const topSchemaName = refMatch[1];
+          const resolution = resolveChain(topSchemaName);
+          if (!resolution) continue;
+          const { base } = resolution;
+          // Collect description/example from any non-$ref entries
+          const metaEntry = param.schema.allOf.find(e => !e.$ref) || {};
+          const existingFormat = base.format || '';
+          const wrappedFormat = existingFormat.includes('<') ? existingFormat : `string<${topSchemaName}>`;
+          param.schema = {
+            type: base.type || 'string',
+            format: wrappedFormat,
+            description: metaEntry.description || base.description,
+            example: metaEntry.example || base.example,
+            // Omit constraints
           };
-
-          // Replace the $ref schema with the flattened one
-          param.schema = merged;
         }
       }
     }
@@ -192,18 +235,81 @@ function flattenPathParams(originalSpec) {
   ];
 }
 
+
 /**
  * Get rid of the constraints on CamundaKey schemas. We don't want to clutter the docs with these constraints,
  * but we do want them to be present in the schema for validation purposes.
  */
 function stripCamundaKeyConstraintsForDocs(originalSpec) {
   const doc = yaml.load(originalSpec);
+  const schemas = doc.components?.schemas || {};
 
-  const camundaKey = doc.components?.schemas?.CamundaKey;
-  if (camundaKey) {
-    delete camundaKey.pattern;
-    delete camundaKey.minLength;
-    delete camundaKey.maxLength;
+  const TARGET_PROP_NAMES = ["pattern", "minLength", "maxLength"]; // could add format constraints later
+
+  function stripProps(obj) {
+    if (!obj || typeof obj !== 'object') return;
+    for (const p of TARGET_PROP_NAMES) {
+      if (p in obj) delete obj[p];
+    }
+  }
+
+  function referencesCamundaKey(schema) {
+    if (!schema) return false;
+    if (schema.$ref === '#/components/schemas/CamundaKey') return true;
+    if (Array.isArray(schema.allOf)) {
+      return schema.allOf.some(e => e.$ref === '#/components/schemas/CamundaKey');
+    }
+    return false;
+  }
+
+  for (const [name, schema] of Object.entries(schemas)) {
+    // Identify candidate domain identifier schemas by:
+    // 1. Naming convention (ends with Key or Id)
+    // 2. Having an x-semantic-type (still present at this stage)
+    // 3. Referencing CamundaKey via $ref or allOf
+    const nameMatches = /(?:Key|Id)$/.test(name);
+    const hasSemantic = schema && Object.keys(schema).some(k => k === 'x-semantic-type');
+    const refChain = referencesCamundaKey(schema);
+    if (!(nameMatches || hasSemantic || refChain)) continue;
+
+    // Strip on root
+    stripProps(schema);
+
+    // Strip inside allOf non-$ref parts
+    if (Array.isArray(schema.allOf)) {
+      for (const part of schema.allOf) {
+        if (part && typeof part === 'object') {
+          // Also strip constraints from entries that both $ref and override metadata (pattern/min/max) live on.
+          stripProps(part);
+        }
+      }
+    }
+  }
+
+  // Also strip constraints from already-flattened inline parameter schemas (e.g., path params)
+  if (doc.paths) {
+    for (const pathItem of Object.values(doc.paths)) {
+      if (!pathItem || typeof pathItem !== 'object') continue;
+      for (const op of Object.values(pathItem)) {
+        if (!op || typeof op !== 'object') continue;
+        const params = op.parameters;
+        if (!Array.isArray(params)) continue;
+        for (const p of params) {
+          const s = p && p.schema;
+          if (!s || typeof s !== 'object') continue;
+          // Detect flattened domain identifier by format: string<SchemaName>
+          const fmt = s.format;
+          if (fmt && /^string<[^>]+>$/.test(fmt)) {
+            stripProps(s);
+          } else if (s.$ref === '#/components/schemas/CamundaKey') {
+            stripProps(s);
+          } else if (Array.isArray(s.allOf) && s.allOf.some(e => e.$ref === '#/components/schemas/CamundaKey')) {
+            stripProps(s);
+            s.allOf.forEach(part => { if (part) stripProps(part); });
+          }
+        }
+      }
+    }
   }
 
   return [
