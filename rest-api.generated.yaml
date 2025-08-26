@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-08-25 08:47:15
+# File generated at: 2025-08-26 15:28:23
 
 ---
 openapi: "3.0.3"
@@ -450,9 +450,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       responses:
         "200":
           description: "The tenant was retrieved successfully."
@@ -485,9 +485,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       requestBody:
         content:
           application/json:
@@ -526,9 +526,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       responses:
         "204":
           description: "The tenant was deleted successfully."
@@ -562,12 +562,14 @@ paths:
         description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       - name: "username"
         in: "path"
         required: true
         description: "The username of the user to assign."
         schema:
           type: "string"
+          description: "The unique name of a user."
       responses:
         "204":
           description: "The user was successfully assigned to the tenant."
@@ -600,12 +602,14 @@ paths:
         description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       - name: "username"
         in: "path"
         required: true
         description: "The unique identifier of the user."
         schema:
           type: "string"
+          description: "The unique name of a user."
       responses:
         "204":
           description: "The user was successfully unassigned from the tenant."
@@ -636,9 +640,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       requestBody:
         required: false
         content:
@@ -665,9 +669,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       requestBody:
         required: false
         content:
@@ -694,9 +698,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       requestBody:
         required: false
         content:
@@ -723,9 +727,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       requestBody:
         required: false
         content:
@@ -752,9 +756,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       - name: "clientId"
         in: "path"
         required: true
@@ -790,9 +794,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       - name: "clientId"
         in: "path"
         required: true
@@ -829,9 +833,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       - name: "mappingRuleId"
         in: "path"
         required: true
@@ -867,9 +871,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       - name: "mappingRuleId"
         in: "path"
         required: true
@@ -906,9 +910,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       requestBody:
         required: false
         content:
@@ -935,9 +939,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       - name: "groupId"
         in: "path"
         required: true
@@ -974,9 +978,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       - name: "groupId"
         in: "path"
         required: true
@@ -1014,9 +1018,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       - name: "roleId"
         in: "path"
         required: true
@@ -1053,9 +1057,9 @@ paths:
       - name: "tenantId"
         in: "path"
         required: true
-        description: "The unique identifier of the tenant."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       - name: "roleId"
         in: "path"
         required: true
@@ -2601,7 +2605,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       x-eventually-consistent: true
-  /decision-instances/{decisionInstanceId}:
+  /decision-instances/{decisionEvaluationInstanceKey}:
     get:
       tags:
       - "Decision instance"
@@ -2609,13 +2613,13 @@ paths:
       summary: "Get decision instance"
       description: "Returns a decision instance.\n"
       parameters:
-      - name: "decisionInstanceId"
+      - name: "decisionEvaluationInstanceKey"
         in: "path"
         required: true
-        description: "The assigned ID of the decision instance, which acts as a unique\
-          \ identifier for this decision instance."
         schema:
           type: "string"
+          description: "Key for a decision evaluation instance. Only use values returned\
+            \ by the system."
       responses:
         "200":
           description: "The decision instance is successfully returned.\n"
@@ -3095,6 +3099,7 @@ paths:
         description: "The user username."
         schema:
           type: "string"
+          description: "The unique name of a user."
       responses:
         "204":
           description: "The role was assigned successfully to the user."
@@ -3139,6 +3144,7 @@ paths:
         description: "The user username."
         schema:
           type: "string"
+          description: "The unique name of a user."
       responses:
         "204":
           description: "The role was unassigned successfully from the user."
@@ -3848,6 +3854,7 @@ paths:
         description: "The user username."
         schema:
           type: "string"
+          description: "The unique name of a user."
       responses:
         "204":
           description: "The user was assigned successfully to the group."
@@ -3893,6 +3900,7 @@ paths:
         description: "The user username."
         schema:
           type: "string"
+          description: "The unique name of a user."
       responses:
         "204":
           description: "The user was unassigned successfully from the group."
@@ -4316,6 +4324,14 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
+      x-conditional-idempotency:
+        keyFields:
+        - "messageId"
+        window:
+          field: "timeToLive"
+          unit: "ms"
+        duplicatePolicy: "ignore"
+        appliesWhen: "key-present"
   /messages/correlation:
     post:
       tags:
@@ -4724,6 +4740,7 @@ paths:
         description: "The username of the user."
         schema:
           type: "string"
+          description: "The unique name of a user."
       responses:
         "200":
           description: "The user is successfully returned."
@@ -4757,6 +4774,7 @@ paths:
         description: "The username of the user to delete."
         schema:
           type: "string"
+          description: "The unique name of a user."
       responses:
         "204":
           description: "The user was deleted successfully."
@@ -4774,6 +4792,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: true
     put:
+      x-eventually-consistent: true
       tags:
       - "User"
       operationId: "updateUser"
@@ -4786,6 +4805,7 @@ paths:
         description: "The username of the user to update."
         schema:
           type: "string"
+          description: "The unique name of a user."
       requestBody:
         content:
           application/json:
@@ -4813,7 +4833,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
-      x-eventually-consistent: false
   /setup/user:
     post:
       tags:
@@ -4942,6 +4961,7 @@ paths:
           \ for all tenants are returned."
         schema:
           type: "string"
+          description: "The unique identifier of the tenant."
       - name: "withTenants"
         in: "query"
         required: false
@@ -5524,7 +5544,7 @@ components:
       properties:
         tenantId:
           type: "string"
-          description: "The unique external tenant ID"
+          description: "The unique ID for the tenant."
         name:
           type: "string"
           description: "The name of the tenant."
@@ -5539,13 +5559,15 @@ components:
       properties:
         tenantId:
           type: "string"
-          description: "The unique external tenant ID"
+          description: "The unique identifier of the tenant."
         name:
           type: "string"
           description: "The name of the tenant."
+          example: "Customer Service Department"
         description:
           type: "string"
           description: "The description of the tenant."
+          example: "Customer Service department business processes"
     TenantUpdateRequest:
       type: "object"
       properties:
@@ -5563,7 +5585,7 @@ components:
       properties:
         tenantId:
           type: "string"
-          description: "The unique external tenant ID"
+          description: "The unique identifier of the tenant."
         name:
           type: "string"
           description: "The name of the tenant."
@@ -5577,12 +5599,14 @@ components:
         name:
           type: "string"
           description: "The tenant name."
+          example: "Customer Service department"
         tenantId:
           type: "string"
-          description: "The unique external tenant ID."
+          description: "The unique identifier of the tenant."
         description:
           type: "string"
           description: "The tenant description."
+          example: "Customer Service department business processes"
     TenantSearchQuerySortRequest:
       type: "object"
       properties:
@@ -5618,7 +5642,7 @@ components:
       properties:
         tenantId:
           type: "string"
-          description: "The ID of the tenant."
+          description: "The unique identifier of the tenant."
         name:
           type: "string"
           description: "The name of the tenant."
@@ -5884,7 +5908,7 @@ components:
           format: "date-time"
         tenantId:
           type: "string"
-          description: "Tenant ID of this user task."
+          description: "The unique identifier of the tenant."
         externalFormReference:
           type: "string"
           description: "The external form reference."
@@ -5977,8 +6001,8 @@ components:
           allOf:
           - $ref: "#/components/schemas/StringFilterProperty"
         tenantId:
-          description: "Tenant ID of this variable."
           type: "string"
+          description: "The unique identifier of the tenant."
         isTruncated:
           description: "Whether the value is truncated or not."
           type: "boolean"
@@ -6034,8 +6058,8 @@ components:
           description: "Name of this variable."
           type: "string"
         tenantId:
-          description: "Tenant ID of this variable."
           type: "string"
+          description: "The unique identifier of the tenant."
         variableKey:
           type: "string"
           description: "The key for this variable."
@@ -6107,8 +6131,8 @@ components:
           allOf:
           - $ref: "#/components/schemas/StringFilterProperty"
         tenantId:
-          description: "Tenant ID of this process definition."
           type: "string"
+          description: "The unique identifier of the tenant."
         processDefinitionKey:
           type: "string"
           description: "The key for this process definition."
@@ -6146,8 +6170,8 @@ components:
           description: "Process definition ID of this process definition."
           type: "string"
         tenantId:
-          description: "Tenant ID of this process definition."
           type: "string"
+          description: "The unique identifier of the tenant."
         processDefinitionKey:
           type: "string"
           description: "The key for this process definition."
@@ -6714,6 +6738,8 @@ components:
           description: "The incident error hash code, associated with this process."
           allOf:
           - $ref: "#/components/schemas/IntegerFilterProperty"
+        tags:
+          $ref: "#/components/schemas/TagSet"
     ProcessDefinitionStatisticsFilter:
       description: "Process definition statistics search filter."
       allOf:
@@ -6853,7 +6879,7 @@ components:
           description: "Whether this process instance has a related incident or not."
         tenantId:
           type: "string"
-          description: "The tenant ID."
+          description: "The unique identifier of the tenant."
         processInstanceKey:
           type: "string"
           description: "The key of this process instance."
@@ -6866,6 +6892,8 @@ components:
         parentElementInstanceKey:
           type: "string"
           description: "The parent element instance key."
+        tags:
+          $ref: "#/components/schemas/TagSet"
     ProcessInstanceStateEnum:
       description: "Process instance states"
       enum:
@@ -6925,8 +6953,8 @@ components:
           description: "The element ID for this sequence flow, as provided in the\
             \ BPMN process."
         tenantId:
-          description: "The tenant ID for this sequence flow."
           type: "string"
+          description: "The unique identifier of the tenant."
     ProcessDefinitionElementStatisticsQuery:
       description: "Process definition element statistics request."
       type: "object"
@@ -7075,8 +7103,8 @@ components:
           description: "Shows whether this element instance has an incident related\
             \ to."
         tenantId:
-          description: "The tenant ID."
           type: "string"
+          description: "The unique identifier of the tenant."
         elementInstanceKey:
           type: "string"
           description: "The assigned key, which acts as a unique identifier for this\
@@ -7187,8 +7215,8 @@ components:
             \ also an incidentKey is provided."
           type: "boolean"
         tenantId:
-          description: "The tenant ID of the incident."
           type: "string"
+          description: "The unique identifier of the tenant."
         elementInstanceKey:
           type: "string"
           description: "The assigned key, which acts as a unique identifier for this\
@@ -7280,7 +7308,7 @@ components:
             \ definition is part of."
         tenantId:
           type: "string"
-          description: "The tenant ID of the decision definition."
+          description: "The unique identifier of the tenant."
         decisionDefinitionKey:
           type: "string"
           description: "The assigned key, which acts as a unique identifier for this\
@@ -7372,8 +7400,8 @@ components:
           - "RESOLVED"
           - "PENDING"
         tenantId:
-          description: "The tenant ID of the incident."
           type: "string"
+          description: "The unique identifier of the tenant."
         incidentKey:
           type: "string"
           description: "The assigned key, which acts as a unique identifier for this\
@@ -7445,8 +7473,8 @@ components:
           type: "string"
           description: "The correlation key of the message subscription."
         tenantId:
-          description: "The unique external tenant ID."
           type: "string"
+          description: "The unique identifier of the tenant."
     MessageSubscriptionSearchQuerySortRequest:
       type: "object"
       properties:
@@ -7612,8 +7640,8 @@ components:
           - "RESOLVED"
           - "PENDING"
         tenantId:
-          description: "The tenant ID of the incident."
           type: "string"
+          description: "The unique identifier of the tenant."
         incidentKey:
           type: "string"
           description: "The assigned key, which acts as a unique identifier for this\
@@ -7659,7 +7687,7 @@ components:
             \ definition is part of."
         tenantId:
           type: "string"
-          description: "The tenant ID of the decision definition."
+          description: "The unique identifier of the tenant."
         decisionDefinitionKey:
           type: "string"
           description: "The assigned key, which acts as a unique identifier for this\
@@ -7906,8 +7934,8 @@ components:
       type: "object"
       properties:
         username:
-          description: "The username of the user."
           type: "string"
+          description: "The unique name of a user."
         name:
           description: "The name of the user."
           type: "string"
@@ -7918,8 +7946,8 @@ components:
       type: "object"
       properties:
         username:
-          description: "The username of the user."
           type: "string"
+          description: "The unique name of a user."
         name:
           description: "The name of the user."
           type: "string"
@@ -8030,14 +8058,16 @@ components:
       - "canLogout"
       properties:
         username:
-          description: "The username of the user."
           type: "string"
+          description: "The unique name of a user."
         displayName:
           description: "The display name of the user."
           type: "string"
+          example: "Samantha Willis"
         email:
           description: "The email of the user."
           type: "string"
+          example: "swillis@acme.com"
         authorizedComponents:
           description: "The web components the user is authorized to use."
           type: "array"
@@ -8076,8 +8106,8 @@ components:
       type: "object"
       properties:
         username:
-          description: "The username of the user."
           type: "string"
+          description: "The unique name of a user."
         name:
           description: "The name of the user."
           type: "string"
@@ -8150,8 +8180,8 @@ components:
       type: "object"
       properties:
         username:
-          description: "The username of the user."
           type: "string"
+          description: "The unique name of a user."
     TenantUserSearchResult:
       type: "object"
       allOf:
@@ -8339,8 +8369,8 @@ components:
       type: "object"
       properties:
         username:
-          description: "The username of the user."
           type: "string"
+          description: "The unique name of a user."
     RoleUserSearchResult:
       type: "object"
       allOf:
@@ -8567,8 +8597,8 @@ components:
       type: "object"
       properties:
         username:
-          description: "The username of the user."
           type: "string"
+          description: "The unique name of a user."
     GroupUserSearchResult:
       type: "object"
       allOf:
@@ -8983,6 +9013,7 @@ components:
           type: "array"
           items:
             type: "string"
+            description: "The unique identifier of the tenant."
           nullable: true
       required:
       - "type"
@@ -9055,8 +9086,8 @@ components:
           type: "object"
           additionalProperties: true
         tenantId:
-          description: "The ID of the tenant that owns the job."
           type: "string"
+          description: "The unique identifier of the tenant."
         jobKey:
           x-semantic-provider: true
           type: "string"
@@ -9078,6 +9109,8 @@ components:
           $ref: "#/components/schemas/JobListenerEventTypeEnum"
         userTask:
           $ref: "#/components/schemas/UserTaskProperties"
+        tags:
+          $ref: "#/components/schemas/TagSet"
     UserTaskProperties:
       type: "object"
       description: "Contains properties of a user task."
@@ -9562,8 +9595,8 @@ components:
         state:
           $ref: "#/components/schemas/JobStateEnum"
         tenantId:
-          description: "The tenant ID."
           type: "string"
+          description: "The unique identifier of the tenant."
         type:
           description: "The type of the job."
           type: "string"
@@ -9813,20 +9846,21 @@ components:
           description: "Total items matching the criteria."
           type: "integer"
           format: "int64"
+          example: 1
         hasMoreTotalItems:
           description: "Indicates if more results exist beyond the reported totalItems\
             \ value. Due to system limitations, the totalItems value can be capped.\n"
           type: "boolean"
+          example: false
         startCursor:
-          x-semantic-provider: true
-          nullable: true
+          type: "string"
           description: "The start cursor in a search query result set."
-          type: "string"
         endCursor:
-          x-semantic-provider: true
-          nullable: true
-          description: "The end cursor in a search query result set."
           type: "string"
+          description: "The end cursor in a search query result set."
+      example:
+        totalItems: 1
+        hasMoreTotalItems: false
     DecisionRequirementsSearchQuerySortRequest:
       type: "object"
       properties:
@@ -9873,7 +9907,7 @@ components:
           description: "the DMN ID of the decision requirements."
         tenantId:
           type: "string"
-          description: "The tenant ID of the decision requirements."
+          description: "The unique identifier of the tenant."
         decisionRequirementsKey:
           type: "string"
           description: "The assigned key, which acts as a unique identifier for this\
@@ -9911,7 +9945,7 @@ components:
             \ was parsed."
         tenantId:
           type: "string"
-          description: "The tenant ID of the decision requirements."
+          description: "The unique identifier of the tenant."
         decisionRequirementsKey:
           type: "string"
           description: "The assigned key, which acts as a unique identifier for this\
@@ -9928,8 +9962,8 @@ components:
           additionalProperties: true
           type: "object"
         tenantId:
-          description: "The tenant ID of the decision."
           type: "string"
+          description: "The unique identifier of the tenant."
         decisionDefinitionKey:
           type: "string"
           description: "Key for a decision definition. Only use values returned by\
@@ -9947,8 +9981,8 @@ components:
           additionalProperties: true
           type: "object"
         tenantId:
-          description: "The tenant ID of the decision."
           type: "string"
+          description: "The unique identifier of the tenant."
       required:
       - "decisionDefinitionId"
     DecisionEvaluationByKey:
@@ -9964,8 +9998,8 @@ components:
           additionalProperties: true
           type: "object"
         tenantId:
-          description: "The tenant ID of the decision."
           type: "string"
+          description: "The unique identifier of the tenant."
       required:
       - "decisionDefinitionKey"
     EvaluateDecisionResult:
@@ -9996,8 +10030,8 @@ components:
           description: "Message describing why the decision which was evaluated failed."
           type: "string"
         tenantId:
-          description: "The tenant ID of the evaluated decision."
           type: "string"
+          description: "The unique identifier of the tenant."
         decisionDefinitionKey:
           type: "string"
           description: "The unique key identifying the decision which was evaluated."
@@ -10042,8 +10076,8 @@ components:
             \ which was evaluated.\n"
           type: "string"
         tenantId:
-          description: "The tenant ID of the evaluated decision."
           type: "string"
+          description: "The unique identifier of the tenant."
         matchedRules:
           description: "The decision rules that matched within this decision evaluation."
           type: "array"
@@ -10059,6 +10093,7 @@ components:
           type: "string"
           description: "The unique key identifying the decision which was evaluate."
         decisionEvaluationInstanceKey:
+          x-semantic-provider: true
           type: "string"
           description: "The unique key identifying this decision evaluation instance."
     MatchedDecisionRuleItem:
@@ -10115,8 +10150,8 @@ components:
           - "decisionDefinitionName"
           - "decisionDefinitionType"
           - "decisionDefinitionVersion"
-          - "decisionInstanceId"
-          - "decisionInstanceKey"
+          - "decisionEvaluationInstanceKey"
+          - "decisionEvaluationKey"
           - "elementInstanceKey"
           - "evaluationDate"
           - "evaluationFailure"
@@ -10146,9 +10181,10 @@ components:
       description: "Decision instance search filter."
       type: "object"
       properties:
-        decisionInstanceId:
+        decisionEvaluationInstanceKey:
           type: "string"
-          description: "The ID of the decision instance."
+          description: "Key for a decision evaluation instance. Only use values returned\
+            \ by the system."
         state:
           $ref: "#/components/schemas/DecisionInstanceStateEnum"
         evaluationFailure:
@@ -10172,8 +10208,8 @@ components:
           $ref: "#/components/schemas/DecisionDefinitionTypeEnum"
         tenantId:
           type: "string"
-          description: "The tenant ID of the decision instance."
-        decisionInstanceKey:
+          description: "The unique identifier of the tenant."
+        decisionEvaluationKey:
           type: "string"
           description: "The key of the decision instance. Note that this is not the\
             \ unique identifier of the entity itself; the `decisionInstanceId` serves\
@@ -10206,9 +10242,10 @@ components:
     DecisionInstanceResult:
       type: "object"
       properties:
-        decisionInstanceId:
+        decisionEvaluationInstanceKey:
           type: "string"
-          description: "The ID of the decision instance."
+          description: "Key for a decision evaluation instance. Only use values returned\
+            \ by the system."
         state:
           $ref: "#/components/schemas/DecisionInstanceStateEnum"
         evaluationDate:
@@ -10235,12 +10272,11 @@ components:
           description: "The result of the decision instance."
         tenantId:
           type: "string"
-          description: "The tenant ID of the decision instance."
-        decisionInstanceKey:
+          description: "The unique identifier of the tenant."
+        decisionEvaluationKey:
           type: "string"
-          description: "The key of the decision instance. Note that this is not the\
-            \ unique identifier of the entity itself; the `decisionInstanceId` serves\
-            \ as the primary identifier."
+          description: "The key of the decision evaluation where this instance was\
+            \ created."
         processDefinitionKey:
           type: "string"
           description: "The key of the process definition."
@@ -10312,9 +10348,8 @@ components:
           type: "object"
           nullable: true
         tenantId:
-          description: "the tenant for which the message is published"
           type: "string"
-          nullable: true
+          description: "The unique identifier of the tenant."
     MessageCorrelationResult:
       description: "The message key of the correlated message, as well as the first\
         \ process instance key it\ncorrelated with.\n"
@@ -10356,9 +10391,8 @@ components:
           type: "object"
           nullable: true
         tenantId:
-          description: "The tenant of the message sender."
           type: "string"
-          nullable: true
+          description: "The unique identifier of the tenant."
       required:
       - "name"
       - "correlationKey"
@@ -10367,8 +10401,8 @@ components:
       type: "object"
       properties:
         tenantId:
-          description: "The tenant ID of the message."
           type: "string"
+          description: "The unique identifier of the tenant."
         messageKey:
           type: "string"
           description: "The key of the message"
@@ -10471,8 +10505,8 @@ components:
       - "deployments"
       properties:
         tenantId:
-          description: "The tenant ID associated with the deployment."
           type: "string"
+          description: "The unique identifier of the tenant."
         deploymentKey:
           type: "string"
           description: "The unique key identifying the deployment."
@@ -10517,7 +10551,7 @@ components:
           description: "The resource name from which this process was parsed."
         tenantId:
           type: "string"
-          description: "The tenant ID of the deployed process."
+          description: "The unique identifier of the tenant."
         processDefinitionKey:
           x-semantic-provider: true
           type: "string"
@@ -10540,7 +10574,7 @@ components:
           description: "The DMN name of the decision, as parsed during deployment."
         tenantId:
           type: "string"
-          description: "The tenant ID of the deployed decision."
+          description: "The unique identifier of the tenant."
         decisionRequirementsId:
           type: "string"
           description: "The dmn ID of the decision requirements graph that this decision\
@@ -10574,7 +10608,7 @@ components:
             \ deployment."
         tenantId:
           type: "string"
-          description: "The tenant ID of the deployed decision requirements."
+          description: "The unique identifier of the tenant."
         resourceName:
           type: "string"
           description: "The resource name from which this decision requirements was\
@@ -10601,7 +10635,7 @@ components:
           description: "The resource name from which this form was parsed."
         tenantId:
           type: "string"
-          description: "The tenant ID of the deployed form."
+          description: "The unique identifier of the tenant."
         formKey:
           x-semantic-provider: true
           type: "string"
@@ -10624,7 +10658,7 @@ components:
           description: "The resource name from which this resource was parsed."
         tenantId:
           type: "string"
-          description: "The tenant ID of the deployed form."
+          description: "The unique identifier of the tenant."
         resourceKey:
           x-semantic-provider: true
           type: "string"
@@ -10656,8 +10690,8 @@ components:
           type: "object"
           additionalProperties: true
         tenantId:
-          description: "The tenant ID of the process definition."
           type: "string"
+          description: "The unique identifier of the tenant."
         operationReference:
           $ref: "#/components/schemas/OperationReference"
         startInstructions:
@@ -10695,6 +10729,8 @@ components:
             \ in the cluster is applied.\n"
           type: "integer"
           format: "int64"
+        tags:
+          $ref: "#/components/schemas/TagSet"
         processDefinitionKey:
           type: "string"
           description: "The unique key identifying the process definition, for example,\
@@ -10722,8 +10758,8 @@ components:
           type: "object"
           additionalProperties: true
         tenantId:
-          description: "The tenant ID of the process definition."
           type: "string"
+          description: "The unique identifier of the tenant."
         operationReference:
           $ref: "#/components/schemas/OperationReference"
         startInstructions:
@@ -10761,6 +10797,8 @@ components:
             \ in the cluster is applied.\n"
           type: "integer"
           format: "int64"
+        tags:
+          $ref: "#/components/schemas/TagSet"
     ProcessInstanceCreationInstructionByKey:
       type: "object"
       title: "Process creation by key"
@@ -10778,8 +10816,8 @@ components:
           type: "object"
           additionalProperties: true
         tenantId:
-          description: "The tenant ID of the process definition."
           type: "string"
+          description: "The unique identifier of the tenant."
         operationReference:
           $ref: "#/components/schemas/OperationReference"
         startInstructions:
@@ -10817,6 +10855,8 @@ components:
             \ in the cluster is applied.\n"
           type: "integer"
           format: "int64"
+        tags:
+          $ref: "#/components/schemas/TagSet"
     ProcessInstanceCreationStartInstruction:
       type: "object"
       properties:
@@ -10879,9 +10919,8 @@ components:
           format: "int32"
           example: 3
         tenantId:
-          description: "The tenant ID of the created process instance."
           type: "string"
-          example: "<default>"
+          description: "The unique identifier of the tenant."
         variables:
           additionalProperties: true
           description: "All the variables visible in the root scope."
@@ -10895,6 +10934,8 @@ components:
           type: "string"
           description: "The unique identifier of the created process instance; to\
             \ be used wherever a request\nneeds a process instance key (e.g. CancelProcessInstanceRequest).\n"
+        tags:
+          $ref: "#/components/schemas/TagSet"
     ProcessInstanceMigrationBatchOperationRequest:
       type: "object"
       properties:
@@ -11063,8 +11104,8 @@ components:
           description: "The signal variables as a JSON object."
           type: "object"
         tenantId:
-          description: "The ID of the tenant that owns the signal."
           type: "string"
+          description: "The unique identifier of the tenant."
       required:
       - "signalName"
     SignalBroadcastResult:
@@ -11074,8 +11115,8 @@ components:
       - "signalKey"
       properties:
         tenantId:
-          description: "The tenant ID of the signal that was broadcast."
           type: "string"
+          description: "The unique identifier of the tenant."
         signalKey:
           type: "string"
           description: "The unique ID of the signal that was broadcast."
@@ -11083,8 +11124,8 @@ components:
       type: "object"
       properties:
         tenantId:
-          description: "The tenant ID of the form."
           type: "string"
+          description: "The unique identifier of the tenant."
         formId:
           description: "The user-provided identifier of the form."
           type: "string"
@@ -11116,8 +11157,8 @@ components:
           description: "The resource ID of this resource."
           type: "string"
         tenantId:
-          description: "The tenant ID of this resource."
           type: "string"
+          description: "The unique identifier of the tenant."
         resourceKey:
           type: "string"
           description: "The unique key of this resource."
@@ -11500,6 +11541,27 @@ components:
       required:
       - "sourceElementId"
       - "targetElementId"
+    Tag:
+      type: "string"
+      description: "A tag. Needs to start with a letter; then alphanumerics, `_`,\
+        \ `-`, `:`, or `.`; length ≤ 100."
+      minLength: 1
+      maxLength: 100
+      pattern: "^[A-Za-z][A-Za-z0-9_\\-:.]{0,99}$"
+      example: "business_key:1234"
+    TagSet:
+      description: "List of tags"
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Tag"
+      uniqueItems: true
+      maxItems: 10
+    TenantId:
+      type: "string"
+      description: "The unique identifier of the tenant."
+    Username:
+      type: "string"
+      description: "The unique name of a user."
   responses:
     InternalServerError:
       description: "An internal error occurred while processing the request.\n"
