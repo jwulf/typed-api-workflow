@@ -308,10 +308,10 @@ export class TypeScriptCamundaKeysToTypes {
 
     let content = fs.readFileSync(modelsPath, 'utf8');
     
-    // Check if we've already enhanced the ObjectSerializer
-    if (content.includes('// Semantic type handling')) {
-      console.log(`  ✓ ObjectSerializer already enhanced`);
-  return;
+    // Check if we've already enhanced or centralized the ObjectSerializer
+    if (content.includes('// Semantic type handling') || content.includes('Centralized semantic registry handling')) {
+      console.log(`  ✓ ObjectSerializer already enhanced (detected existing semantic handling)`);
+      return;
     }
 
     // Add or merge import for semantic types at the top
@@ -507,7 +507,8 @@ export class TypeScriptCamundaKeysToTypes {
     for (const typeName of semanticTypeNames) {
       enhancement += `        else if (type === "${typeName}") {\n`;
       enhancement += `            const __vmode = (typeof process !== 'undefined' && (process as any).env && (process as any).env.CAMUNDA_SDK_VALIDATION) || 'strict';\n`;
-      enhancement += `            if (__vmode === 'none') { return data as string; }\n`;
+  // In 'none' mode we still brand to preserve nominal typing, we just skip validation
+  enhancement += `            if (__vmode === 'none') { try { return ${typeName}.create(data as string); } catch { return Object.assign(new String(data as string), { __type: '${typeName}' }); } }\n`;
       enhancement += `            try {\n`;
       enhancement += `                return ${typeName}.create(data as string);\n`;
       enhancement += `            } catch (e) {\n`;

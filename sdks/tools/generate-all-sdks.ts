@@ -12,6 +12,7 @@ import { EventuallyConsistentEnhancer } from './enhancements/EventuallyConsisten
 import { TracingEnhancer } from './enhancements/TracingEnhancer';
 import { TypeScriptPolymorphicSchemaEnhancer } from './enhancements/typescript/TypeScriptPolymorphicSchemaEnhancer';
 import { TypeScriptZodValidationEnhancer } from './enhancements/typescript/TypeScriptZodValidationEnhancer';
+import { TypeScriptAttributeTypeMapSyncEnhancer } from './enhancements/typescript/TypeScriptAttributeTypeMapSyncEnhancer';
 import { ASTTypeScriptOneOfUnionEnhancer } from './enhancements/typescript/ASTTypeScriptOneOfUnionEnhancer';
 import { TypeScriptTsConfigEnhancer } from './enhancements/typescript/TypeScriptTsConfigEnhancer';
 import { TypeScriptExclusiveUnionEnhancer } from './enhancements/typescript/TypeScriptExclusiveUnionEnhancer';
@@ -35,6 +36,7 @@ const enhancementStrategies = [
     TypeScriptExclusiveUnionEnhancer, // Enforce exclusive unions (XOR) for object unions
     TypeScriptErgonomicBuildersEnhancer, // Generate IDE-friendly builders for union aliases
     TypeScriptApiMethodOverloadEnhancer, // Add method overloads for APIs
+    TypeScriptAttributeTypeMapSyncEnhancer, // Ensure attributeTypeMap matches final property declarations
     TypeScriptZodValidationEnhancer, // Inject centralized Zod validation
 ];
 

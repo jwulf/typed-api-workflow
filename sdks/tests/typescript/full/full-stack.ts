@@ -178,10 +178,11 @@ async function main() {
 
         console.log(`Found ${searchResults.items?.length || 0} process instances`)
 
-        console.log(JSON.stringify(searchResults.items, null, 2))
+        console.log(JSON.stringify(searchResults, null, 2))
 
         // Proper way to validate a ProcessInstanceKey
         const firstProcessInstanceKey = searchResults?.items?.[0].processInstanceKey;
+        console.log(firstProcessInstanceKey, typeof firstProcessInstanceKey)
         const isValidProcessInstanceKey = firstProcessInstanceKey ?
             ProcessInstanceKey.isValid(ProcessInstanceKey.getValue(firstProcessInstanceKey)) : false;
 

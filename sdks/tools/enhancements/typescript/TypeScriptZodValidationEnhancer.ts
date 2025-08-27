@@ -75,9 +75,18 @@ export class TypeScriptZodValidationEnhancer extends FlexibleSdkEnhancementStrat
       );
     }
 
-    // Ensure any pre-existing object schemas become partial
-    if (content.includes('return z.object(shape);')) {
-      content = content.replace('return z.object(shape);', 'return z.object(shape).partial();');
+    // Replace object schema construction to honor required flags instead of global partial()
+    // We look for the original pattern: const shape ... return z.object(shape);
+    // and afterward inject a transformation that wraps non-required fields with optional().
+    if (content.includes('const attr = (typeMap as any)[t].getAttributeTypeMap();')) {
+      // Inject per-field optional handling inside __zodBuildSchema loop
+      content = content.replace(/for \(const a of attr\) {\n\s*const s = __zodBuildSchema\(a.type\);\n\s*shape\[a.baseName\] = s;\n\s*}/,
+        'for (const a of attr) {\n        let s = __zodBuildSchema(a.type);\n        if (!a.required) {\n            s = s.optional();\n        }\n        shape[a.baseName] = s;\n    }');
+    }
+    if (content.includes('return z.object(shape).partial();')) {
+      content = content.replace('return z.object(shape).partial();', 'return z.object(shape);');
+    } else if (content.includes('return z.object(shape);')) {
+      // leave as-is
     }
 
     // Normalize any previously injected __zodValidate to a non-swallowing implementation

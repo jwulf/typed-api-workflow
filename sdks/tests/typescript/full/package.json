@@ -5,7 +5,8 @@
   "scripts": {
     "build": "tsc",
     "start:trace": "CAMUNDA_TRACE_REQUESTS=true ts-node full-stack.ts",
-    "start": "OTEL_TRACING_ENABLED=false ts-node full-stack.ts",
+    "start": "OTEL_TRACING_ENABLED=false CAMUNDA_SDK_VALIDATION=none ts-node full-stack.ts",
+    "start:strict": "OTEL_TRACING_ENABLED=false CAMUNDA_SDK_VALIDATION=strict ts-node full-stack.ts",
     "test": "npm run start",
     "signal": "CAMUNDA_SDK_VALIDATION=none && cd signal && ts-node signal.ts",
     "signal:strict": "export CAMUNDA_SDK_VALIDATION=strict && cd signal &&  ts-node signal.ts",
