@@ -5583,6 +5583,9 @@ components:
         tenantId:
           type: "string"
           description: "The unique ID for the tenant."
+          minLength: 1
+          maxLength: 256
+          pattern: "^[A-Za-z0-9_@.+-]+$"
         name:
           type: "string"
           description: "The name of the tenant."
@@ -10253,9 +10256,9 @@ components:
         decisionEvaluationKey:
           allOf:
             - $ref: "#/components/schemas/DecisionEvaluationKey"
-            - description: "The key of the decision instance. Note that this is not\
-                \ the unique identifier of the entity itself; the `decisionInstanceId`\
-                \ serves as the primary identifier.\n"
+            - description: "The key of the parent decision evaluation. Note that this is not\
+                \ the unique identifier of the decision instance; the `decisionEvaluationInstanceKey`\
+                \ is the identifier.\n"
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
