@@ -8090,7 +8090,6 @@ components:
       type: "object"
       required:
         - "username"
-        - "authorizedComponents"
         - "tenants"
         - "groups"
         - "roles" 
@@ -9886,7 +9885,6 @@ components:
       type: "object"
       required:
         - "totalItems"
-        - "hasMoreTotalItems"
       properties:
         totalItems:
           description: "Total items matching the criteria."
@@ -11584,22 +11582,22 @@ components:
     TenantId: 
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
-          example: "customer-service"
+        - example: "customer-service"
           format: "TenantId"
           description: "The unique identifier of the tenant."
           x-semantic-type: "TenantId"
-          minLength: "1" 
-          maxLength: "256" 
+          minLength: 1
+          maxLength: 256
           pattern: "^(<default>|[A-Za-z0-9_@.+-]+)$"
     Username: 
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
-          example: "swillis"
+        - example: "swillis"
           format: "Username"
           description: "The unique name of a user."
           x-semantic-type: "Username"
-          minLength: "1" 
-          maxLength: "256" 
+          minLength: 1
+          maxLength: 256
           pattern: "^(<default>|[A-Za-z0-9_@.+-]+)$"
     OperationMetadata:
       description: "Information about the operation effect characteristics. Suitable for reasoning about the idempotency and safety of operations"
