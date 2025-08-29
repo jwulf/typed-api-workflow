@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-08-27 15:37:31
+# File generated at: 2025-08-29 20:05:39
 
 ---
 openapi: "3.0.3"
@@ -200,7 +200,7 @@ paths:
         description: "The key of the job to fail."
         schema:
           type: "string"
-          description: "Key for a job. Only use values returned by the system."
+          description: "System-generated key for a job."
       requestBody:
         required: false
         content:
@@ -245,7 +245,7 @@ paths:
         description: "The key of the job."
         schema:
           type: "string"
-          description: "Key for a job. Only use values returned by the system."
+          description: "System-generated key for a job."
       requestBody:
         required: true
         content:
@@ -290,7 +290,7 @@ paths:
         description: "The key of the job to complete."
         schema:
           type: "string"
-          description: "Key for a job. Only use values returned by the system."
+          description: "System-generated key for a job."
       requestBody:
         required: false
         content:
@@ -334,7 +334,7 @@ paths:
         description: "The key of the job to update."
         schema:
           type: "string"
-          description: "Key for a job. Only use values returned by the system."
+          description: "System-generated key for a job."
       requestBody:
         required: true
         content:
@@ -379,7 +379,7 @@ paths:
         description: "Key of the incident to resolve."
         schema:
           type: "string"
-          description: "Key for a incident. Only use values returned by the system."
+          description: "System-generated key for a incident."
       requestBody:
         required: false
         content:
@@ -1133,7 +1133,7 @@ paths:
         description: "The key of the user task to complete."
         schema:
           type: "string"
-          description: "Key for a user task. Only use values returned by the system."
+          description: "System-generated key for a user task."
       requestBody:
         required: false
         content:
@@ -1177,7 +1177,7 @@ paths:
         description: "The key of the user task to assign."
         schema:
           type: "string"
-          description: "Key for a user task. Only use values returned by the system."
+          description: "System-generated key for a user task."
       requestBody:
         required: true
         content:
@@ -1222,7 +1222,7 @@ paths:
         description: "The user task key."
         schema:
           type: "string"
-          description: "Key for a user task. Only use values returned by the system."
+          description: "System-generated key for a user task."
       responses:
         "200":
           description: "The user task is successfully returned.\n"
@@ -1257,7 +1257,7 @@ paths:
         description: "The key of the user task to update."
         schema:
           type: "string"
-          description: "Key for a user task. Only use values returned by the system."
+          description: "System-generated key for a user task."
       requestBody:
         required: false
         content:
@@ -1303,7 +1303,7 @@ paths:
         description: "The user task key."
         schema:
           type: "string"
-          description: "Key for a user task. Only use values returned by the system."
+          description: "System-generated key for a user task."
       responses:
         "200":
           description: "The form is successfully returned.\n"
@@ -1341,7 +1341,7 @@ paths:
         description: "The key of the user task."
         schema:
           type: "string"
-          description: "Key for a user task. Only use values returned by the system."
+          description: "System-generated key for a user task."
       responses:
         "204":
           description: "The user task was unassigned successfully."
@@ -1409,7 +1409,7 @@ paths:
         description: "The key of the user task."
         schema:
           type: "string"
-          description: "Key for a user task. Only use values returned by the system."
+          description: "System-generated key for a user task."
       requestBody:
         required: false
         content:
@@ -1470,7 +1470,7 @@ paths:
         description: "The variable key."
         schema:
           type: "string"
-          description: "Key for a variable. Only use values returned by the system."
+          description: "System-generated key for a variable."
       responses:
         "200":
           description: "The variable is successfully returned.\n"
@@ -1584,8 +1584,7 @@ paths:
           \ unique identifier for this process definition."
         schema:
           type: "string"
-          description: "Key for a process definition. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a deployed process definition."
       responses:
         "200":
           description: "The process definition is successfully returned.\n"
@@ -1624,8 +1623,7 @@ paths:
           \ unique identifier for this process."
         schema:
           type: "string"
-          description: "Key for a process definition. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a deployed process definition."
       responses:
         "200":
           description: "The XML of the process definition is successfully returned.\n"
@@ -1670,8 +1668,7 @@ paths:
         description: "The process key."
         schema:
           type: "string"
-          description: "Key for a process definition. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a deployed process definition."
       responses:
         "200":
           description: "The form is successfully returned.\n"
@@ -1712,8 +1709,7 @@ paths:
           \ unique identifier for this process definition."
         schema:
           type: "string"
-          description: "Key for a process definition. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a deployed process definition."
       requestBody:
         required: false
         content:
@@ -1803,8 +1799,7 @@ paths:
         description: "The process instance key."
         schema:
           type: "string"
-          description: "Key for a process instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a process instance."
       responses:
         "200":
           description: "The process instance is successfully returned."
@@ -1842,8 +1837,7 @@ paths:
           \ identifier for this process instance."
         schema:
           type: "string"
-          description: "Key for a process instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a process instance."
       responses:
         "200":
           description: "The process instance sequence flows result."
@@ -1875,8 +1869,7 @@ paths:
           \ identifier for this process instance."
         schema:
           type: "string"
-          description: "Key for a process instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a process instance."
       responses:
         "200":
           description: "The process instance statistics result."
@@ -1938,8 +1931,7 @@ paths:
           \ identifier for this process instance."
         schema:
           type: "string"
-          description: "Key for a process instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a process instance."
       requestBody:
         required: false
         content:
@@ -1984,8 +1976,7 @@ paths:
         description: "The key of the process instance to cancel."
         schema:
           type: "string"
-          description: "Key for a process instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a process instance."
       requestBody:
         required: false
         content:
@@ -2182,8 +2173,7 @@ paths:
         description: "The key of the process instance that should be migrated."
         schema:
           type: "string"
-          description: "Key for a process instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a process instance."
       requestBody:
         required: true
         content:
@@ -2224,8 +2214,7 @@ paths:
         description: "The key of the process instance that should be modified."
         schema:
           type: "string"
-          description: "Key for a process instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a process instance."
       requestBody:
         required: true
         content:
@@ -2263,8 +2252,7 @@ paths:
         description: "The key of the process instance to fetch the hierarchy for."
         schema:
           type: "string"
-          description: "Key for a process instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a process instance."
       responses:
         "200":
           description: "The call hierarchy is successfully returned."
@@ -2333,8 +2321,7 @@ paths:
           \ identifier for this element instance."
         schema:
           type: "string"
-          description: "Key for a element instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a element instance."
       responses:
         "200":
           description: "The element instance is successfully returned.\n"
@@ -2402,8 +2389,7 @@ paths:
           \ unique identifier for this decision."
         schema:
           type: "string"
-          description: "Key for a decision definition. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a decision definition."
       responses:
         "200":
           description: "The decision definition is successfully returned.\n"
@@ -2442,8 +2428,7 @@ paths:
           \ unique identifier for this decision."
         schema:
           type: "string"
-          description: "Key for a decision definition. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a decision definition."
       responses:
         "200":
           description: "The XML of the decision definition is successfully returned.\n"
@@ -2511,8 +2496,7 @@ paths:
           \ a unique identifier for this decision requirements."
         schema:
           type: "string"
-          description: "Key for a decision definition. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a decision definition."
       responses:
         "200":
           description: "The decision requirements is successfully returned.\n"
@@ -2551,8 +2535,8 @@ paths:
           \ a unique identifier for this decision."
         schema:
           type: "string"
-          description: "Key for a decision requirements definition. Only use values\
-            \ returned by the system."
+          description: "System-generated key for a deployed decision requirements\
+            \ definition."
       responses:
         "200":
           description: "The XML of the decision requirements is successfully returned.\n"
@@ -2618,8 +2602,7 @@ paths:
         required: true
         schema:
           type: "string"
-          description: "Key for a decision evaluation instance. Only use values returned\
-            \ by the system."
+          description: "System-generated key for a decision evaluation instance."
       responses:
         "200":
           description: "The decision instance is successfully returned.\n"
@@ -2741,8 +2724,7 @@ paths:
         description: "The key of the authorization to delete."
         schema:
           type: "string"
-          description: "Key for an authorization. Only use values returned by the\
-            \ system."
+          description: "System-generated key for an authorization."
       requestBody:
         content:
           application/json:
@@ -2778,8 +2760,7 @@ paths:
         description: "The key of the authorization to get."
         schema:
           type: "string"
-          description: "Key for an authorization. Only use values returned by the\
-            \ system."
+          description: "System-generated key for an authorization."
       responses:
         "200":
           description: "The authorization was successfully returned."
@@ -2813,8 +2794,7 @@ paths:
         description: "The key of the authorization to delete."
         schema:
           type: "string"
-          description: "Key for an authorization. Only use values returned by the\
-            \ system."
+          description: "System-generated key for an authorization."
       responses:
         "204":
           description: "The authorization was deleted successfully."
@@ -4908,7 +4888,7 @@ paths:
           \ for this incident."
         schema:
           type: "string"
-          description: "Key for a incident. Only use values returned by the system."
+          description: "System-generated key for a incident."
       responses:
         "200":
           description: "The incident is successfully returned.\n"
@@ -5046,6 +5026,7 @@ paths:
           \ the key of a form definition\n"
         schema:
           type: "string"
+          description: "The system-assigned key for this resource."
       requestBody:
         required: false
         content:
@@ -5083,6 +5064,7 @@ paths:
         description: "The unique key identifying the resource."
         schema:
           type: "string"
+          description: "The system-assigned key for this resource."
       responses:
         "200":
           description: "The resource is successfully returned."
@@ -5114,6 +5096,7 @@ paths:
         description: "The unique key identifying the resource."
         schema:
           type: "string"
+          description: "The system-assigned key for this resource."
       responses:
         "200":
           description: "The resource content is successfully returned."
@@ -5149,8 +5132,7 @@ paths:
           \ on the job message).\n"
         schema:
           type: "string"
-          description: "Key for a element instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a element instance."
       requestBody:
         required: true
         content:
@@ -5184,8 +5166,7 @@ paths:
           \ activities."
         schema:
           type: "string"
-          description: "Key for a element instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a element instance."
       requestBody:
         required: true
         content:
@@ -5260,6 +5241,7 @@ paths:
         description: "The key (or operate legacy ID) of the batch operation.\n"
         schema:
           type: "string"
+          description: "System-generated key for an batch operation."
       responses:
         "200":
           description: "The batch operation was found."
@@ -5326,6 +5308,7 @@ paths:
         description: "The key (or operate legacy ID) of the batch operation.\n"
         schema:
           type: "string"
+          description: "System-generated key for an batch operation."
       requestBody:
         content:
           application/json: {}
@@ -5362,6 +5345,7 @@ paths:
         description: "The key (or operate legacy ID) of the batch operation.\n"
         schema:
           type: "string"
+          description: "System-generated key for an batch operation."
       requestBody:
         content:
           application/json: {}
@@ -5400,6 +5384,7 @@ paths:
         description: "The key (or operate legacy ID) of the batch operation.\n"
         schema:
           type: "string"
+          description: "System-generated key for an batch operation."
       requestBody:
         content:
           application/json: {}
@@ -5457,94 +5442,42 @@ components:
     CamundaKey:
       type: "string"
       format: "Camunda Key"
+      description: "System-assigned key for a system entity. These keys are generated\
+        \ by the system on entity creation."
+    LongKey:
+      description: "Zeebe Engine resource key (Java long serialized as string)"
+      type: "string"
       pattern: "^-?[0-9]+$"
       minLength: 1
       maxLength: 20
-      description: "System-assigned entity key (Java long serialized as string)"
-    StartCursor:
-      type: "string"
-      description: "The start cursor in a search query result set."
-    EndCursor:
-      type: "string"
-      description: "The end cursor in a search query result set."
-    ProcessInstanceKey:
-      type: "string"
-      description: "Key for a process instance. Only use values returned by the system."
-    DeploymentKey:
-      type: "string"
-      description: "Key for a deployment."
-    UserTaskKey:
-      type: "string"
-      description: "Key for a user task. Only use values returned by the system."
-    ProcessDefinitionKey:
-      type: "string"
-      description: "Key for a process definition. Only use values returned by the\
-        \ system."
-    ElementInstanceKey:
-      type: "string"
-      description: "Key for a element instance. Only use values returned by the system."
-    FormKey:
-      type: "string"
-      description: "Key for a form. Only use values returned by the system."
-    VariableKey:
-      type: "string"
-      description: "Key for a variable. Only use values returned by the system."
-    ResourceKey:
-      type: "string"
-    ScopeKey:
-      type: "string"
-      description: "Key for a scope. Only use values returned by the system."
-    IncidentKey:
-      type: "string"
-      description: "Key for a incident. Only use values returned by the system."
-    JobKey:
-      type: "string"
-      description: "Key for a job. Only use values returned by the system."
-    MessageSubscriptionKey:
-      type: "string"
-      description: "Key for a message subscription. Only use values returned by the\
-        \ system."
-    MessageCorrelationKey:
-      type: "string"
-      description: "Key for a message correlation. Only use values returned by the\
-        \ system."
-    DecisionDefinitionKey:
-      type: "string"
-      description: "Key for a decision definition. Only use values returned by the\
-        \ system."
-    DecisionEvaluationInstanceKey:
-      type: "string"
-      description: "Key for a decision evaluation instance. Only use values returned\
-        \ by the system."
-    DecisionEvaluationKey:
-      type: "string"
-      description: "Key for a decision evaluation. Only use values returned by the\
-        \ system."
-    DecisionRequirementsKey:
-      type: "string"
-      description: "Key for a decision requirements definition. Only use values returned\
-        \ by the system."
-    AuthorizationKey:
-      type: "string"
-      description: "Key for an authorization. Only use values returned by the system."
-    MessageKey:
-      type: "string"
-      description: "Key for an message. Only use values returned by the system."
-    DecisionInstanceKey:
-      type: "string"
-      description: "Key for an decision instance. Only use values returned by the\
-        \ system."
-    SignalKey:
-      type: "string"
-      description: "Key for an signal. Only use values returned by the system."
-    BatchOperationKey:
-      type: "string"
+    ProcessDefinitionId:
+      allOf:
+      - description: "Id of a process definition, from the model. Only ids of process\
+          \ definitions that are deployed are useful."
+      - format: "ProcessDefinitionId"
+      - x-semantic-type: "ProcessDefinitionId"
+        minLength: 1
+        pattern: "^[a-zA-Z_][a-zA-Z0-9_\\-\\.]*$"
+        example: "new-hire-onboarding-workflow"
+    DecisionDefinitionId:
+      allOf:
+      - description: "Id of a decision definition, from the model. Only ids of decision\
+          \ definitions that are deployed are useful."
+      - format: "DecisionDefinitionId"
+      - x-semantic-type: "DecisionDefinitionId"
+        minLength: 1
+        maxLength: 256
+        pattern: "^[A-Za-z0-9_@.+-]+$"
+        example: "new-hire-onboarding-workflow"
     TenantCreateRequest:
       type: "object"
       properties:
         tenantId:
           type: "string"
           description: "The unique ID for the tenant."
+          minLength: 1
+          maxLength: 256
+          pattern: "^[A-Za-z0-9_@.+-]+$"
         name:
           type: "string"
           description: "The name of the tenant."
@@ -5769,7 +5702,8 @@ components:
           - $ref: "#/components/schemas/StringFilterProperty"
           description: "Tenant ID of this user task."
         processDefinitionId:
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
           description: "The ID of the process definition."
         creationDate:
           description: "The user task creation date."
@@ -5888,7 +5822,8 @@ components:
           items:
             type: "string"
         processDefinitionId:
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
           description: "The ID of the process definition."
         creationDate:
           type: "string"
@@ -6168,7 +6103,8 @@ components:
           type: "string"
         processDefinitionId:
           description: "Process definition ID of this process definition."
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
         tenantId:
           type: "string"
           description: "The unique identifier of the tenant."
@@ -6361,12 +6297,10 @@ components:
       properties:
         $eq:
           type: "string"
-          description: "Key for a decision definition. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a decision definition."
         $neq:
           type: "string"
-          description: "Key for a decision definition. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a decision definition."
         $exists:
           description: "Checks if the current property exists."
           type: "boolean"
@@ -6375,15 +6309,13 @@ components:
           type: "array"
           items:
             type: "string"
-            description: "Key for a decision definition. Only use values returned\
-              \ by the system."
+            description: "System-generated key for a decision definition."
         $notIn:
           description: "Checks if the property matches none of the provided values."
           type: "array"
           items:
             type: "string"
-            description: "Key for a decision definition. Only use values returned\
-              \ by the system."
+            description: "System-generated key for a decision definition."
     AdvancedDateTimeFilter:
       title: "Advanced filter"
       description: "Advanced date-time filter."
@@ -6480,12 +6412,10 @@ components:
       properties:
         $eq:
           type: "string"
-          description: "Key for a process definition. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a deployed process definition."
         $neq:
           type: "string"
-          description: "Key for a process definition. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a deployed process definition."
         $exists:
           description: "Checks if the current property exists."
           type: "boolean"
@@ -6493,15 +6423,13 @@ components:
           type: "array"
           items:
             type: "string"
-            description: "Key for a process definition. Only use values returned by\
-              \ the system."
+            description: "System-generated key for a deployed process definition."
           description: "Checks if the property matches any of the provided values."
         $notIn:
           type: "array"
           items:
             type: "string"
-            description: "Key for a process definition. Only use values returned by\
-              \ the system."
+            description: "System-generated key for a deployed process definition."
           description: "Checks if the property matches none of the provided values."
     AdvancedProcessInstanceKeyFilter:
       title: "Advanced filter"
@@ -6510,12 +6438,10 @@ components:
       properties:
         $eq:
           type: "string"
-          description: "Key for a process instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a process instance."
         $neq:
           type: "string"
-          description: "Key for a process instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a process instance."
         $exists:
           description: "Checks if the current property exists."
           type: "boolean"
@@ -6524,15 +6450,13 @@ components:
           type: "array"
           items:
             type: "string"
-            description: "Key for a process instance. Only use values returned by\
-              \ the system."
+            description: "System-generated key for a process instance."
         $notIn:
           description: "Checks if the property matches none of the provided values."
           type: "array"
           items:
             type: "string"
-            description: "Key for a process instance. Only use values returned by\
-              \ the system."
+            description: "System-generated key for a process instance."
     AdvancedElementInstanceKeyFilter:
       title: "Advanced filter"
       description: "Advanced ElementInstanceKey filter."
@@ -6540,12 +6464,10 @@ components:
       properties:
         $eq:
           type: "string"
-          description: "Key for a element instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a element instance."
         $neq:
           type: "string"
-          description: "Key for a element instance. Only use values returned by the\
-            \ system."
+          description: "System-generated key for a element instance."
         $exists:
           description: "Checks if the current property exists."
           type: "boolean"
@@ -6554,15 +6476,13 @@ components:
           type: "array"
           items:
             type: "string"
-            description: "Key for a element instance. Only use values returned by\
-              \ the system."
+            description: "System-generated key for a element instance."
         $notIn:
           description: "Checks if the property matches none of the provided values."
           type: "array"
           items:
             type: "string"
-            description: "Key for a element instance. Only use values returned by\
-              \ the system."
+            description: "System-generated key for a element instance."
     AdvancedVariableKeyFilter:
       title: "Advanced filter"
       description: "Advanced VariableKey filter."
@@ -6570,10 +6490,10 @@ components:
       properties:
         $eq:
           type: "string"
-          description: "Key for a variable. Only use values returned by the system."
+          description: "System-generated key for a variable."
         $neq:
           type: "string"
-          description: "Key for a variable. Only use values returned by the system."
+          description: "System-generated key for a variable."
         $exists:
           description: "Checks if the current property exists."
           type: "boolean"
@@ -6582,13 +6502,13 @@ components:
           type: "array"
           items:
             type: "string"
-            description: "Key for a variable. Only use values returned by the system."
+            description: "System-generated key for a variable."
         $notIn:
           description: "Checks if the property matches none of the provided values."
           type: "array"
           items:
             type: "string"
-            description: "Key for a variable. Only use values returned by the system."
+            description: "System-generated key for a variable."
     AdvancedScopeKeyFilter:
       title: "Advanced filter"
       description: "Advanced ScopeKey filter."
@@ -6596,10 +6516,10 @@ components:
       properties:
         $eq:
           type: "string"
-          description: "Key for a scope. Only use values returned by the system."
+          description: "System-generated key for a scope."
         $neq:
           type: "string"
-          description: "Key for a scope. Only use values returned by the system."
+          description: "System-generated key for a scope."
         $exists:
           description: "Checks if the current property exists."
           type: "boolean"
@@ -6608,13 +6528,13 @@ components:
           type: "array"
           items:
             type: "string"
-            description: "Key for a scope. Only use values returned by the system."
+            description: "System-generated key for a scope."
         $notIn:
           description: "Checks if the property matches none of the provided values."
           type: "array"
           items:
             type: "string"
-            description: "Key for a scope. Only use values returned by the system."
+            description: "System-generated key for a scope."
     AdvancedMessageSubscriptionKeyFilter:
       title: "Advanced filter"
       description: "Advanced MessageSubscriptionKey filter."
@@ -6622,12 +6542,10 @@ components:
       properties:
         $eq:
           type: "string"
-          description: "Key for a message subscription. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a message subscription."
         $neq:
           type: "string"
-          description: "Key for a message subscription. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a message subscription."
         $exists:
           description: "Checks if the current property exists."
           type: "boolean"
@@ -6636,15 +6554,13 @@ components:
           type: "array"
           items:
             type: "string"
-            description: "Key for a message subscription. Only use values returned\
-              \ by the system."
+            description: "System-generated key for a message subscription."
         $notIn:
           description: "Checks if the property matches none of the provided values."
           type: "array"
           items:
             type: "string"
-            description: "Key for a message subscription. Only use values returned\
-              \ by the system."
+            description: "System-generated key for a message subscription."
     AdvancedJobKeyFilter:
       title: "Advanced filter"
       description: "Advanced JobKey filter."
@@ -6652,10 +6568,10 @@ components:
       properties:
         $eq:
           type: "string"
-          description: "Key for a job. Only use values returned by the system."
+          description: "System-generated key for a job."
         $neq:
           type: "string"
-          description: "Key for a job. Only use values returned by the system."
+          description: "System-generated key for a job."
         $exists:
           description: "Checks if the current property exists."
           type: "boolean"
@@ -6664,13 +6580,13 @@ components:
           type: "array"
           items:
             type: "string"
-            description: "Key for a job. Only use values returned by the system."
+            description: "System-generated key for a job."
         $notIn:
           description: "Checks if the property matches none of the provided values."
           type: "array"
           items:
             type: "string"
-            description: "Key for a job. Only use values returned by the system."
+            description: "System-generated key for a job."
     BaseProcessInstanceFilterFields:
       description: "Base process instance search filter."
       type: "object"
@@ -6946,7 +6862,8 @@ components:
           type: "string"
           description: "The process definition key."
         processDefinitionId:
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
           description: "The process definition ID."
         elementId:
           type: "string"
@@ -7054,7 +6971,8 @@ components:
       properties:
         processDefinitionId:
           description: "The process definition ID associated to this element instance."
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
         state:
           description: "State of element instance as defined set of values."
           allOf:
@@ -7160,7 +7078,8 @@ components:
       properties:
         processDefinitionId:
           description: "The process definition ID associated to this element instance."
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
         startDate:
           description: "Date when element instance started."
           type: "string"
@@ -7293,7 +7212,8 @@ components:
       type: "object"
       properties:
         decisionDefinitionId:
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/DecisionDefinitionId"
           description: "The DMN ID of the decision definition."
         name:
           type: "string"
@@ -7359,7 +7279,8 @@ components:
       type: "object"
       properties:
         processDefinitionId:
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
           description: "The process definition ID associated to this incident."
         errorType:
           type: "string"
@@ -7447,7 +7368,8 @@ components:
             \ subscription."
         processDefinitionId:
           description: "The process definition ID associated with this message subscription."
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
         processDefinitionKey:
           type: "string"
           description: "The process definition key associated with this message subscription."
@@ -7599,7 +7521,8 @@ components:
       type: "object"
       properties:
         processDefinitionId:
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
           description: "The process definition ID associated to this incident."
         errorType:
           type: "string"
@@ -7672,7 +7595,8 @@ components:
       type: "object"
       properties:
         decisionDefinitionId:
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/DecisionDefinitionId"
           description: "The DMN ID of the decision definition."
         name:
           type: "string"
@@ -9054,7 +8978,8 @@ components:
           type: "string"
         processDefinitionId:
           description: "The bpmn process ID of the job's process definition."
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
         processDefinitionVersion:
           description: "The version of the job's process definition."
           type: "integer"
@@ -9580,7 +9505,8 @@ components:
           $ref: "#/components/schemas/JobListenerEventTypeEnum"
         processDefinitionId:
           description: "The process definition ID associated with the job."
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
         processDefinitionKey:
           type: "string"
           description: "The process definition key associated with the job."
@@ -9954,7 +9880,8 @@ components:
         decisionDefinitionId:
           description: "The ID of the decision to be evaluated.\nWhen using the decision\
             \ ID, the latest\ndeployed version of the decision is used.\n"
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/DecisionDefinitionId"
         variables:
           description: "The message variables as JSON document."
           additionalProperties: true
@@ -9964,8 +9891,7 @@ components:
           description: "The unique identifier of the tenant."
         decisionDefinitionKey:
           type: "string"
-          description: "Key for a decision definition. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a decision definition."
     DecisionEvaluationById:
       type: "object"
       title: "Decision evaluation by ID"
@@ -9973,7 +9899,8 @@ components:
         decisionDefinitionId:
           description: "The ID of the decision to be evaluated.\nWhen using the decision\
             \ ID, the latest\ndeployed version of the decision is used.\n"
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/DecisionDefinitionId"
         variables:
           description: "The message variables as JSON document."
           additionalProperties: true
@@ -9989,8 +9916,7 @@ components:
       properties:
         decisionDefinitionKey:
           type: "string"
-          description: "Key for a decision definition. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a decision definition."
         variables:
           description: "The message variables as JSON document."
           additionalProperties: true
@@ -10005,7 +9931,8 @@ components:
       properties:
         decisionDefinitionId:
           description: "The ID of the decision which was evaluated."
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/DecisionDefinitionId"
         decisionDefinitionName:
           description: "The name of the decision which was evaluated."
           type: "string"
@@ -10023,7 +9950,8 @@ components:
           type: "string"
         failedDecisionDefinitionId:
           description: "The ID of the decision which failed during evaluation."
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/DecisionDefinitionId"
         failureMessage:
           description: "Message describing why the decision which was evaluated failed."
           type: "string"
@@ -10043,8 +9971,7 @@ components:
           description: "Deprecated, please refer to `decisionEvaluationKey`."
         decisionEvaluationKey:
           x-semantic-provider: true
-          description: "Key for a decision evaluation. Only use values returned by\
-            \ the system."
+          description: "System-generated key for a decision evaluation."
           type: "string"
         evaluatedDecisions:
           description: "Decisions that were evaluated within the requested decision\
@@ -10058,7 +9985,8 @@ components:
       properties:
         decisionDefinitionId:
           description: "The ID of the decision which was evaluated."
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/DecisionDefinitionId"
         decisionDefinitionName:
           description: "The name of the decision which was evaluated."
           type: "string"
@@ -10181,8 +10109,7 @@ components:
       properties:
         decisionEvaluationInstanceKey:
           type: "string"
-          description: "Key for a decision evaluation instance. Only use values returned\
-            \ by the system."
+          description: "System-generated key for a decision evaluation instance."
         state:
           $ref: "#/components/schemas/DecisionInstanceStateEnum"
         evaluationFailure:
@@ -10193,7 +10120,8 @@ components:
           allOf:
           - $ref: "#/components/schemas/DateTimeFilterProperty"
         decisionDefinitionId:
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/DecisionDefinitionId"
           description: "The ID of the DMN decision."
         decisionDefinitionName:
           type: "string"
@@ -10209,9 +10137,9 @@ components:
           description: "The unique identifier of the tenant."
         decisionEvaluationKey:
           type: "string"
-          description: "The key of the decision instance. Note that this is not the\
-            \ unique identifier of the entity itself; the `decisionInstanceId` serves\
-            \ as the primary identifier.\n"
+          description: "The key of the parent decision evaluation. Note that this\
+            \ is not the identifier of an individual decision instance; the `decisionEvaluationInstanceKey`\
+            \ is the identifier for a decision instance.\n"
         processDefinitionKey:
           type: "string"
           description: "The key of the process definition."
@@ -10242,8 +10170,7 @@ components:
       properties:
         decisionEvaluationInstanceKey:
           type: "string"
-          description: "Key for a decision evaluation instance. Only use values returned\
-            \ by the system."
+          description: "System-generated key for a decision evaluation instance."
         state:
           $ref: "#/components/schemas/DecisionInstanceStateEnum"
         evaluationDate:
@@ -10254,7 +10181,8 @@ components:
           type: "string"
           description: "The evaluation failure of the decision instance."
         decisionDefinitionId:
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/DecisionDefinitionId"
           description: "The ID of the DMN decision."
         decisionDefinitionName:
           type: "string"
@@ -10445,9 +10373,6 @@ components:
             description: "Documents that failed creation."
             items:
               $ref: "#/components/schemas/DocumentCreationFailureDetail"
-    DocumentId:
-      type: "string"
-      description: "Document Id that uniquely identifies a document."
     DocumentMetadata:
       description: "Information about the document."
       type: "object"
@@ -10467,7 +10392,8 @@ components:
           format: "int64"
           description: "The size of the document in bytes."
         processDefinitionId:
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
           description: "The ID of the process definition that created the document."
         processInstanceKey:
           type: "string"
@@ -10536,7 +10462,8 @@ components:
       - "tenantId"
       properties:
         processDefinitionId:
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
           description: "The bpmn process ID, as parsed during deployment, together\
             \ with the version forms a\nunique identifier for a specific process definition.\n"
         processDefinitionVersion:
@@ -10559,7 +10486,8 @@ components:
       type: "object"
       properties:
         decisionDefinitionId:
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/DecisionDefinitionId"
           description: "The dmn decision ID, as parsed during deployment, together\
             \ with the version forms a\nunique identifier for a specific decision.\n"
         version:
@@ -10674,7 +10602,8 @@ components:
         processDefinitionId:
           description: "The BPMN process ID of the process definition to start an\
             \ instance of.\n"
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
         processDefinitionVersion:
           description: "The version of the process. By default, the latest version\
             \ of the process is used.\n"
@@ -10742,7 +10671,8 @@ components:
         processDefinitionId:
           description: "The BPMN process ID of the process definition to start an\
             \ instance of.\n"
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
         processDefinitionVersion:
           description: "The version of the process. By default, the latest version\
             \ of the process is used.\n"
@@ -10907,7 +10837,8 @@ components:
         processDefinitionId:
           description: "The BPMN process ID of the process definition which was used\
             \ to create the process.\ninstance\n"
-          type: "string"
+          allOf:
+          - $ref: "#/components/schemas/ProcessDefinitionId"
           example: "my-process-model-1"
         processDefinitionVersion:
           description: "The version of the process definition which was used to create\
@@ -11173,6 +11104,7 @@ components:
       - "DELETE_DECISION_DEFINITION"
       - "DELETE_PROCESS_DEFINITION"
     BatchOperationCreatedResult:
+      description: "The created batch operation."
       type: "object"
       properties:
         batchOperationKey:
@@ -11395,6 +11327,7 @@ components:
       - "CANCELED"
       - "FAILED"
     BatchOperationSearchQueryResult:
+      description: "The batch operation search query result."
       type: "object"
       allOf:
       - $ref: "#/components/schemas/SearchQueryResponse"
@@ -11553,12 +11486,6 @@ components:
         $ref: "#/components/schemas/Tag"
       uniqueItems: true
       maxItems: 10
-    TenantId:
-      type: "string"
-      description: "The unique identifier of the tenant."
-    Username:
-      type: "string"
-      description: "The unique name of a user."
   responses:
     InternalServerError:
       description: "An internal error occurred while processing the request.\n"
