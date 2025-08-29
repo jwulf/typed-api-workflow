@@ -71,6 +71,17 @@ public class CamundaKeyFlattener {
         // Step 4.5: Fix Advanced Key Filter descriptions
         fixAdvancedKeyFilterDescriptions(root.at("/components/schemas"));
 
+        // Step 4.75: Remove the (now redundant) CamundaKey descendant schemas entirely so spec matches low-res style
+        JsonNode schemasNode = root.at("/components/schemas");
+        if (schemasNode != null && schemasNode.isObject()) {
+            ObjectNode schemasObj = (ObjectNode) schemasNode;
+            for (String keyName : camundaKeyDescendants) {
+                if (schemasObj.has(keyName)) {
+                    schemasObj.remove(keyName);
+                }
+            }
+        }
+
         // Step 5: Inject metadata
         injectMetadata(root);
 
@@ -518,8 +529,54 @@ public class CamundaKeyFlattener {
                         if (isDescendantOfCamundaKey(refName, schemas, visited)) {
                             return true;
                         }
+                    } else {
+                        // Recursively inspect nested composite structures (e.g., oneOf variant containing allOf with CamundaKey)
+                        if (containsNestedCamundaKeyRef(item, schemas, visited)) {
+                            return true;
+                        }
                     }
                 }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Recursively searches an arbitrary schema node for a $ref to CamundaKey (directly or via descendants).
+     */
+    private static boolean containsNestedCamundaKeyRef(JsonNode node, JsonNode schemas, Set<String> visited) {
+        if (node == null) return false;
+        if (node.has("$ref")) {
+            String ref = node.get("$ref").asText();
+            String refName = ref.substring(ref.lastIndexOf("/") + 1);
+            if (refName.equals("CamundaKey")) {
+                return true;
+            }
+            // Guard against infinite recursion
+            if (!visited.contains(refName) && isDescendantOfCamundaKey(refName, schemas, visited)) {
+                return true;
+            }
+        }
+        // Dive into known composite arrays and object fields
+        for (String composite : List.of("allOf", "oneOf", "anyOf")) {
+            JsonNode arr = node.get(composite);
+            if (arr != null && arr.isArray()) {
+                for (JsonNode child : arr) {
+                    if (containsNestedCamundaKeyRef(child, schemas, visited)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        // Generic object/array traversal (lightweight)
+        if (node.isObject()) {
+            Iterator<JsonNode> it = node.elements();
+            while (it.hasNext()) {
+                if (containsNestedCamundaKeyRef(it.next(), schemas, visited)) return true;
+            }
+        } else if (node.isArray()) {
+            for (JsonNode child : node) {
+                if (containsNestedCamundaKeyRef(child, schemas, visited)) return true;
             }
         }
         return false;
@@ -565,6 +622,26 @@ public class CamundaKeyFlattener {
                 JsonNode description = item.get("description");
                 if (description != null) {
                     return description;
+                }
+            }
+        }
+        // Fallback: look inside oneOf for a description (e.g., BatchOperationKey variant)
+        JsonNode oneOf = schema.get("oneOf");
+        if (oneOf != null && oneOf.isArray()) {
+            for (JsonNode item : oneOf) {
+                JsonNode description = item.get("description");
+                if (description != null) {
+                    return description;
+                }
+                // Also inspect nested allOf inside oneOf variant
+                JsonNode nestedAllOf = item.get("allOf");
+                if (nestedAllOf != null && nestedAllOf.isArray()) {
+                    for (JsonNode nested : nestedAllOf) {
+                        JsonNode nestedDesc = nested.get("description");
+                        if (nestedDesc != null) {
+                            return nestedDesc;
+                        }
+                    }
                 }
             }
         }
