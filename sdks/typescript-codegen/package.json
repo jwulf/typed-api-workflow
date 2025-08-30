@@ -1,0 +1,27 @@
+{
+  "name": "@camunda8/orchestration-cluster",
+  "private": true,
+  "version": "0.0.0-dev",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf dist src/gen src/semantic",
+  "generate": "tsx scripts/generate.ts && vitest run --passWithNoTests",
+    "postprocess": "tsx scripts/postprocess.ts",
+    "build": "npm run clean && npm run generate && tsup src/index.ts --dts --format esm,cjs --sourcemap --out-dir dist",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "openapi-typescript-codegen": "^0.29.0",
+    "typescript": "^5.4.5",
+    "tsup": "^8.0.2",
+    "tsx": "^4.7.0",
+    "vitest": "^1.6.0",
+    "rimraf": "^6.0.1",
+    "@types/node": "^20.14.9",
+    "yaml": "^2.5.0"
+  },
+  "engines": { "node": ">=18" }
+}

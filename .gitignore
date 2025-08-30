@@ -1,5 +1,6 @@
 # ignore generated SDKs
 sdks/generated
+sdks/typescript-codegen/src/gen
 dist
 #
 spec-tools/semantic-types-coverage/dist
