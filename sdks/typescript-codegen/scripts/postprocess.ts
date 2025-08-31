@@ -124,7 +124,7 @@ for (const [name, schema] of ordered) {
       // Abstract base: no concrete helper namespace, keep simple brand only
       // Remove trailing brand transform insertion logic; expr already contains brand via zodForSchema
     } else {
-      expr = `${expr}.transform(v => SK.${name}.create(String(v))) as unknown as z.ZodType<SK.${name}>`;
+  expr = `${expr}.transform(v => SK.${name}.assumeDeployed(String(v))) as unknown as z.ZodType<SK.${name}>`;
     }
   }
   body += `// Schema: ${name}\nexport const ${name}Schema = ${expr};\nexport type ${name} = z.infer<typeof ${name}Schema>;\n\n`;
@@ -488,7 +488,8 @@ try {
   lines.push(`export type ${name} = CamundaKey<'${name}'>;`);
   lines.push(`const __C_${name}: __KeyConstraints = { ${constraintParts.join(', ')} };`);
   lines.push(`export namespace ${name} {`);
-  lines.push(`  export function create(value: string): ${name} { return __validateKey(value, __C_${name}) as ${name}; }`);
+  lines.push(`  // assumeDeployed: lift a raw string (already issued by the cluster) into a branded key; validates basic shape.`);
+  lines.push(`  export function assumeDeployed(value: string): ${name} { return __validateKey(value, __C_${name}) as ${name}; }`);
   lines.push(`  export function getValue(key: ${name}): string { return key; }`);
   lines.push(`  export function equals(a: ${name}, b: ${name}): boolean { return a === b; }`);
   lines.push(`  export function isValid(value: string): boolean { return __isValidKey(value, __C_${name}); }`);
