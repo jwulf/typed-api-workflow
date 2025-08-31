@@ -1,6 +1,6 @@
 # Camunda TypeScript SDK Reference
 
-Generated: 2025-08-31T10:53:29.136Z
+Generated: 2025-08-31T19:08:38.736Z
 ## Configuration
 
 | Key | Type | Default | Required | Flags | Status | Description |

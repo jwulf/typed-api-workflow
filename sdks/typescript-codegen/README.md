@@ -117,6 +117,67 @@ Scope:
 
 Opt‑in philosophy: You decide when to pay the validation cost. Turn it on for tests, staging, or debugging; leave it off in hot paths if you trust the server.
 
+## Configuration
+
+The SDK exposes a unified, declarative configuration system (environment + explicit object overrides) covering authentication strategy, validation modes, and related flags. A machine‑generated reference (keys, types, defaults, conditional requirements, secret redaction) is available here:
+
+👉 [Configuration Reference](./docs/SDK_REFERENCE.md)
+
+Key points:
+* `CAMUNDA_AUTH_STRATEGY` defaults to `NONE` (supports `OAUTH` and `BASIC`).
+* Conditional requirements: OAuth requires `CAMUNDA_CLIENT_ID` & `CAMUNDA_CLIENT_SECRET`; Basic requires `CAMUNDA_BASIC_AUTH_USERNAME` & `CAMUNDA_BASIC_AUTH_PASSWORD`.
+* Secrets are redacted in diagnostic/serialized output (masked except last 4 chars).
+* Validation modes and verbose flag (`CAMUNDA_SDK_VALIDATION`, `CAMUNDA_SDK_VALIDATION_VERBOSE`) are part of the same spec.
+
+Full guide: [Detailed Configuration Documentation](./docs/CONFIGURATION.md)
+
+Common environment sets:
+
+OAuth quick start:
+```bash
+export CAMUNDA_AUTH_STRATEGY=OAUTH
+export CAMUNDA_CLIENT_ID=abc123
+export CAMUNDA_CLIENT_SECRET=shhDontTellAnyone
+export CAMUNDA_REST_ADDRESS=https://api.cluster.example
+export CAMUNDA_SDK_VALIDATION=warn
+```
+
+Basic auth with mixed validation:
+```bash
+export CAMUNDA_AUTH_STRATEGY=BASIC
+export CAMUNDA_BASIC_AUTH_USERNAME=alice
+export CAMUNDA_BASIC_AUTH_PASSWORD=supersecret123
+export CAMUNDA_SDK_VALIDATION=req:warn,res:strict
+export CAMUNDA_SDK_VALIDATION_VERBOSE=1
+```
+
+Disable validation:
+```bash
+export CAMUNDA_SDK_VALIDATION=none
+```
+
+Programmatic hydration & redacted logging:
+```ts
+import { hydrateConfig } from '@camunda8/orchestration-cluster/dist/runtime/unifiedConfiguration';
+import camunda from '@camunda8/orchestration-cluster';
+const { config, redacted } = hydrateConfig();
+camunda.OpenAPI.BASE = config.restAddress;
+console.log('[config]', redacted);
+```
+
+Remote (browser) async fetch:
+```ts
+import { hydrateConfigAsync } from '@camunda8/orchestration-cluster/dist/runtime/unifiedConfiguration';
+const { config } = await hydrateConfigAsync({ fetch: () => fetch('/sdk-config.json').then(r=>r.json()) });
+```
+
+Regenerate the reference after spec changes:
+
+```bash
+npm run docs
+```
+
+
 ## Cancellation
 
 All operations return a `CancelablePromise<T>` supporting:

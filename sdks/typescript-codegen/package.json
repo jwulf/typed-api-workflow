@@ -20,6 +20,7 @@
     "postprocess": "tsx scripts/postprocess.ts",
   "build": "npm run clean && npm run generate && tsup src/index.ts --dts --format esm,cjs --sourcemap --out-dir dist",
   "test": "vitest run --passWithNoTests",
+  "docs": "tsx scripts/generate-doc.ts",
   "test:dist": "npm run build --silent && node tests/dist-usage.smoke.mjs"
   },
   "dependencies": {
