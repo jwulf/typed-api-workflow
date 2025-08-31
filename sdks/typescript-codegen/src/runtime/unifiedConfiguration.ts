@@ -83,11 +83,25 @@ const SPEC: BaseSpecEntry[] = [
   { key: 'CAMUNDA_CLIENT_ID', doc: 'OAuth client id (required when CAMUNDA_AUTH_STRATEGY=OAUTH).', type: 'string', requiredWhen: { key: 'CAMUNDA_AUTH_STRATEGY', equals: 'OAUTH' } },
   { key: 'CAMUNDA_CLIENT_SECRET', doc: 'OAuth client secret (required when CAMUNDA_AUTH_STRATEGY=OAUTH).', type: 'string', secret: true, requiredWhen: { key: 'CAMUNDA_AUTH_STRATEGY', equals: 'OAUTH' } },
   { key: 'CAMUNDA_OAUTH_URL', doc: 'OAuth token URL.', type: 'string', default: 'https://login.cloud.camunda.io/oauth/token' },
+  { key: 'CAMUNDA_OAUTH_GRANT_TYPE', doc: 'OAuth grant type (currently client_credentials only).', type: 'string', default: 'client_credentials' },
+  { key: 'CAMUNDA_OAUTH_SCOPE', doc: 'Optional OAuth scope (space-separated).', type: 'string' },
+  { key: 'CAMUNDA_OAUTH_TIMEOUT_MS', doc: 'Timeout in ms for OAuth token fetch.', type: 'int', default: '5000' },
+  { key: 'CAMUNDA_OAUTH_RETRY_MAX', doc: 'Maximum OAuth token fetch attempts (including initial).', type: 'int', default: '5' },
+  { key: 'CAMUNDA_OAUTH_RETRY_BASE_DELAY_MS', doc: 'Base delay (ms) for first retry (exponential backoff).', type: 'int', default: '1000' },
+  { key: 'CAMUNDA_OAUTH_CACHE_DIR', doc: 'Directory for disk caching OAuth tokens (Node only).', type: 'string' },
   { key: 'CAMUNDA_AUTH_STRATEGY', doc: 'Authentication strategy.', type: 'enum', enumValues: ['NONE','OAUTH','BASIC'], default: 'NONE' },
   { key: 'CAMUNDA_BASIC_AUTH_USERNAME', doc: 'Basic auth username (required when CAMUNDA_AUTH_STRATEGY=BASIC).', type: 'string', requiredWhen: { key: 'CAMUNDA_AUTH_STRATEGY', equals: 'BASIC' } },
   { key: 'CAMUNDA_BASIC_AUTH_PASSWORD', doc: 'Basic auth password (required when CAMUNDA_AUTH_STRATEGY=BASIC).', type: 'string', secret: true, requiredWhen: { key: 'CAMUNDA_AUTH_STRATEGY', equals: 'BASIC' } },
   { key: 'CAMUNDA_SDK_VALIDATION', doc: 'Validation mini-language controlling req/res modes.', type: 'string', default: 'req:none,res:none' },
-  { key: 'CAMUNDA_SDK_VALIDATION_VERBOSE', doc: 'Verbose validation output flag.', type: 'boolean' }
+  { key: 'CAMUNDA_SDK_VALIDATION_VERBOSE', doc: 'Verbose validation output flag.', type: 'boolean' },
+  { key: 'CAMUNDA_SDK_LOG_LEVEL', doc: 'SDK log level (silent|error|warn|info|debug|trace).', type: 'string', default: 'error' },
+  { key: 'CAMUNDA_MTLS_CERT_PATH', doc: 'Path to client certificate (PEM) for mTLS.', type: 'string' },
+  { key: 'CAMUNDA_MTLS_KEY_PATH', doc: 'Path to client private key (PEM) for mTLS.', type: 'string' },
+  { key: 'CAMUNDA_MTLS_CA_PATH', doc: 'Path to CA certificate bundle (PEM) for mTLS.', type: 'string' },
+  { key: 'CAMUNDA_MTLS_KEY_PASSPHRASE', doc: 'Optional passphrase for encrypted private key.', type: 'string', secret: true },
+  { key: 'CAMUNDA_MTLS_CERT', doc: 'Inline PEM client certificate.', type: 'string' },
+  { key: 'CAMUNDA_MTLS_KEY', doc: 'Inline PEM client private key.', type: 'string', secret: true },
+  { key: 'CAMUNDA_MTLS_CA', doc: 'Inline PEM CA bundle.', type: 'string' }
 ];
 
 // Resulting strongly typed config
@@ -98,6 +112,11 @@ export interface CamundaConfig {
     clientId?: string;
     clientSecret?: string;
     oauthUrl: string;
+    grantType: string;
+    scope?: string;
+    timeoutMs: number;
+    retry: { max: number; baseDelayMs: number };
+    cacheDir?: string;
   };
   auth: {
     strategy: AuthStrategy;
@@ -108,6 +127,12 @@ export interface CamundaConfig {
     res: ValidationMode;
     verbose: boolean;
     raw: string; // normalized raw spec for reproducibility
+  };
+  logLevel: 'silent' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
+  // authVerbose removed (pre-release cleanup)
+  mtls?: {
+  cert?: string; key?: string; ca?: string; keyPassphrase?: string;
+  certPath?: string; keyPath?: string; caPath?: string;
   };
   // Raw access (canonical uppercase enums applied) keyed by env var (internal/debug)
   __raw: Record<string,string|undefined>;
@@ -287,6 +312,14 @@ export function hydrateConfig(options: HydrateOptions = {}): HydratedConfigurati
     errors.push({ code: ConfigErrorCode.CONFIG_MISSING_REQUIRED, message: `Missing required configuration for ${cond}: ${keys.join(', ')}`, details: { strategy: cond, keys } });
   }
 
+  // mTLS completeness validation: if any cert/key indicator present require both sides
+  const mtlsCertProvided = !!(rawMap['CAMUNDA_MTLS_CERT'] || rawMap['CAMUNDA_MTLS_CERT_PATH']);
+  const mtlsKeyProvided = !!(rawMap['CAMUNDA_MTLS_KEY'] || rawMap['CAMUNDA_MTLS_KEY_PATH']);
+  const mtlsAny = mtlsCertProvided || mtlsKeyProvided || rawMap['CAMUNDA_MTLS_CA'] || rawMap['CAMUNDA_MTLS_CA_PATH'] || rawMap['CAMUNDA_MTLS_KEY_PASSPHRASE'];
+  if (mtlsAny && (!mtlsCertProvided || !mtlsKeyProvided)) {
+    errors.push({ code: ConfigErrorCode.CONFIG_MISSING_REQUIRED, message: 'Incomplete mTLS configuration; both certificate (CAMUNDA_MTLS_CERT|_PATH) and key (CAMUNDA_MTLS_KEY|_PATH) must be provided.' });
+  }
+
   // Parse validation config after potential errors so we gather full set
   const validationRaw = rawMap['CAMUNDA_SDK_VALIDATION'] || 'req:none,res:none';
   const validation = parseValidation(validationRaw, errors);
@@ -316,7 +349,12 @@ export function hydrateConfig(options: HydrateOptions = {}): HydratedConfigurati
     oauth: {
       clientId: env['CAMUNDA_CLIENT_ID']?.trim() || overrides['CAMUNDA_CLIENT_ID']?.trim() || undefined,
       clientSecret: env['CAMUNDA_CLIENT_SECRET']?.trim() || overrides['CAMUNDA_CLIENT_SECRET']?.trim() || undefined,
-      oauthUrl: rawMap['CAMUNDA_OAUTH_URL']!
+      oauthUrl: rawMap['CAMUNDA_OAUTH_URL']!,
+      grantType: rawMap['CAMUNDA_OAUTH_GRANT_TYPE']!,
+      scope: (env['CAMUNDA_OAUTH_SCOPE'] ?? overrides['CAMUNDA_OAUTH_SCOPE'])?.trim() || undefined,
+      timeoutMs: parseInt(rawMap['CAMUNDA_OAUTH_TIMEOUT_MS']!, 10),
+      retry: { max: parseInt(rawMap['CAMUNDA_OAUTH_RETRY_MAX']!, 10), baseDelayMs: parseInt(rawMap['CAMUNDA_OAUTH_RETRY_BASE_DELAY_MS']!, 10) },
+      cacheDir: (env['CAMUNDA_OAUTH_CACHE_DIR'] ?? overrides['CAMUNDA_OAUTH_CACHE_DIR'])?.trim() || undefined
     },
     auth: {
       strategy: authStrategy as AuthStrategy,
@@ -326,6 +364,16 @@ export function hydrateConfig(options: HydrateOptions = {}): HydratedConfigurati
       } : undefined
     },
     validation: { req: validation.req, res: validation.res, verbose, raw: validation.raw },
+  logLevel: (rawMap['CAMUNDA_SDK_LOG_LEVEL'] as any) as CamundaConfig['logLevel'] || 'error',
+    mtls: (env['CAMUNDA_MTLS_CERT_PATH'] || env['CAMUNDA_MTLS_KEY_PATH'] || env['CAMUNDA_MTLS_CA_PATH'] || env['CAMUNDA_MTLS_CERT'] || env['CAMUNDA_MTLS_KEY'] || env['CAMUNDA_MTLS_CA'] || overrides['CAMUNDA_MTLS_CERT'] || overrides['CAMUNDA_MTLS_KEY']) ? {
+      cert: (env['CAMUNDA_MTLS_CERT'] ?? overrides['CAMUNDA_MTLS_CERT']) || undefined,
+      key: (env['CAMUNDA_MTLS_KEY'] ?? overrides['CAMUNDA_MTLS_KEY']) || undefined,
+      ca: (env['CAMUNDA_MTLS_CA'] ?? overrides['CAMUNDA_MTLS_CA']) || undefined,
+      keyPassphrase: (env['CAMUNDA_MTLS_KEY_PASSPHRASE'] ?? overrides['CAMUNDA_MTLS_KEY_PASSPHRASE']) || undefined,
+      certPath: env['CAMUNDA_MTLS_CERT_PATH'] || undefined,
+      keyPath: env['CAMUNDA_MTLS_KEY_PATH'] || undefined,
+      caPath: env['CAMUNDA_MTLS_CA_PATH'] || undefined
+    } : undefined,
     __raw: { ...rawMap }
   };
 

@@ -3,7 +3,8 @@ import { ServicesWrapped, OpenAPI } from '../src';
 
 describe('validation verbose mode', () => {
   it('emits expanded union variant info with examples when verbose flag set', async () => {
-    process.env.CAMUNDA_SDK_VALIDATION = 'req:warn';
+  process.env.CAMUNDA_SDK_VALIDATION = 'req:warn';
+  process.env.CAMUNDA_SDK_LOG_LEVEL = 'warn';
     process.env.CAMUNDA_SDK_VALIDATION_VERBOSE = '1';
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   // Trigger validation on request side; ensure mode is req:warn so we don't throw.
@@ -17,6 +18,7 @@ describe('validation verbose mode', () => {
   expect(output).toMatch(/Exactly one of the variant required-key sets/);
     spy.mockRestore();
     delete process.env.CAMUNDA_SDK_VALIDATION_VERBOSE;
-    delete process.env.CAMUNDA_SDK_VALIDATION;
+  delete process.env.CAMUNDA_SDK_VALIDATION;
+  delete process.env.CAMUNDA_SDK_LOG_LEVEL;
   });
 });

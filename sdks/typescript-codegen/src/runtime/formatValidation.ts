@@ -1,5 +1,6 @@
 import { ZodError, ZodIssue, ZodTypeAny, ZodUnion, ZodObject, ZodRawShape } from 'zod';
 import { validationVerbose } from './config';
+import { getLogger } from './logger';
 
 export interface FormattedValidation {
   message: string;
@@ -153,13 +154,14 @@ function formatIssue(issue: ZodIssue): string {
   }
 }
 
+const vLogger = getLogger('validation');
+
 export function logFormattedValidation(kind: 'warn' | 'throw', formatted: FormattedValidation) {
   if (kind === 'warn') {
-    // eslint-disable-next-line no-console
-  console.warn(`[camunda-sdk] ${formatted.message}\n  ${formatted.summary}\n  Issues:\n   - ${formatted.issues.join('\n   - ')}`);
-  } else {
-    const err = new Error(formatted.message);
-    (err as any).issues = formatted.issues;
-    throw err;
+  vLogger.warn(`${formatted.message}\n  ${formatted.summary}\n  Issues:\n   - ${formatted.issues.join('\n   - ')}`);
+    return;
   }
+  const err = new Error(formatted.message);
+  (err as any).issues = formatted.issues;
+  throw err;
 }

@@ -1,6 +1,7 @@
 /** Stable SDK entrypoint (manual). The generated exports now live in ./gen/public-index.ts */
 import * as Generated from './gen/public-index';
 import * as Ops from './gen/wrappers/flatExports';
+import { auth } from './runtime/auth';
 // Re-export generated named symbols (schemas, keys, config, wrappers, operations)
 export * from './gen/public-index';
 export { CamundaValidationError } from './runtime/errors';
@@ -15,7 +16,27 @@ export const Keys = KeysNS;
 
 // Build minimal default export containing only callable API methods (wrapped)
 // and flat operation exports; exclude schemas & keys for tree-shaking.
-const { OpenAPI } = Generated as any;
-// Default export: OpenAPI plus all flat operation wrapper functions.
-const camunda = { OpenAPI, ...Ops };
+const { OpenAPI: __OpenAPI } = Generated as any;
+
+// Protective facade preventing direct HEADERS reassignment while still allowing BASE etc.
+const OpenAPI = new Proxy(__OpenAPI, {
+	set(target, prop, value) {
+		if (prop === 'HEADERS') {
+			throw new Error('Do not set OpenAPI.HEADERS directly; use registerHeadersHook via auth facade.');
+		}
+		// allow overriding BASE, TOKEN etc for advanced scenarios
+		// @ts-ignore
+		target[prop] = value; return true;
+	},
+	get(target, prop, receiver) {
+		if (prop === 'HEADERS') {
+			return async () => await auth.getAuthHeaders();
+		}
+		// @ts-ignore
+		return Reflect.get(target, prop, receiver);
+	}
+});
+
+// Default export: OpenAPI plus all flat operation wrapper functions and auth facade.
+const camunda = { OpenAPI, auth, ...Ops };
 export default camunda;

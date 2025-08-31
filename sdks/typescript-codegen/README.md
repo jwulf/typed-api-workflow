@@ -10,6 +10,8 @@ Type‑safe, promise‑based client for the Camunda 8 Orchestration Cluster REST
 Focus points:
 * First‑class TypeScript types – request/response models, semantic branded IDs/keys.
 * Optional request & response validation (Zod) via a single environment variable.
+* Built‑in OAuth (client_credentials) & Basic auth management (token caching, retry with jitter, early refresh, singleflight) + header hook composition.
+* Optional mTLS (client cert) support for Node (inline PEM or *_PATH env vars; automatic https.Agent wiring).
 * Cancelable promises for long‑running operations.
 * Function wrappers for ergonomic calls + underlying service classes if you prefer explicit style.
 
@@ -187,16 +189,105 @@ p.cancel(); // signals cancellation (best effort) and rejects with a CancelError
 ```
 Use this to abort long‑running awaits (e.g. large searches with awaitCompletion semantics elsewhere).
 
-## Authentication
+## Authentication & mTLS
 
-Simplest (static token):
+### Strategies
+Select via `CAMUNDA_AUTH_STRATEGY` (`NONE` | `BASIC` | `OAUTH`).
+
+Hydrate config & build the auth facade (recommended):
 ```ts
-camunda.OpenAPI.TOKEN = 'Bearer <token>';
+import camunda from '@camunda8/orchestration-cluster';
+import { hydrateConfig } from '@camunda8/orchestration-cluster/dist/runtime/unifiedConfiguration';
+import { createAuthFacade } from '@camunda8/orchestration-cluster/dist/runtime/auth';
+
+const { config } = hydrateConfig();
+camunda.OpenAPI.BASE = config.restAddress;
+const auth = createAuthFacade(config);
+
+// Optional: custom header hook (runs after Authorization header – can override it)
+auth.registerHeadersHook(async headers => ({ ...headers, 'X-Trace': 'sdk-demo' }));
+
+await camunda.getTopology(); // headers resolved lazily per request
 ```
 
-Dynamic per‑request headers:
+### OAuth Features
+* client_credentials only.
+* Disk & in‑memory token cache (dir: `CAMUNDA_OAUTH_CACHE_DIR`, default `~/.camunda-sdk`).
+* Early refresh (5s lead, skew buffer: max(30s,5% lifetime)).
+* Exponential backoff (base `CAMUNDA_OAUTH_RETRY_BASE_DELAY_MS`, max attempts `CAMUNDA_OAUTH_RETRY_MAX`) with ±20% jitter.
+* Singleflight concurrent refresh suppression.
+* `auth.forceRefresh()` and `auth.clearCache()` helpers.
+* Adjustable log level via `CAMUNDA_SDK_LOG_LEVEL` (error by default).
+
+### Basic Auth
+Provide `CAMUNDA_BASIC_AUTH_USERNAME` & `CAMUNDA_BASIC_AUTH_PASSWORD` when strategy=BASIC.
+
+### mTLS (Node)
+Provide any of:
+```
+CAMUNDA_MTLS_CERT / CAMUNDA_MTLS_CERT_PATH
+CAMUNDA_MTLS_KEY / CAMUNDA_MTLS_KEY_PATH
+CAMUNDA_MTLS_CA / CAMUNDA_MTLS_CA_PATH (optional)
+CAMUNDA_MTLS_KEY_PASSPHRASE (optional)
+```
+Inline values override *_PATH. If cert/key both present an https.Agent is created & reused for all requests (including token fetch). Browser builds ignore mTLS vars.
+
+### Manual Static Token (bypass facade)
+Still possible for bespoke flows:
 ```ts
-camunda.OpenAPI.HEADERS = () => ({ Authorization: `Bearer ${getToken()}` });
+camunda.OpenAPI.TOKEN = 'Bearer <token>'; // or
+camunda.OpenAPI.HEADERS = () => ({ Authorization: 'Bearer ' + getToken() });
+```
+
+### Overriding Authorization
+Use a headers hook (runs last):
+```ts
+auth.registerHeadersHook(async h => ({ ...h, Authorization: 'Custom ' + build() }));
+```
+
+### FAQ Snippets
+Force refresh: `await auth.forceRefresh?.();`
+Clear token cache: `auth.clearCache?.({ disk: true });`
+Add tracing: `auth.registerHeadersHook(h => ({ ...h, 'X-Trace-Id': traceId }))`.
+
+## Logging & Custom Transport
+Set `CAMUNDA_SDK_LOG_LEVEL` to control verbosity (`silent|error|warn|info|debug|trace`).
+
+Inject a custom transport (e.g. to forward into pino / winston) before making SDK calls. Import from the optional subpath (kept out of primary surface):
+```ts
+import { setTransport, getLogger, LogEvent } from '@camunda8/orchestration-cluster/logger';
+
+// Example: route to console in structured JSON (or use pino.logger.info(evt))
+setTransport((evt: LogEvent) => {
+   // Avoid serializing huge objects; args may contain request bodies – slice if needed
+   const safeArgs = evt.args.map(a => typeof a === 'string' ? a : JSON.stringify(a).slice(0,500));
+   console.log(JSON.stringify({ ts: evt.ts, level: evt.level, scope: evt.scope, msg: safeArgs.join(' ') }));
+});
+
+// Optional manual logger usage
+const log = getLogger('app');
+log.info('SDK logging initialized');
+```
+Change level at runtime (tests / dynamic config):
+```ts
+process.env.CAMUNDA_SDK_LOG_LEVEL = 'debug';
+// Next emitted log auto-detects new level.
+```
+
+Pino transport example: 
+
+```typescript
+import pino from 'pino';
+import { setTransport, getLogger, LogEvent } from '@camunda8/orchestration-cluster/logger';
+
+const base = pino({ level: 'info', messageKey: 'msg', timestamp: pino.stdTimeFunctions.isoTime });
+const levelMap: Record<LogEvent['level'], pino.LevelWithSilent> = { silent:'silent', error:'error', warn:'warn', info:'info', debug:'debug', trace:'trace' };
+setTransport(evt => {
+  const logger = evt.scope ? base.child({ scope: evt.scope }) : base;
+  const msg = evt.args.map(a => typeof a === 'string' ? a : (a instanceof Error ? (a.stack||a.message) : JSON.stringify(a))).join(' ');
+  logger[levelMap[evt.level] || 'info']({ sdkTs: evt.ts }, msg);
+});
+getLogger('bootstrap').info('Pino transport active');
 ```
 
 ## Error Handling
@@ -238,13 +329,19 @@ Import only what you use with named operation exports to minimize bundle size in
 
 ## FAQ
 
-**Q: Does the SDK auto‑refresh tokens?**  No, supply updated tokens via `OpenAPI.TOKEN` or `HEADERS` callback.
+**Q: Does the SDK auto‑refresh tokens?**  Yes for OAuth when using the auth facade (early refresh with skew). For manual static token mode, you manage rotation yourself.
 
 **Q: How do I disable validation warnings in warn mode?**  Set mode to `none` or redirect console.warn.
 
-**Q: Can I supply my own fetch implementation?**  Assign `camunda.OpenAPI.FETCH` to a compatible function `(url, init) => Promise<Response>`.
+**Q: Can I supply my own fetch implementation?**  Assign `camunda.OpenAPI.FETCH` (and pass custom fetch into `createAuthFacade(config, { fetch })` so token fetch uses it too).
 
 **Q: Where are the raw service classes?**  All exported under the root; e.g. `import { ProcessInstanceService } from '@camunda8/orchestration-cluster';`.
+**Q: How do I enable mTLS?**  Set cert/key (inline or path). Example:
+```bash
+export CAMUNDA_MTLS_CERT_PATH=/etc/ssl/client.crt
+export CAMUNDA_MTLS_KEY_PATH=/etc/ssl/client.key
+```
+Provide inline values to override path versions.
 
 ## Contributing / Internal Details
 
