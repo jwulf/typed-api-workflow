@@ -138,6 +138,27 @@ rules:
       functionOptions:
         warnConflictWithMechanism: true
 
+  single-tag-per-operation:
+    description: "Each operation must declare exactly one tag (stabilizes generator service mapping)."
+    message: "Operation must have exactly one tag (found {{value.length}})."
+    given:
+      - "$.paths[*].get.tags"
+      - "$.paths[*].post.tags"
+      - "$.paths[*].put.tags"
+      - "$.paths[*].patch.tags"
+      - "$.paths[*].delete.tags"
+      - "$.paths[*].head.tags"
+      - "$.paths[*].options.tags"
+      - "$.paths[*].trace.tags"
+    severity: error
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          minItems: 1
+          maxItems: 1
+
 overrides:
   - files:
       - "rest-api.yaml"
