@@ -1059,7 +1059,7 @@ paths:
         - "Tenant"
       operationId: "unassignRoleFromTenant"
       summary: "Unassign a role from a tenant"
-      description: "Unassigns a role from a specified tenant\
+      description: "Unassigns a role from a specified tenant.\
         \ Users, Clients or Groups, that have the role assigned, will no longer have access to the tenant's data - unless they are assigned directly to the tenant."
       parameters:
         - name: "tenantId"
@@ -3435,7 +3435,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: "The role or mapping with the given ID was not found."
+          description: "The role or mapping rule with the given ID was not found."
           content:
             application/problem+json:
               schema:
@@ -8821,10 +8821,10 @@ components:
           description: "The value of the claim to map."
         name:
           type: "string"
-          description: "The name of the mapping."
+          description: "The name of the mapping rule."
         mappingRuleId:
           type: "string"
-          description: "The unique ID of the mapping."
+          description: "The unique ID of the mapping rule."
     MappingRuleCreateResult:
       type: "object"
       allOf:
@@ -8854,10 +8854,10 @@ components:
           description: "The value of the claim to map."
         name:
           type: "string"
-          description: "The name of the mapping."
+          description: "The name of the mapping rule."
         mappingRuleId:
           type: "string"
-          description: "The ID of the mapping."
+          description: "The ID of the mapping rule."
     TopologyResponse:
       description: "The response of a topology request."
       type: "object"
