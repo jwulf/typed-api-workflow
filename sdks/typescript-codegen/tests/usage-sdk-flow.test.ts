@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 // Simulated user imports: they would import from the published package root entry
-import { ProcessDefinitionKey, ProcessInstanceKey } from '../src';
-import camunda from '../src'
+import camunda, { ProcessDefinitionKey, ProcessInstanceKey } from '../src';
 
 // Helper to fabricate a minimal BPMN file blob (in real use this is a File or Blob from fs/browser)
 function mockBpmn(name: string, id: string) {
@@ -54,7 +53,7 @@ describe('End-to-end usage (mocked) - deploy -> create instance -> search', () =
     const rawDefKey = deployment.deployments[0].processDefinition!.processDefinitionKey;
 
     // Lift to branded key (shows user ergonomics)
-    const defKey: ProcessDefinitionKey = ProcessDefinitionKey.create(String(rawDefKey));
+  const defKey: ProcessDefinitionKey = ProcessDefinitionKey.create(String(rawDefKey));
 
     // Step 2: Start a process instance using the key overload
     const createResult = await camunda.createProcessInstance({ requestBody: { processDefinitionKey: defKey } });

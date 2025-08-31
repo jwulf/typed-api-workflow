@@ -105,8 +105,9 @@ wrapperLines.push("import { responseValidationEnabled, currentValidationMode, re
 wrapperLines.push("import * as Sem from '../semantic';");
 for (const svc of Object.keys(byService).sort()) wrapperLines.push(`import { ${svc} } from '../services/${svc}';`);
 wrapperLines.push('');
+wrapperLines.push(`import { CancelablePromise } from '../core/CancelablePromise';`);
 wrapperLines.push(`function maybeValidateRequest(mode:string,schema:any,val:any){ if(!schema||mode==='none') return; try{ schema.parse?.(val);}catch(e:any){ if(mode==='warn') console.warn('[camunda-sdk] request validation warning', e?.errors||e?.message||e); else throw e; } }`);
-wrapperLines.push(`function wrapCallWithReq(args:any,call:(a:any)=>any,req:any,res:any){ if(req){ const m=requestValidationMode(); if(m!=='none') maybeValidateRequest(m,req,args?.requestBody);} const p=call(args); if(!res||!responseValidationEnabled()) return p; return p.then((d:any)=> currentValidationMode()==='none'? d : (res.parse? res.parse(d):d)); }`);
+wrapperLines.push(`function wrapCallWithReq<A,R>(args:A,invoke:()=>CancelablePromise<R>,req:any,res:any):CancelablePromise<R>{ const m=requestValidationMode(); if(req&&m!=='none') maybeValidateRequest(m,req,(args as any)?.requestBody); const inner=invoke(); if(!res||!responseValidationEnabled()) return inner; return new CancelablePromise<R>((resolve,reject,onCancel)=>{ onCancel(()=> (inner as any).cancel?.()); inner.then(d=>{ if(currentValidationMode()==='none'||!res?.parse){ resolve(d as R); } else { try{ resolve(res.parse(d)); }catch(e){ reject(e);} } },reject); }); }`);
 wrapperLines.push('');
 
 const serviceBlocks: string[] = []; const flatExports: string[] = [];
@@ -122,9 +123,9 @@ for (const svc of Object.keys(byService).sort()) {
     const methodRef = `${svc}.${methodName}`;
     if (hasParams) {
       const sig = `(args: Parameters<typeof ${svc}.${methodName}>[0])`;
-      entries.push(`${jd}\n${meta.opId}: ${sig} => wrapCallWithReq(args, (_a:any)=>${methodRef}(args), ${reqSchemaExpr}, ${resSchemaExpr})`);
+  entries.push(`${jd}\n${meta.opId}: ${sig} => wrapCallWithReq(args, ()=>${methodRef}(args), ${reqSchemaExpr}, ${resSchemaExpr})`);
     } else {
-      entries.push(`${jd}\n${meta.opId}: () => wrapCallWithReq(undefined, (_a:any)=>${methodRef}(), ${reqSchemaExpr}, ${resSchemaExpr})`);
+  entries.push(`${jd}\n${meta.opId}: () => wrapCallWithReq(undefined, ()=>${methodRef}(), ${reqSchemaExpr}, ${resSchemaExpr})`);
     }
     const exportName = duplicates.has(meta.opId) ? `${svc}_${meta.opId}` : meta.opId;
     flatExports.push(`${jd}\nexport const ${exportName} = ServicesWrapped.${svc}.${meta.opId};`);
