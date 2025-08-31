@@ -3,12 +3,24 @@
   "private": true,
   "version": "0.0.0-dev",
   "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
     "clean": "rimraf dist src/gen src/semantic",
   "generate": "tsx scripts/generate.ts && vitest run --passWithNoTests",
     "postprocess": "tsx scripts/postprocess.ts",
-    "build": "npm run clean && npm run generate && tsup src/index.ts --dts --format esm,cjs --sourcemap --out-dir dist",
-    "test": "vitest run --passWithNoTests"
+  "build": "npm run clean && npm run generate && tsup src/index.ts --dts --format esm,cjs --sourcemap --out-dir dist",
+  "test": "vitest run --passWithNoTests",
+  "test:dist": "npm run build --silent && node tests/dist-usage.smoke.mjs"
   },
   "dependencies": {
     "zod": "^3.23.8"
