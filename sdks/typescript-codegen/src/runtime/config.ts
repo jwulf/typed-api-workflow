@@ -32,54 +32,23 @@ export type ValidationMode = 'strict' | 'warn' | 'none';
  * Legacy: Previously response validation required a separate flag CAMUNDA_SDK_VALIDATE_RESPONSES.
  * That variable has been removed; simply set a non-'none' response mode to enable response validation.
  */
-const VALIDATION_ENV = 'CAMUNDA_SDK_VALIDATION';
+// This file now delegates to unified configuration hydration logic for backward compatibility.
+// Public API signatures preserved so existing imports continue working.
+import { hydrateConfig, CamundaConfig } from './unifiedConfiguration';
 
-interface ValidationConfig { req: ValidationMode; res: ValidationMode; }
-
-let cachedEnv: string | undefined;
-let cachedConfig: ValidationConfig | undefined;
-
-function parseValidationEnv(raw: string | undefined): ValidationConfig {
-  if (!raw) return { req: 'none', res: 'none' };
-  const val = raw.trim().toLowerCase();
-  if (val === 'none' || val === 'warn' || val === 'strict') {
-    return { req: val, res: val } as ValidationConfig;
-  }
-  const parts = val.split(',').map(p => p.trim()).filter(Boolean);
-  const cfg: Partial<ValidationConfig> = {};
-  for (const part of parts) {
-    const [sideRaw, modeRaw] = part.split(':').map(s => s?.trim());
-    if (!sideRaw || !modeRaw) continue;
-    if (modeRaw !== 'none' && modeRaw !== 'warn' && modeRaw !== 'strict') continue;
-    if (sideRaw === 'req' || sideRaw === 'res') {
-      (cfg as any)[sideRaw] = modeRaw;
-    }
-  }
-  return { req: cfg.req || 'none', res: cfg.res || 'none' };
+// No caching: design calls for pure DI; legacy helpers should reflect current process.env each call (especially in tests).
+function ensure(): ReturnType<typeof hydrateConfig> {
+  return hydrateConfig({});
 }
 
-function getConfig(): ValidationConfig {
-  const current = process.env[VALIDATION_ENV];
-  if (cachedConfig && cachedEnv === current) return cachedConfig;
-  cachedEnv = current;
-  cachedConfig = parseValidationEnv(current);
-  return cachedConfig;
-}
+function v(): CamundaConfig['validation'] { return ensure().config.validation; }
 
-/** Return the request-side validation mode (currently not yet used by runtime). */
-export function requestValidationMode(): ValidationMode { return getConfig().req; }
+export function requestValidationMode(): ValidationMode { return v().req; }
+export function responseValidationMode(): ValidationMode { return v().res; }
+export function currentValidationMode(): ValidationMode { return v().res; }
+export function responseValidationEnabled(): boolean { return v().res !== 'none'; }
+export function validationConfig(): { req: ValidationMode; res: ValidationMode } { return { req: v().req, res: v().res }; }
+export function validationVerbose(): boolean { return v().verbose; }
 
-/** Return the response-side validation mode used by wrappers. */
-export function responseValidationMode(): ValidationMode { return getConfig().res; }
-
-/** Back-compat: existing wrapper code expects this for response severity. */
-export function currentValidationMode(): ValidationMode { return responseValidationMode(); }
-
-/** Back-compat: existing wrapper code checks this before parsing. */
-export function responseValidationEnabled(): boolean { return responseValidationMode() !== 'none'; }
-
-/** Expose full parsed config (diagnostics / advanced tooling). */
-export function validationConfig(): { req: ValidationMode; res: ValidationMode } { return getConfig(); }
-
-/** Verbose formatting toggle for validation (include all issues, raw variant details). */
-export function validationVerbose(): boolean { return process.env.CAMUNDA_SDK_VALIDATION_VERBOSE === '1' || process.env.CAMUNDA_SDK_VALIDATION_VERBOSE === 'true'; }
+// Internal helper for tests wanting fresh parse.
+export function __resetValidationCacheForTests() { /* no-op now; kept for backward compatibility */ }

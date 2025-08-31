@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { requestValidationMode, responseValidationMode, validationConfig } from '../src/runtime/config';
+import { expect as expectVitest } from 'vitest';
 
 function set(val?: string) {
   if (val === undefined) delete process.env.CAMUNDA_SDK_VALIDATION; else process.env.CAMUNDA_SDK_VALIDATION = val;
@@ -28,8 +29,8 @@ describe('CAMUNDA_SDK_VALIDATION parsing', () => {
     set('req:warn,res:strict');
     expect(validationConfig()).toEqual({ req: 'warn', res: 'strict' });
   });
-  it('invalid tokens ignored', () => {
+  it('invalid tokens cause error', () => {
     set('foo:bar,res:warn');
-    expect(validationConfig()).toEqual({ req: 'none', res: 'warn' });
+    expect(() => validationConfig()).toThrow();
   });
 });
