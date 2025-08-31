@@ -28,7 +28,7 @@ Requires Node 18+ (native fetch) or a browser environment. For older Node versio
 ## Quick Start
 
 ```ts
-import camunda, { ProcessDefinitionKey } from '@camunda8/orchestration-cluster';
+import camunda from '@camunda8/orchestration-cluster';
 
 // Point to your cluster / self‑managed gateway
 camunda.OpenAPI.BASE = 'https://api.my-camunda.example';
@@ -38,14 +38,13 @@ camunda.OpenAPI.TOKEN = 'Bearer <token>'; // or set camunda.OpenAPI.HEADERS
 // Deploy a BPMN (FormData resource upload)
 const bpmn = new Blob([`<?xml version="1.0"?><definitions><!-- ... --></definitions>`], { type: 'application/xml' });
 const deployment = await camunda.createDeployment({ formData: { resources: [bpmn] } });
-const defKeyRaw = deployment.deployments[0].processDefinition!.processDefinitionKey;
-const defKey: ProcessDefinitionKey = ProcessDefinitionKey.create(String(defKeyRaw));
+const { processDefinitionKey } = deployment.deployments[0].processDefinition!;
 
 // Start a process instance
-const instance = await camunda.createProcessInstance({ requestBody: { processDefinitionKey: defKey, variables: { hello: 'world' } } });
+const instance = await camunda.createProcessInstance({ requestBody: { processDefinitionKey, variables: { hello: 'world' } } });
 
 // Search instances
-const search = await camunda.searchProcessInstances({ requestBody: { filter: { processDefinitionKey: defKey } } });
+const search = await camunda.searchProcessInstances({ requestBody: { filter: { processDefinitionKey } } });
 console.log('Found', search.total, 'instances');
 ```
 
@@ -155,7 +154,15 @@ Many search endpoints accept a `page` property supporting offset or cursor strat
 
 ## Branded IDs & Keys
 
-Certain identifiers are exposed as branded string types (e.g. `ProcessDefinitionKey`). At runtime they are plain strings. Use the `.create()` helper to satisfy the brand, or assign from existing branded values. This catches accidental mixups at compile time without runtime overhead.
+System-assigned resource keys are exposed as branded string types (e.g. `ProcessDefinitionKey`). At runtime they are plain strings. Use the `.create()` helper to satisfy the brand, or assign from existing branded values. This catches accidental mixups at compile time without runtime overhead.
+
+Example:
+
+```typescript
+import { ProcessDefinitionKey } from '@camunda8/orchestration-cluster';
+
+const processDefinitionKey = ProcessDefinitionKey.create('2251799813686749')
+```
 
 ## Tree Shaking
 
