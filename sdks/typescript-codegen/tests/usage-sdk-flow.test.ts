@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 // Simulated user imports: they would import from the published package root entry
-import { ResourceService, ProcessInstanceService, ServicesWrapped, ProcessDefinitionKey, ProcessInstanceKey, OpenAPI } from '../src';
+import { ProcessDefinitionKey, ProcessInstanceKey, OpenAPI, createDeployment, createProcessInstance, searchProcessInstances } from '../src';
 
 // Helper to fabricate a minimal BPMN file blob (in real use this is a File or Blob from fs/browser)
 function mockBpmn(name: string, id: string) {
@@ -48,7 +48,7 @@ describe('End-to-end usage (mocked) - deploy -> create instance -> search', () =
 
     // Step 1: Deploy a BPMN resource
     const bpmn = mockBpmn('demo.bpmn', 'demoProcess');
-    const deployment = await ResourceService.createDeployment({ formData: { resources: [bpmn] } });
+    const deployment = await createDeployment({ formData: { resources: [bpmn] } });
     // Some generator variants may not type 'processes'; use bracket access to avoid strict missing prop in model typings
     const rawDefKey = deployment.deployments[0].processDefinition!.processDefinitionKey;
 
@@ -56,12 +56,12 @@ describe('End-to-end usage (mocked) - deploy -> create instance -> search', () =
     const defKey: ProcessDefinitionKey = ProcessDefinitionKey.create(String(rawDefKey));
 
     // Step 2: Start a process instance using the key overload
-    const createResult = await ProcessInstanceService.createProcessInstance({ requestBody: { processDefinitionKey: defKey } });
+    const createResult = await createProcessInstance({ requestBody: { processDefinitionKey: defKey } });
     const rawInstanceKey = createResult.processInstanceKey;
     const instanceKey: ProcessInstanceKey = ProcessInstanceKey.create(String(rawInstanceKey));
 
     // Step 3: Search for that process instance (using wrapped service for demo)
-  const searchRes = await ServicesWrapped.ProcessInstanceService.searchProcessInstances({ requestBody: { filter: { processInstanceKey: instanceKey } } });
+  const searchRes = await searchProcessInstances({ requestBody: { filter: { processInstanceKey: instanceKey } } });
 
     expect(searchRes.items[0].processInstanceKey).toBe(String(instanceKey));
     expect(requestSpy).toHaveBeenCalledTimes(3);

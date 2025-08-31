@@ -1,9 +1,9 @@
 import { describe, it } from 'vitest';
-import {ProcessInstanceService} from '../src'
+import {createProcessInstance} from '../src'
 
 describe('acceptance', () => {
     it.skip('createProcessInstance', () => {
-        ProcessInstanceService.createProcessInstance({
+        createProcessInstance({
             // @ts-expect-error intentional wrong type for compile-time demonstration
             requestBody: {processDefinitionId: 'sohe'}
         })

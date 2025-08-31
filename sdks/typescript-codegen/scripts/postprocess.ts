@@ -1,4 +1,4 @@
-/** Post-processing: derive Zod schemas & semantic branded types, generate function wrappers. */
+/** Post-processing: derive Zod schemas & semantic branded types, then delegate wrapper generation to wrapOperations.ts. */
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'yaml';
@@ -23,39 +23,7 @@ const specContent = fs.readFileSync(SPEC, 'utf8');
 const spec: OA3 = parse(specContent);
 const specHash = crypto.createHash('sha256').update(specContent).digest('hex');
 const schemas = spec.components?.schemas || {};
-// Build operationId -> detail map for rich JSDoc
-interface OperationDetail { summary?: string; description?: string; tags?: string[]; method?: string; path?: string; requestRef?: string }
-const operationDetails = new Map<string, OperationDetail>();
-try {
-  const parsed: any = parse(specContent);
-  for (const [p, item] of Object.entries<any>(parsed.paths || {})) {
-    for (const verb of Object.keys(item)) {
-      const op: any = (item as any)[verb];
-      if (op && op.operationId) {
-        // Derive request body schema ref (application/json preferred)
-        let requestRef: string | undefined;
-        const rb = op.requestBody;
-        const content = rb && rb.content && typeof rb.content === 'object' ? rb.content : undefined;
-        if (content) {
-          const jsonMedia = Object.keys(content).find(mt => mt.includes('json')) || Object.keys(content)[0];
-            const mediaObj = jsonMedia ? content[jsonMedia] : undefined;
-            const schema = mediaObj && mediaObj.schema;
-            if (schema && schema.$ref) {
-              requestRef = schema.$ref.split('/').pop();
-            }
-        }
-        operationDetails.set(op.operationId, {
-          summary: op.summary || undefined,
-          description: op.description || undefined,
-          tags: Array.isArray(op.tags) ? op.tags : undefined,
-          method: verb.toUpperCase(),
-          path: p,
-          requestRef
-        });
-      }
-    }
-  }
-} catch (e) { console.warn('[postprocess] Failed parsing operation details', e); }
+// (Removed legacy inline extraction of operation details; wrapper JSDoc now handled in wrapOperations.ts)
 
 // Helpers
 const brandCandidate = (name: string, schema: any) => schema?.['x-semantic-type'] || /(Key|Id|Cursor)$/.test(name);
@@ -170,7 +138,6 @@ console.log(`[postprocess] Generated Zod schemas for ${Object.keys(schemas).leng
 // --- Model fixups: sanitize invalid enum identifiers like 'camunda.document.type' ---
 const MODEL_DIR = GEN_MODELS_DIR;
 const enumPattern = /export enum '([A-Za-z0-9_.-]+)'/g;
-const refPattern = /\.('([A-Za-z0-9_.-]+)')/g; // Namespace reference
 
 function toPascal(raw: string) {
   return raw
@@ -246,9 +213,64 @@ try {
   console.warn('[postprocess] Failed to normalize CamundaKey base model', e);
 }
 
-// (lifters removed; namespaces in semanticKeys provide creation API)
-
-// (Removed legacy inline wrapper generation in favor of modular wrapOperations.ts)
+// --- Deduplicate operations across services now that single-tag-per-operation invariant holds ---
+try {
+  // Build canonical opId -> service name mapping from spec tags
+  function tagToService(tag: string) {
+    return tag.split(/[^A-Za-z0-9]+/).filter(Boolean).map(w=>w[0].toUpperCase()+w.slice(1)).join('') + 'Service';
+  }
+  interface OpMeta { service: string }
+  const opToCanonical: Record<string, OpMeta> = {};
+  for (const [p, item] of Object.entries((spec as any).paths || {})) {
+    for (const [verb, op] of Object.entries<any>(item || {})) {
+      if (!op || !op.operationId) continue;
+      const tags: string[] = Array.isArray(op.tags) ? op.tags : [];
+      if (tags.length !== 1) continue; // enforced by spectral rule
+      opToCanonical[op.operationId] = { service: tagToService(tags[0]) };
+    }
+  }
+  const SERVICES_DIR = path.join(ROOT, 'src/gen/services');
+  if (fs.existsSync(SERVICES_DIR)) {
+    for (const f of fs.readdirSync(SERVICES_DIR)) {
+      if (!f.endsWith('.ts')) continue;
+      const svcName = f.replace(/\.ts$/, '');
+      let content = fs.readFileSync(path.join(SERVICES_DIR, f), 'utf8');
+      let mutated = false;
+      // Find any OperationId annotations in this file
+      const opIdMatches = Array.from(content.matchAll(/OperationId: (\w+)/g)).map(m => m[1]);
+      for (const opId of opIdMatches) {
+        const canonical = opToCanonical[opId];
+        if (!canonical) continue; // unknown op (maybe legacy) leave it
+        if (canonical.service === svcName) continue; // correct placement
+        // Remove this method block from current service
+        const implIdx = content.indexOf(`public static ${opId}`);
+        if (implIdx === -1) continue;
+        // Walk forward to find end of method by brace depth
+        const startSearch = implIdx;
+        let braceStart = content.indexOf('{', implIdx);
+        if (braceStart === -1) continue;
+        let depth = 0; let i = braceStart; const len = content.length;
+        for (; i < len; i++) {
+          const ch = content[i];
+            if (ch === '{') depth++;
+            else if (ch === '}') { depth--; if (depth === 0) { i++; break; } }
+        }
+        const methodEnd = i;
+        // Backtrack to preceding JSDoc start
+        const jsdocIdx = content.lastIndexOf('/**', implIdx);
+        const removalStart = jsdocIdx !== -1 ? jsdocIdx : startSearch;
+        const before = content.slice(0, removalStart);
+        const after = content.slice(methodEnd);
+        content = before + after;
+        mutated = true;
+        console.log(`[postprocess] Removed duplicate operation ${opId} from ${svcName} (canonical: ${canonical.service}).`);
+      }
+      if (mutated) fs.writeFileSync(path.join(SERVICES_DIR, f), content, 'utf8');
+    }
+  }
+} catch (e) {
+  console.warn('[postprocess] Failed during duplicate operation pruning', e);
+}
 
 // --- Auto-generate public index.ts exports (services + semantic + runtime + wrappers) ---
 try {
@@ -269,22 +291,21 @@ try {
     `export type { OpenAPIConfig } from './gen/core/OpenAPI';\n` +
     `export { ApiError } from './gen/core/ApiError';\n` +
     `export { CancelablePromise, CancelError } from './gen/core/CancelablePromise';\n\n` +
-    `// Services\n` + serviceExports.join('\n') + '\n\n' +
+    `// NOTE: Direct service class exports removed in favour of fully wrapped API functions.\n` +
+    `// If needed for advanced/custom use cases, they can be re-exported explicitly by consumers.\n\n` +
     `// Semantic schemas & runtime\n` +
     `export * from './gen/semantic';\n` +
     `export * from './runtime/config';\n` +
     `export * from './runtime/validation';\n` +
     `// Auto generated wrappers (validated responses)\n` +
     `export * from './gen/wrappers/autoWrappers.js';\n` +
-    `// Flat convenience exports (Option C)\n` +
+    `// Flat convenience exports (flat, operation-centric)\n` +
     `export * from './gen/wrappers/flatExports.js';\n`;
   fs.writeFileSync(INDEX_FILE, indexContent, 'utf8');
   console.log('[postprocess] Generated public index.ts exports.');
 } catch (e) {
   console.warn('[postprocess] Failed generating index.ts', e);
 }
-
-// (Removed) request.ts patch for boxed branded keys: no longer required with primitive string branding.
 
 // --- Insert overloads using vendor extension x-polymorphic-schema (oneOf variants) ---
 try {
@@ -510,5 +531,5 @@ try {
   console.warn('[postprocess] Failed to apply @generated headers', e);
 }
 
-// Invoke modular spec-driven wrapper generation (overrides earlier wrapper if present)
-await import('./wrapOperations.js');
+// Invoke modular spec-driven wrapper generation (TypeScript version)
+await import('./wrapOperations');
