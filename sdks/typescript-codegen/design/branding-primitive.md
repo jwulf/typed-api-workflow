@@ -20,11 +20,11 @@ export type ProcessInstanceKey = CamundaKey<'ProcessInstanceKey'>;
 The brand is erased at runtime; validation occurs only in factory functions.
 
 ## Factories
-Each key namespace exposes `assumeDeployed`, `getValue`, `equals`, `isValid`. The verb "assumeDeployed" communicates that you already obtained this id/key from the cluster (deployment / creation response, search result, etc.) and are simply lifting it into its branded static type; no remote validation or fetch is performed. Implementations are intentionally minimal:
+Each key namespace exposes `assumeExists`, `getValue`, `equals`, `isValid`. The verb "assumeExists" communicates that you already obtained (or otherwise trust) this id/key from the cluster (deployment / creation response, search result, correlation context, etc.) and are simply lifting it into its branded static type; no remote validation or fetch is performed. Implementations are intentionally minimal:
 ```ts
 export namespace ProcessInstanceKey {
-  // assumeDeployed: validate basic shape (length/pattern) then brand.
-  export function assumeDeployed(value: string): ProcessInstanceKey { /* validate */ return value as ProcessInstanceKey; }
+  // assumeExists: validate basic shape (length/pattern) then brand.
+  export function assumeExists(value: string): ProcessInstanceKey { /* validate */ return value as ProcessInstanceKey; }
   export function getValue(k: ProcessInstanceKey): string { return k; }
   export function equals(a: ProcessInstanceKey, b: ProcessInstanceKey) { return a === b; }
 }

@@ -14,7 +14,7 @@ async function main() {
   if (typeof camunda.createProcessInstance !== 'function') throw new Error('Expected operation function on default export');
   const { ProcessDefinitionKey } = mod;
   if (typeof ProcessDefinitionKey?.create !== 'function') throw new Error('ProcessDefinitionKey.create missing');
-  const k = ProcessDefinitionKey.assumeDeployed('42');
+  const k = ProcessDefinitionKey.assumeExists('42');
   if (String(k) !== '42') throw new Error('Key branding roundtrip failed');
   console.log('[dist-smoke] OK');
 }

@@ -47,7 +47,7 @@ Overloads inserted post‑generation by pattern matching within service `.ts` fi
 
 ## Branded Keys
 
-Primitive branded types use `type X = string & { readonly __brand: 'X' }` (or Zod `.brand<'X'>()`) hidden behind helper factories `X.create(value: string)`. Keep runtime cost minimal: functions return the input cast.
+Primitive branded types use `type X = string & { readonly __brand: 'X' }` (or Zod `.brand<'X'>()`) hidden behind helper factories `X.assumeExists(value: string)`. Keep runtime cost minimal: functions return the input cast (after shape validation). The name signals you already obtained the id/key from the cluster; no remote lookup occurs.
 
 Adding a new key:
 1. Ensure model or schema includes the underlying string field.

@@ -11,13 +11,13 @@ describe('Primitive CamundaKey branding', () => {
   it('prevents implicit assignment of raw string (type-level)', () => {
     // @ts-expect-error raw string should not be assignable directly
     const bad: ProcessInstanceKey = '12345';
-  const ok: ProcessInstanceKey = ProcessInstanceKey.assumeDeployed('12345');
+  const ok: ProcessInstanceKey = ProcessInstanceKey.assumeExists('12345');
     expect(typeof ok).toBe('string');
     expect(ok).toBe('12345');
   });
 
   it('supports string operations and JSON serialization naturally', () => {
-  const k = ProcessInstanceKey.assumeDeployed('67890');
+  const k = ProcessInstanceKey.assumeExists('67890');
     const concatenated = `pi-${k}`;
     expect(concatenated).toBe('pi-67890');
     const json = JSON.stringify({ k });
@@ -25,7 +25,7 @@ describe('Primitive CamundaKey branding', () => {
   });
 
   it('rejects invalid input (length / regex)', () => {
-  expect(() => ProcessInstanceKey.assumeDeployed('')).toThrow();
-  expect(() => ProcessInstanceKey.assumeDeployed('abc')).toThrow();
+  expect(() => ProcessInstanceKey.assumeExists('')).toThrow();
+  expect(() => ProcessInstanceKey.assumeExists('abc')).toThrow();
   });
 });

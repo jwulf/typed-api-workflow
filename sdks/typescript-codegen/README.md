@@ -71,7 +71,7 @@ await ProcessInstanceService.createProcessInstance({ requestBody: { /* ... */ } 
 Branded key helpers:
 ```ts
 import { ProcessInstanceKey } from '@camunda8/orchestration-cluster';
-const key = ProcessInstanceKey.assumeDeployed('123'); // runtime brand (string at runtime, distinct type in TS)
+const key = ProcessInstanceKey.assumeExists('123'); // runtime brand (string at runtime, distinct type in TS)
 ```
 
 ## Validation
@@ -154,14 +154,14 @@ Many search endpoints accept a `page` property supporting offset or cursor strat
 
 ## Branded IDs & Keys
 
-System-assigned resource keys are exposed as branded string types (e.g. `ProcessDefinitionKey`). At runtime they are plain strings. Use the `.assumeDeployed()` helper to lift a raw id you already obtained from the cluster, or assign from existing branded values. This catches accidental mixups at compile time without runtime overhead.
+System-assigned resource keys are exposed as branded string types (e.g. `ProcessDefinitionKey`). At runtime they are plain strings. Use the `.assumeExists()` helper to lift a raw id you already obtained from the cluster, or assign from existing branded values. This catches accidental mixups at compile time without runtime overhead.
 
 Example:
 
 ```typescript
 import { ProcessDefinitionKey } from '@camunda8/orchestration-cluster';
 
-const processDefinitionKey = ProcessDefinitionKey.assumeDeployed('2251799813686749')
+const processDefinitionKey = ProcessDefinitionKey.assumeExists('2251799813686749')
 ```
 
 ## Tree Shaking
@@ -173,7 +173,7 @@ Import only what you use with named operation exports to minimize bundle size in
 1. Replace manual fetch with corresponding `camunda.<operationId>` call.
 2. Move request JSON into `{ requestBody: {...} }` shape.
 3. (Optional) Enable validation in development: `CAMUNDA_SDK_VALIDATION=res:strict`.
-4. Adopt branded types progressively (wrap raw keys using helper `.assumeDeployed`).
+4. Adopt branded types progressively (wrap raw keys using helper `.assumeExists`).
 
 ## FAQ
 

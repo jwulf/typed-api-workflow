@@ -19,7 +19,7 @@ function mockFetch(capture: { url?: string; init?: RequestInit }) {
 
 describe('semantic key request unwrapping', () => {
   it('unwrapped in path params', async () => {
-  const key = ProcessInstanceKey.assumeDeployed('12345');
+  const key = ProcessInstanceKey.assumeExists('12345');
     const capture: any = {};
     const restore = mockFetch(capture);
     try {
@@ -33,7 +33,7 @@ describe('semantic key request unwrapping', () => {
   });
 
   it('unwrapped in query params', async () => {
-  const key = ProcessInstanceKey.assumeDeployed('67890');
+  const key = ProcessInstanceKey.assumeExists('67890');
     const capture: any = {};
     const restore = mockFetch(capture);
     try {
@@ -47,7 +47,7 @@ describe('semantic key request unwrapping', () => {
   });
 
   it('unwrapped in JSON body', async () => {
-  const key = ProcessInstanceKey.assumeDeployed('24680');
+  const key = ProcessInstanceKey.assumeExists('24680');
     const capture: any = {};
     const restore = mockFetch(capture);
     try {

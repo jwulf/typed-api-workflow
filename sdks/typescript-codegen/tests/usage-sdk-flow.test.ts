@@ -53,12 +53,12 @@ describe('End-to-end usage (mocked) - deploy -> create instance -> search', () =
     const rawDefKey = deployment.deployments[0].processDefinition!.processDefinitionKey;
 
     // Lift to branded key (shows user ergonomics)
-  const defKey: ProcessDefinitionKey = ProcessDefinitionKey.assumeDeployed(String(rawDefKey));
+  const defKey: ProcessDefinitionKey = ProcessDefinitionKey.assumeExists(String(rawDefKey));
 
     // Step 2: Start a process instance using the key overload
     const createResult = await camunda.createProcessInstance({ requestBody: { processDefinitionKey: defKey } });
     const rawInstanceKey = createResult.processInstanceKey;
-  const instanceKey: ProcessInstanceKey = ProcessInstanceKey.assumeDeployed(String(rawInstanceKey));
+  const instanceKey: ProcessInstanceKey = ProcessInstanceKey.assumeExists(String(rawInstanceKey));
 
     // Step 3: Search for that process instance (using wrapped service for demo)
   const searchRes = await camunda.searchProcessInstances({ requestBody: { filter: { processInstanceKey: instanceKey } } });
