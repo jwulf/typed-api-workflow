@@ -80,3 +80,6 @@ export function responseValidationEnabled(): boolean { return responseValidation
 
 /** Expose full parsed config (diagnostics / advanced tooling). */
 export function validationConfig(): { req: ValidationMode; res: ValidationMode } { return getConfig(); }
+
+/** Verbose formatting toggle for validation (include all issues, raw variant details). */
+export function validationVerbose(): boolean { return process.env.CAMUNDA_SDK_VALIDATION_VERBOSE === '1' || process.env.CAMUNDA_SDK_VALIDATION_VERBOSE === 'true'; }

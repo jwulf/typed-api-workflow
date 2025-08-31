@@ -3,6 +3,7 @@ import * as Generated from './gen/public-index';
 import * as Ops from './gen/wrappers/flatExports';
 // Re-export generated named symbols (schemas, keys, config, wrappers, operations)
 export * from './gen/public-index';
+export { CamundaValidationError } from './runtime/errors';
 
 // Curated namespaces for clarity (optional to import)
 // Schemas: all exported Zod schemas (they are already individually exported)

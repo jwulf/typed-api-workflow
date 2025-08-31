@@ -26,7 +26,14 @@ const schemas = spec.components?.schemas || {};
 // (Removed legacy inline extraction of operation details; wrapper JSDoc now handled in wrapOperations.ts)
 
 // Helpers
-const brandCandidate = (name: string, schema: any) => schema?.['x-semantic-type'] || /(Key|Id|Cursor)$/.test(name);
+// Only brand primitive key/id/cursor style schemas (strings or simple enums) – avoid branding complex objects ending with Id
+const brandCandidate = (name: string, schema: any) => {
+  if (schema?.['x-semantic-type']) return true;
+  if (!/(Key|Id|Cursor)$/.test(name)) return false;
+  if (schema?.enum) return true;
+  // brand only primitive string/number/integer types (not objects/arrays)
+  return ['string', 'number', 'integer'].includes(schema?.type);
+};
 
 function zodForSchema(name: string, schema: any, imports: Set<string>): string {
   if (!schema) return 'z.any()';
@@ -41,15 +48,17 @@ function zodForSchema(name: string, schema: any, imports: Set<string>): string {
   }
   if (schema.oneOf) {
     const variants = schema.oneOf.map((sub: any, i: number) => {
-      if (sub.$ref) { const nm = sub.$ref.split('/').pop(); imports.add(nm); return `${nm}Schema`; }
-      return zodForSchema(name + 'OneOf' + i, sub, imports);
+      if (sub.$ref) { const nm = sub.$ref.split('/').pop(); imports.add(nm); return `${nm}Schema.describe('Variant ${i + 1}: ${nm}')`; }
+      const inline = zodForSchema(name + 'OneOf' + i, sub, imports);
+      return `${inline}.describe('Variant ${i + 1}: inline ${name}OneOf${i}')`;
     });
     return `z.union([${variants.join(', ')}])`;
   }
   if (schema.anyOf) {
     const variants = schema.anyOf.map((sub: any, i: number) => {
-      if (sub.$ref) { const nm = sub.$ref.split('/').pop(); imports.add(nm); return `${nm}Schema`; }
-      return zodForSchema(name + 'AnyOf' + i, sub, imports);
+      if (sub.$ref) { const nm = sub.$ref.split('/').pop(); imports.add(nm); return `${nm}Schema.describe('Variant ${i + 1}: ${nm}')`; }
+      const inline = zodForSchema(name + 'AnyOf' + i, sub, imports);
+      return `${inline}.describe('Variant ${i + 1}: inline ${name}AnyOf${i}')`;
     });
     return `z.union([${variants.join(', ')}])`;
   }
@@ -78,11 +87,12 @@ function zodForSchema(name: string, schema: any, imports: Set<string>): string {
     case 'array': return `z.array(${zodForSchema(name + 'Item', schema.items || {}, imports)})`;
     case 'object': {
       const props = schema.properties || {};
+      const requiredSet = new Set<string>((schema.required || []).map((r: any) => String(r)));
       const entries = Object.entries(props).map(([pname, pschema]: [string, any]) => {
         let expr: string;
         if (pschema.$ref) { const ref = pschema.$ref.split('/').pop(); imports.add(ref); expr = `${ref}Schema`; }
         else expr = zodForSchema(name + '_' + pname, pschema, imports);
-        if (!(schema.required || []).includes(pname)) expr += '.optional()';
+        if (!requiredSet.has(pname)) expr += '.optional()';
         return `  ${JSON.stringify(pname)}: ${expr}`;
       });
       let obj = `z.object({\n${entries.join(',\n')}\n})`;
@@ -132,6 +142,31 @@ for (const [name, schema] of ordered) {
   indexExports.push(`export type { ${name} } from './zodModels.js';`);
 }
 fs.writeFileSync(zodModelsFile, '/** @generated */\n' + header + body, 'utf8');
+// Fallback: ensure every component schema has at least a placeholder; detect any missing (e.g. complex objects with Id suffix)
+try {
+  const missing: string[] = [];
+  for (const name of Object.keys(schemas)) {
+    if (!new RegExp(`\\bexport const ${name}Schema =`).test(body)) missing.push(name);
+  }
+  if (missing.length) {
+    let append = '';
+    for (const name of missing) {
+      const imports = new Set<string>();
+      let expr = originalZodForSchema(name, (schemas as any)[name], imports);
+      // Prevent accidental branding on fallback
+      expr = expr.replace(/\.transform\([^)]*\) as unknown as z\.ZodType<SK\.[^>]+>/g, '');
+      append += `// Schema (fallback): ${name}\nexport const ${name}Schema = ${expr};\nexport type ${name} = z.infer<typeof ${name}Schema>;\n\n`;
+      if (!indexExports.includes(`export { ${name}Schema } from './zodModels.js';`)) {
+        indexExports.push(`export { ${name}Schema } from './zodModels.js';`);
+        indexExports.push(`export type { ${name} } from './zodModels.js';`);
+      }
+    }
+    fs.appendFileSync(zodModelsFile, append, 'utf8');
+    console.warn(`[postprocess] Added fallback semantic schemas for missing components: ${missing.join(', ')}`);
+  }
+} catch (e) {
+  console.warn('[postprocess] Fallback inclusion failed', e);
+}
 fs.writeFileSync(path.join(SEMANTIC_DIR, 'index.ts'), '/** @generated */\n' + indexExports.join('\n'), 'utf8');
 console.log(`[postprocess] Generated Zod schemas for ${Object.keys(schemas).length} components (lazy).`);
 

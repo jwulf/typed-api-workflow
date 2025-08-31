@@ -129,8 +129,11 @@ wrapperLines.push("import * as Sem from '../semantic';");
 for (const svc of Object.keys(byService).sort()) wrapperLines.push(`import { ${svc} } from '../services/${svc}';`);
 wrapperLines.push('');
 wrapperLines.push(`import { CancelablePromise } from '../core/CancelablePromise';`);
-wrapperLines.push(`function maybeValidateRequest(mode:string,schema:any,val:any){ if(!schema||mode==='none') return; try{ schema.parse?.(val);}catch(e:any){ if(mode==='warn') console.warn('[camunda-sdk] request validation warning', e?.errors||e?.message||e); else throw e; } }`);
-wrapperLines.push(`function wrapCallWithReq<A,R>(args:A,invoke:()=>CancelablePromise<R>,req:any,res:any):CancelablePromise<R>{ const m=requestValidationMode(); if(req&&m!=='none') maybeValidateRequest(m,req,(args as any)?.requestBody); const inner=invoke(); if(!res||!responseValidationEnabled()) return inner; return new CancelablePromise<R>((resolve,reject,onCancel)=>{ onCancel(()=> (inner as any).cancel?.()); inner.then(d=>{ if(currentValidationMode()==='none'||!res?.parse){ resolve(d as R); } else { try{ resolve(res.parse(d)); }catch(e){ reject(e);} } },reject); }); }`);
+wrapperLines.push(`import { formatValidationError, logFormattedValidation } from '../../runtime/formatValidation';`);
+wrapperLines.push(`import { CamundaValidationError } from '../../runtime/errors';`);
+wrapperLines.push(`import { ZodError } from 'zod';`);
+wrapperLines.push(`function maybeValidateRequest(mode:string,schema:any,val:any,op:string){ if(!schema||mode==='none') return; try{ schema.parse?.(val);}catch(e:any){ if(e instanceof ZodError){ const f=formatValidationError({ side:'request', operationId: op, schema, value: val, error: e }); if(mode==='warn'){ logFormattedValidation('warn', f); return; } } throw e; } }`);
+wrapperLines.push(`function wrapCallWithReq<A,R>(args:A,invoke:()=>CancelablePromise<R>,req:any,res:any,op:string):CancelablePromise<R>{ const m=requestValidationMode(); if(req&&m!=='none') maybeValidateRequest(m,req,(args as any)?.requestBody,op); const inner=invoke(); if(!res||!responseValidationEnabled()) return inner; return new CancelablePromise<R>((resolve,reject,onCancel)=>{ onCancel(()=> (inner as any).cancel?.()); inner.then(d=>{ if(currentValidationMode()==='none'||!res?.parse){ resolve(d as R); } else { try{ resolve(res.parse(d)); }catch(e){ if(e instanceof ZodError){ const f=formatValidationError({ side:'response', operationId: op, schema: res, value: d, error: e }); reject(new CamundaValidationError({ side:'response', operationId: op, message: f.message, summary: f.summary, issues: f.issues })); } else reject(e);} } },reject); }); }`);
 wrapperLines.push('');
 
 const serviceBlocks: string[] = []; const flatExports: string[] = [];
@@ -146,9 +149,9 @@ for (const svc of Object.keys(byService).sort()) {
     const methodRef = `${svc}.${methodName}`;
     if (hasParams) {
       const sig = `(args: Parameters<typeof ${svc}.${methodName}>[0])`;
-  entries.push(`${jd}\n${meta.opId}: ${sig} => wrapCallWithReq(args, ()=>${methodRef}(args), ${reqSchemaExpr}, ${resSchemaExpr})`);
+  entries.push(`${jd}\n${meta.opId}: ${sig} => wrapCallWithReq(args, ()=>${methodRef}(args), ${reqSchemaExpr}, ${resSchemaExpr}, '${meta.opId}')`);
     } else {
-  entries.push(`${jd}\n${meta.opId}: () => wrapCallWithReq(undefined, ()=>${methodRef}(), ${reqSchemaExpr}, ${resSchemaExpr})`);
+  entries.push(`${jd}\n${meta.opId}: () => wrapCallWithReq(undefined, ()=>${methodRef}(), ${reqSchemaExpr}, ${resSchemaExpr}, '${meta.opId}')`);
     }
     const exportName = duplicates.has(meta.opId) ? `${svc}_${meta.opId}` : meta.opId;
     flatExports.push(`${jd}\nexport const ${exportName} = ServicesWrapped.${svc}.${meta.opId};`);

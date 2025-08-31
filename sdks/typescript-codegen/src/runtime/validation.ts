@@ -1,5 +1,7 @@
-import { ZodTypeAny } from 'zod';
+import { ZodError, ZodTypeAny } from 'zod';
 import { currentValidationMode, responseValidationEnabled } from './config';
+import { formatValidationError, logFormattedValidation } from './formatValidation';
+import { CamundaValidationError } from './errors';
 
 export function validateData<T>(schema: ZodTypeAny, data: unknown): T {
   const mode = currentValidationMode();
@@ -7,10 +9,10 @@ export function validateData<T>(schema: ZodTypeAny, data: unknown): T {
   try {
     return schema.parse(data) as T;
   } catch (err: any) {
-    if (mode === 'warn') {
-      // eslint-disable-next-line no-console
-      console.warn('[camunda-sdk] validation warning', err?.errors || err?.message || err);
-      return data as T;
+    if (err instanceof ZodError) {
+      const formatted = formatValidationError({ side: 'request', error: err, schema, value: data });
+  if (mode === 'warn') { logFormattedValidation('warn', formatted); return data as T; }
+  throw new CamundaValidationError({ side: 'request', operationId: undefined, message: formatted.message, summary: formatted.summary, issues: formatted.issues });
     }
     throw err;
   }
@@ -25,5 +27,15 @@ export async function parseJson<T = any>(res: Response): Promise<T> {
 export async function parseAndMaybeValidate<T>(res: Response, schema?: ZodTypeAny): Promise<T> {
   const json = await parseJson<T>(res);
   if (!schema || !responseValidationEnabled()) return json as T;
-  return validateData<T>(schema, json);
+  try {
+    return validateData<T>(schema, json);
+  } catch (err: any) {
+    if (err instanceof ZodError) {
+      const mode = currentValidationMode();
+      const formatted = formatValidationError({ side: 'response', error: err, schema, value: json });
+  if (mode === 'warn') { logFormattedValidation('warn', formatted); return json as T; }
+  throw new CamundaValidationError({ side: 'response', operationId: undefined, message: formatted.message, summary: formatted.summary, issues: formatted.issues });
+    }
+    throw err;
+  }
 }
