@@ -274,7 +274,8 @@ try {
 
 // --- Auto-generate public index.ts exports (services + semantic + runtime + wrappers) ---
 try {
-  const INDEX_FILE = path.join(ROOT, 'src', 'index.ts');
+  const INDEX_FILE = path.join(ROOT, 'src', 'gen', 'public-index.ts');
+  fs.mkdirSync(path.dirname(INDEX_FILE), { recursive: true });
   const SERVICES_DIR = path.join(ROOT, 'src/gen/services');
   const serviceExports: string[] = [];
   if (fs.existsSync(SERVICES_DIR)) {
@@ -287,22 +288,22 @@ try {
   serviceExports.sort();
   const indexContent = `/** @generated Public entrypoint (spec sha256: ${specHash}) */\n` +
     `// Core client primitives\n` +
-    `export { OpenAPI } from './gen/core/OpenAPI';\n` +
-    `export type { OpenAPIConfig } from './gen/core/OpenAPI';\n` +
-    `export { ApiError } from './gen/core/ApiError';\n` +
-    `export { CancelablePromise, CancelError } from './gen/core/CancelablePromise';\n\n` +
+    `export { OpenAPI } from './core/OpenAPI';\n` +
+    `export type { OpenAPIConfig } from './core/OpenAPI';\n` +
+    `export { ApiError } from './core/ApiError';\n` +
+    `export { CancelablePromise, CancelError } from './core/CancelablePromise';\n\n` +
     `// NOTE: Direct service class exports removed in favour of fully wrapped API functions.\n` +
     `// If needed for advanced/custom use cases, they can be re-exported explicitly by consumers.\n\n` +
     `// Semantic schemas & runtime\n` +
-    `export * from './gen/semantic';\n` +
-    `export * from './runtime/config';\n` +
-    `export * from './runtime/validation';\n` +
+    `export * from './semantic';\n` +
+    `export * from '../runtime/config';\n` +
+    `export * from '../runtime/validation';\n` +
     `// Auto generated wrappers (validated responses)\n` +
-    `export * from './gen/wrappers/autoWrappers.js';\n` +
+    `export * from './wrappers/autoWrappers.js';\n` +
     `// Flat convenience exports (flat, operation-centric)\n` +
-    `export * from './gen/wrappers/flatExports.js';\n`;
+    `export * from './wrappers/flatExports.js';\n`;
   fs.writeFileSync(INDEX_FILE, indexContent, 'utf8');
-  console.log('[postprocess] Generated public index.ts exports.');
+  console.log('[postprocess] Generated gen/public-index.ts exports.');
 } catch (e) {
   console.warn('[postprocess] Failed generating index.ts', e);
 }
