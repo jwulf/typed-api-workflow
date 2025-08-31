@@ -257,11 +257,39 @@ Inject a custom transport (e.g. to forward into pino / winston) before making SD
 ```ts
 import { setTransport, getLogger, LogEvent } from '@camunda8/orchestration-cluster/logger';
 
+// Avoid serializing huge objects to console; args may contain request bodies – pino and winston will handle this for you.
+function smartTruncateRequest(obj, maxLength = 500) {
+  const full = JSON.stringify(obj, null, 2);
+  
+  if (full.length <= maxLength) {
+    return full;
+  }
+  
+  // Try truncating individual string values first
+  const withTruncatedStrings = JSON.stringify(obj, (key, value) => {
+    if (typeof value === 'string' && value.length > 100) {
+      return value.slice(0, 100) + '...[truncated]';
+    }
+    return value;
+  }, 2);
+  
+  if (withTruncatedStrings.length <= maxLength) {
+    return withTruncatedStrings;
+  }
+  
+  // Last resort: truncate but ensure valid JSON
+  return JSON.stringify({
+    ...obj,
+    _truncated: true,
+    _originalSize: full.length,
+    _note: "Request body truncated for logging"
+  });
+}
+
 // Example: route to console in structured JSON (or use pino.logger.info(evt))
 setTransport((evt: LogEvent) => {
-   // Avoid serializing huge objects; args may contain request bodies – slice if needed
-   const safeArgs = evt.args.map(a => typeof a === 'string' ? a : JSON.stringify(a).slice(0,500));
-   console.log(JSON.stringify({ ts: evt.ts, level: evt.level, scope: evt.scope, msg: safeArgs.join(' ') }));
+   const safeArgs = evt.args.map(a => typeof a === 'string' ? a : smartTruncateRequest(a));
+   console.log(JSON.stringify({ ts: evt.ts, level: evt.level, scope: evt.scope, msg: safeArgs }));
 });
 
 // Optional manual logger usage
