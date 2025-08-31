@@ -2,6 +2,10 @@
 sdks/generated
 sdks/typescript-codegen/src/gen
 dist
+
+# Ignore design docs
+sdks/typescript-codegen/design
+
 #
 spec-tools/semantic-types-coverage/dist
 
@@ -10,6 +14,7 @@ spec-tools/semantic-types-coverage/dist
 # ignore checkouts of camunda and camunda-docs in root only
 /camunda
 /camunda-docs
+/camunda-8-js-sdk
 
 target/
 !.mvn/wrapper/maven-wrapper.jar
