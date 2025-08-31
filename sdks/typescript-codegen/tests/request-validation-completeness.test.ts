@@ -36,8 +36,9 @@ describe('request validation completeness', () => {
     const wrappers = fs.readFileSync(wrappersPath, 'utf8');
     const missing: string[] = [];
     for (const op of ops) {
-      // Look for the method line with wrapCallWithReq and capture request schema arg
-      const re = new RegExp(`${op.opId}: .*?wrapCallWithReq\\(args, \\(_a:any\\)=>.*?, (Sem\\.[A-Za-z0-9_]+Schema|undefined),`);
+      // Look for the method line with wrapCallWithReq and capture request schema arg.
+      // Generator evolved arrow form from (_a:any)=> to ()=>, so we relax pattern:
+      const re = new RegExp(`${op.opId}: [^\\n]*wrapCallWithReq\\(args, [^,]+, (Sem\\.[A-Za-z0-9_]+Schema|undefined),`);
       const m = wrappers.match(re);
       if (!m) {
         missing.push(`${op.opId} (no wrapper line found)`);

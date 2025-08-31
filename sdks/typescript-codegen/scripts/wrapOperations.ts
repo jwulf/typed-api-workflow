@@ -1,4 +1,27 @@
-/** Spec-driven wrapper generation (pure TypeScript). */
+/**
+ * Spec-driven wrapper generation (pure TypeScript).
+ *
+ * Adds request and response validation to all API methods behind a configuration gate. 
+ * 
+ * CONTRACT / DO NOT BREAK WITHOUT UPDATING TESTS:
+ * 1. Each generated wrapper method MUST preserve the precise CancelablePromise<R> return type
+ *    of the underlying service method. No widening to Promise|any.
+ * 2. Cancellation propagation: calling .cancel() on the wrapper MUST invoke .cancel() on the
+ *    underlying (inner) CancelablePromise when response validation is enabled (i.e. when the
+ *    wrapper creates a new outer promise). A dedicated test asserts this behavior.
+ * 3. Validation pipeline: request schema (if available) is applied according to requestValidationMode();
+ *    response schema (if available) is applied only when responseValidationEnabled()===true.
+ * 4. Type inference: Wrapper factory helper `wrapCallWithReq<A,R>` is the SINGLE point where generic
+ *    parameters are connected. Do NOT inline or refactor in a way that causes R to become any. A
+ *    strengthened type-signatures test suite will fail if this erodes.
+ * 5. Overloads: Service overloads remain defined ONLY in service classes. Wrappers intentionally
+ *    expose the unified impl signature (Parameters<typeof Service.method>[0]). Any change to this
+ *    strategy requires updating consumer docs & tests.
+ * 6. Manual edits to generated files under src/gen/wrappers are discouraged; adjust THIS script instead.
+ *
+ * If you need to evolve the wrapper behavior, add or update a regression test (see tests/type-signatures.test.ts
+ * and tests/cancel-propagation.test.ts) before modifying this generator.
+ */
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'yaml';

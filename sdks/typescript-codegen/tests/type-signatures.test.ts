@@ -4,6 +4,9 @@ import type { CancelablePromise } from '../src/gen/core/CancelablePromise';
 import type { CreateProcessInstanceResult } from '../src/gen/models/CreateProcessInstanceResult';
 import type { DeploymentResult } from '../src/gen/models/DeploymentResult';
 import type { ProcessInstanceCreationInstruction } from '../src/gen/models/ProcessInstanceCreationInstruction';
+import type { EvaluateDecisionResult } from '../src/gen/models/EvaluateDecisionResult';
+import type { UserSearchResult } from '../src/gen/models/UserSearchResult';
+import type { UserSearchQueryRequest } from '../src/gen/models/UserSearchQueryRequest';
 
 // Simple type-level helpers
 // Equal / Expect from TS utility patterns
@@ -41,6 +44,24 @@ type _CreateDeploymentReturn = Expect<
 >;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type _CreateDeploymentNotAny = Expect<NotAny<ReturnType<typeof camunda.createDeployment>>>;
+
+// evaluateDecision return type assertion
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _EvaluateDecisionReturn = Expect<
+  Equal<ReturnType<typeof camunda.evaluateDecision>, CancelablePromise<EvaluateDecisionResult>>
+>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _EvaluateDecisionNotAny = Expect<NotAny<ReturnType<typeof camunda.evaluateDecision>>>;
+
+// searchUsers overload unification: parameter is a discriminated union of page strategies
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _SearchUsersReturn = Expect<
+  Equal<ReturnType<typeof camunda.searchUsers>, CancelablePromise<UserSearchResult>>
+>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _SearchUsersNotAny = Expect<NotAny<ReturnType<typeof camunda.searchUsers>>>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _SearchUsersParam = Expect<NotAny<Parameters<typeof camunda.searchUsers>[0]>>;
 
 // Lightweight runtime smoke just to keep Vitest counting a test file
 describe('type-signatures', () => {
