@@ -393,6 +393,13 @@ export function hydrateConfig(options: HydrateOptions = {}): HydratedConfigurati
     toRedactedObject() { return { ...this.redacted }; },
     toDisplayString() { return Object.entries(this.redacted).map(([k,v]) => `${k}=${v}`).join('\n'); }
   };
+  // Record last hydrated configuration for runtime consumers (e.g., validation gating) that
+  // call convenience helpers without explicit DI. This preserves test semantics where
+  // hydrateConfig({ env: { ... } }) is invoked directly without also calling a higher-level
+  // apply function. (Greenfield simplification: single source of truth here.)
+  try {
+    (globalThis as any).__CAMUNDA_SDK_LAST_CONFIG = api;
+  } catch { /* ignore (SSR edge) */ }
   return api;
 }
 
@@ -419,3 +426,18 @@ async function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 
 // Export spec for TypeDoc extraction tooling
 export function configurationSpec(): ReadonlyArray<BaseSpecEntry> { return SPEC.slice(); }
+
+/**
+ * Non-mutating accessor for the most recently hydrated configuration.
+ * Returns the same HydratedConfiguration object that the last call to
+ * hydrateConfig / hydrateConfigAsync produced, or undefined if hydration
+ * has not occurred yet in this process. This function NEVER performs
+ * hydration itself (no environment reads / parsing side-effects).
+ */
+export function getConfig(): HydratedConfiguration | undefined {
+  try {
+    return (globalThis as any).__CAMUNDA_SDK_LAST_CONFIG as HydratedConfiguration | undefined;
+  } catch {
+    return undefined;
+  }
+}

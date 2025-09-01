@@ -18,7 +18,7 @@ import { parse } from 'yaml';
 
 interface OA3Parameter { in?: string; name?: string }
 interface OA3RequestBody { content?: Record<string, any> }
-interface OA3Operation { operationId?: string; parameters?: OA3Parameter[]; requestBody?: OA3RequestBody; summary?: string; description?: string }
+interface OA3Operation { operationId?: string; parameters?: OA3Parameter[]; requestBody?: OA3RequestBody; summary?: string; description?: string; tags?: string[] }
 interface OA3PathItem { [method: string]: OA3Operation | any }
 interface OA3Spec { paths?: Record<string, OA3PathItem> }
 
@@ -26,22 +26,39 @@ const ROOT = process.cwd();
 const SPEC_PATH = path.resolve(ROOT, '../../rest-api.domain.yaml');
 const OUT_DIR = path.join(ROOT, 'src/facade');
 const OUT_FILE = path.join(OUT_DIR, 'operations.gen.ts');
+const SDK_GEN_PATH = path.join(ROOT, 'src/gen/sdk.gen.ts');
 
 function main() {
   if (!fs.existsSync(SPEC_PATH)) { console.warn('[facade-gen] Spec missing, skipping'); return; }
   const spec: OA3Spec = parse(fs.readFileSync(SPEC_PATH, 'utf8'));
-  interface OpMeta { opId: string; summary?: string; description?: string; hasBody: boolean; bodyOnly: boolean }
+  interface OpMeta { opId: string; summary?: string; description?: string; hasBody: boolean; bodyOnly: boolean; tags?: string[] }
   const allOps: OpMeta[] = [];
   const bodyOnlyOps: OpMeta[] = [];
+
+  // Preload underlying sdk.gen.ts to capture original JSDoc blocks so we can forward them.
+  let underlyingDocs: Record<string,string> = {};
+  if (fs.existsSync(SDK_GEN_PATH)) {
+    const sdkSrc = fs.readFileSync(SDK_GEN_PATH,'utf8');
+    const docRe = /\/\*\*([\s\S]*?)\*\/\s*export const (\w+)\s*=\s*</g;
+    let m: RegExpExecArray | null;
+    while ((m = docRe.exec(sdkSrc))) {
+      const rawBlock = '/**' + m[1] + '*/';
+      const name = m[2];
+      underlyingDocs[name] = rawBlock;
+    }
+  }
 
   for (const [p, item] of Object.entries(spec.paths || {})) {
     for (const [verb, rawOp] of Object.entries(item)) {
       const op = rawOp as OA3Operation;
       if (!op?.operationId) continue;
+      const originalId = op.operationId;
+      const sanitizedId = sanitizeOpId(originalId);
       const params = (op.parameters || []) as OA3Parameter[];
       const hasPathOrQuery = params.some(pr => pr.in === 'path' || pr.in === 'query');
       const hasBody = !!op.requestBody && hasJsonLike(op.requestBody);
-      const meta: OpMeta = { opId: op.operationId, summary: op.summary, description: op.description, hasBody, bodyOnly: !!(hasBody && !hasPathOrQuery) };
+  const meta: OpMeta = { opId: sanitizedId, summary: op.summary, description: op.description, hasBody, bodyOnly: !!(hasBody && !hasPathOrQuery), tags: op.tags };
+      (meta as any).originalOpId = originalId; // preserve for deprecated alias emission
       allOps.push(meta);
       if (meta.bodyOnly) bodyOnlyOps.push(meta);
     }
@@ -78,30 +95,44 @@ function main() {
   lines.push('type _DataOf<F> = Exclude<_RawReturn<F> extends { data: infer D } ? D : _RawReturn<F>, undefined>;');
   lines.push('');
 
+  // Body-only operations: provide typed overload (raw body OR full options)
   for (const op of bodyOnlyOps) {
-    const jsdoc = buildJsDoc(op);
-    lines.push(jsdoc);
-    // Overloads
-    lines.push(`export function ${op.opId}(body: any): CancelablePromise<_DataOf<typeof _${op.opId}>>;`);
-    lines.push(`export function ${op.opId}(options: Parameters<typeof _${op.opId}>[0]): CancelablePromise<_DataOf<typeof _${op.opId}>>;`);
+    // Derive body type & overloads first
+    lines.push(`type _${op.opId}_Options = Parameters<typeof _${op.opId}>[0];`);
+    lines.push(`type _${op.opId}_MaybeBody = _${op.opId}_Options extends { body?: infer B } ? B : never;`);
+    lines.push(`type _${op.opId}_Body = [ _${op.opId}_MaybeBody ] extends [never] ? unknown : _${op.opId}_MaybeBody;`);
+  const jsdoc = forwardJsDoc(op, underlyingDocs);
+  if (jsdoc) lines.push(jsdoc); // Place JSDoc directly above overload signatures
+  lines.push(`export function ${op.opId}(body: _${op.opId}_Body): CancelablePromise<_DataOf<typeof _${op.opId}>>;`);
+  lines.push(`export function ${op.opId}(options: _${op.opId}_Options): CancelablePromise<_DataOf<typeof _${op.opId}>>;`);
     lines.push(`export function ${op.opId}(arg: any): CancelablePromise<_DataOf<typeof _${op.opId}>> {`);
     lines.push(`  return toCancelable(signal => {`);
-    lines.push(`    if (arg && typeof arg === 'object' && (('body' in arg) || ('path' in arg) || ('query' in arg) || ('headers' in arg))) {`);
-    lines.push(`      return _${op.opId}( { ...arg, signal } as any ).then((r:any)=> r?.data ?? r);`);
+    lines.push(`    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {`);
+    lines.push(`      return _${op.opId}({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);`);
     lines.push('    }');
     lines.push(`    return _${op.opId}({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);`);
     lines.push('  });');
     lines.push('}');
+    const original = (op as any).originalOpId;
+    if (original && original !== op.opId) {
+      lines.push('/** @deprecated Use ' + op.opId + ' instead; legacy operationId retained for transitional compatibility. */');
+      lines.push(`export const ${original} = ${op.opId};`);
+    }
     lines.push('');
   }
 
   // Passthrough wrappers for all remaining operations so users get a uniform surface
   for (const op of passthroughOps) {
-    const jsdoc = buildJsDoc(op, true);
-    lines.push(jsdoc);
+  const jsdoc = forwardJsDoc(op, underlyingDocs);
+  if (jsdoc) lines.push(jsdoc);
     lines.push(`export function ${op.opId}(options?: Parameters<typeof _${op.opId}>[0]): CancelablePromise<_DataOf<typeof _${op.opId}>> {`);
     lines.push(`  return toCancelable(signal => _${op.opId}({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));`);
     lines.push('}');
+    const original = (op as any).originalOpId;
+    if (original && original !== op.opId) {
+      lines.push('/** @deprecated Use ' + op.opId + ' instead; legacy operationId retained for transitional compatibility. */');
+      lines.push(`export const ${original} = ${op.opId};`);
+    }
     lines.push('');
   }
 
@@ -112,44 +143,7 @@ function main() {
   fs.writeFileSync(OUT_FILE, lines.join('\n'), 'utf8');
   console.log(`[facade-gen] Wrote ${bodyOnlyOps.length} flattened + ${passthroughOps.length} passthrough wrappers (total ${allOps.length}) -> ${path.relative(ROOT, OUT_FILE)}`);
 
-  // Legacy shims for tests expecting previous file layout
-  const semanticDir = path.join(ROOT, 'src/gen/semantic');
-  fs.mkdirSync(semanticDir, { recursive: true });
-  const semanticFile = path.join(semanticDir, 'camundaKeys.ts');
-  if (!fs.existsSync(semanticFile)) {
-    fs.writeFileSync(semanticFile, [
-      '// @generated shim – legacy semantic camundaKeys re-export',
-      "export * from '../types.gen';"
-    ].join('\n'), 'utf8');
-    console.log('[facade-gen] Created semantic/camundaKeys shim');
-  }
-
-  const coreDir = path.join(ROOT, 'src/gen/core');
-  fs.mkdirSync(coreDir, { recursive: true });
-  const requestShim = path.join(coreDir, 'request.ts');
-  if (!fs.existsSync(requestShim)) {
-    fs.writeFileSync(requestShim, [
-      '// @generated minimal request shim (facade) – TODO replace with transport if needed',
-      'export interface RequestOptions { url: string; method?: string; body?: any; signal?: AbortSignal }',
-      'export function request(_config: any, opts: RequestOptions): Promise<any> {',
-      '  if (opts.signal?.aborted) return Promise.reject(new Error("aborted"));',
-      '  // This shim is only for tests that spy on request; real transport sits behind sdk.gen',
-      '  return Promise.resolve({});',
-      '}'
-    ].join('\n'), 'utf8');
-    console.log('[facade-gen] Created core/request shim');
-  }
-
-  const wrappersDir = path.join(ROOT, 'src/gen/wrappers');
-  fs.mkdirSync(wrappersDir, { recursive: true });
-  const autoWrappers = path.join(wrappersDir, 'autoWrappers.ts');
-  if (!fs.existsSync(autoWrappers)) {
-    fs.writeFileSync(autoWrappers, [
-      '// @generated placeholder – previous auto wrappers not yet reimplemented',
-      'export const ServicesWrapped = {};'
-    ].join('\n'),'utf8');
-    console.log('[facade-gen] Created wrappers/autoWrappers placeholder');
-  }
+  // Greenfield: no legacy wrapper or request shims emitted.
 
   // Barrel export for facade operations + CamundaKey types
   try {
@@ -185,16 +179,31 @@ function hasJsonLike(rb: OA3RequestBody): boolean {
   return Object.keys(rb.content).some(k => /json|octet|multipart|text\//i.test(k));
 }
 
-function buildJsDoc(op: { opId: string; summary?: string; description?: string }, passthrough = false): string {
-  const parts: string[] = []; parts.push(op.opId);
+function buildJsDoc(op: { opId: string; summary?: string; description?: string; tags?: string[] }, originalOpId?: string): string {
+  const parts: string[] = [];
   if (op.summary) parts.push(op.summary);
   if (op.description) parts.push(...String(op.description).split(/\r?\n/));
-  if (passthrough) {
-    parts.push('Passthrough wrapper: options only; returns CancelablePromise<SuccessPayload>.');
-  } else {
-    parts.push('Ergonomic wrapper: accepts raw body OR full options object; returns CancelablePromise<SuccessPayload>.');
-  }
+  if (originalOpId) parts.push(`@operationId ${originalOpId}`);
+  if (op.tags?.length) parts.push(`@tags ${op.tags.join(', ')}`);
   return '/**\n' + parts.map(l=> ' * ' + l.replace(/\*/g,'')).join('\n') + '\n */';
+}
+
+function forwardJsDoc(op: any, sourceMap: Record<string,string>): string {
+  const base = sourceMap[op.opId];
+  const originalOpId = op.originalOpId || op.opId;
+  if (base) {
+    const injection: string[] = [];
+    injection.push(' *');
+    injection.push(` * @operationId ${originalOpId}`);
+    if (op.tags?.length) injection.push(` * @tags ${op.tags.join(', ')}`);
+    return base.replace(/\*\/$/, injection.join('\n') + '\n */');
+  }
+  return buildJsDoc(op, originalOpId);
+}
+
+function sanitizeOpId(id: string): string {
+  // Normalize trailing/consecutive all-caps XML tokens to Title-case Xml for alignment with sdk.gen export naming.
+  return id.replace(/XML/g, 'Xml');
 }
 
 main();

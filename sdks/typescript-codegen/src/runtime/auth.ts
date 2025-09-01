@@ -1,4 +1,4 @@
-import { hydrateConfig, CamundaConfig } from './unifiedConfiguration';
+import type { CamundaConfig } from './unifiedConfiguration';
 import { getLogger } from './logger';
 
 
@@ -169,8 +169,8 @@ export interface AuthFacade {
 	debug__setTokenExpiry?(epochMs: number): void;
 }
 
-export function createAuthFacade(config?: CamundaConfig, opts?: { fetch?: (input: RequestInfo, init?: RequestInit) => Promise<Response> }): AuthFacade {
-	const cfg = config || hydrateConfig().config;
+export function createAuthFacade(config: CamundaConfig, opts?: { fetch?: (input: RequestInfo, init?: RequestInit) => Promise<Response> }): AuthFacade {
+	const cfg = config;
 	const authLogger = getLogger('auth');
 	const hooks: HeadersHook[] = [];
 	let oauth: OAuthManager | null = null;
@@ -218,6 +218,5 @@ export function createAuthFacade(config?: CamundaConfig, opts?: { fetch?: (input
 		debug__setTokenExpiry(epochMs: number) { if (oauth && oauth['token']) { (oauth as any).token.expires_at_epoch_ms = epochMs; } }
 	};
 }
-// Default singleton auth based on process env configuration.
-export const auth = createAuthFacade();
+// (No default singleton export; auth is instance-scoped via Camunda8 constructor.)
 

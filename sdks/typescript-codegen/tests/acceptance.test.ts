@@ -1,11 +1,11 @@
 import { describe, it } from 'vitest';
-import {createProcessInstance} from '../src'
+import {Camunda8} from '../src'
 
 describe('acceptance', () => {
     it.skip('createProcessInstance', () => {
-        createProcessInstance({
+        new Camunda8().createProcessInstance({
             // @ts-expect-error intentional wrong type for compile-time demonstration
-            requestBody: {processDefinitionId: 'sohe'}
+            processDefinitionId: 'sohe'
         })
     })
 });

@@ -1,64 +1,45 @@
 import { describe, it, expect } from 'vitest';
-import { ProcessInstanceKey } from '../src/gen/semantic/camundaKeys';
-import { request } from '../src/gen/core/request';
-import { OpenAPI } from '../src/gen/core/OpenAPI';
+import { Camunda8 } from '../src/Camunda8';
+import { ProcessInstanceKey } from '../src/keys';
 
-// We monkey patch fetch to capture the final URL and body used.
-// Each test restores global fetch after execution.
-
-function mockFetch(capture: { url?: string; init?: RequestInit }) {
-  const original = globalThis.fetch;
-  // @ts-ignore
-  globalThis.fetch = (async (url: any, init?: any) => {
-    capture.url = String(url);
-    capture.init = init;
+function makeClient(capture: { url?: string; request?: Request; bodyText?: string }) {
+  const fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    let req: Request;
+    if (input instanceof Request) {
+      req = input;
+    } else {
+      req = new Request(input, init);
+    }
+    capture.url = req.url;
+    capture.request = req;
+    try { capture.bodyText = await req.clone().text(); } catch { /* ignore */ }
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-  }) as any;
-  return () => { globalThis.fetch = original; };
+  };
+  return new Camunda8({ CAMUNDA_SDK_VALIDATION: 'none', fetch });
 }
 
 describe('semantic key request unwrapping', () => {
-  it('unwrapped in path params', async () => {
-  const key = ProcessInstanceKey.assumeExists('12345');
+  it('unwrapped in path params (getProcessInstance)', async () => {
     const capture: any = {};
-    const restore = mockFetch(capture);
-    try {
-      await request<any>(OpenAPI, {
-        method: 'GET',
-        url: '/process-instances/{processInstanceKey}',
-        path: { processInstanceKey: key },
-      });
-      expect(capture.url).toContain('/process-instances/12345');
-    } finally { restore(); }
+    const client = makeClient(capture);
+    const key = ProcessInstanceKey.assumeExists('12345');
+    await client.getProcessInstance({ path: { processInstanceKey: key } } as any);
+    expect(capture.url).toContain('/process-instances/12345');
   });
 
-  it('unwrapped in query params', async () => {
-  const key = ProcessInstanceKey.assumeExists('67890');
+  it('unwrapped in query params (searchProcessInstances)', async () => {
     const capture: any = {};
-    const restore = mockFetch(capture);
-    try {
-      await request<any>(OpenAPI, {
-        method: 'GET',
-        url: '/process-instances',
-        query: { processInstanceKey: key },
-      });
-      expect(capture.url).toMatch(/processInstanceKey=67890/);
-    } finally { restore(); }
+    const client = makeClient(capture);
+    const key = ProcessInstanceKey.assumeExists('67890');
+    await client.searchProcessInstances({ query: { processInstanceKey: key } } as any);
+    expect(capture.url).toMatch(/processInstanceKey=67890/);
   });
 
-  it('unwrapped in JSON body', async () => {
-  const key = ProcessInstanceKey.assumeExists('24680');
+  it('unwrapped in JSON body (cancelProcessInstance)', async () => {
     const capture: any = {};
-    const restore = mockFetch(capture);
-    try {
-      await request<any>(OpenAPI, {
-        method: 'POST',
-        url: '/fake',
-        body: { processInstanceKey: key },
-        mediaType: 'application/json',
-      });
-      const sent = capture.init?.body as string;
-      expect(sent).toContain('"processInstanceKey":"24680"');
-    } finally { restore(); }
+    const client = makeClient(capture);
+    const key = ProcessInstanceKey.assumeExists('24680');
+    await client.cancelProcessInstance({ body: { processInstanceKey: key } } as any);
+    expect(capture.bodyText).toContain('"processInstanceKey":"24680"');
   });
 });

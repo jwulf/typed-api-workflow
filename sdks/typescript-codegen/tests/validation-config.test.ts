@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { requestValidationMode, responseValidationMode, validationConfig } from '../src/runtime/config';
+import { Camunda8 } from '../src/Camunda8';
 import { expect as expectVitest } from 'vitest';
 
 function set(val?: string) {
@@ -10,27 +10,33 @@ function set(val?: string) {
 describe('CAMUNDA_SDK_VALIDATION parsing', () => {
   it('defaults to none/none when unset', () => {
     set(undefined);
-    expect(requestValidationMode()).toBe('none');
-    expect(responseValidationMode()).toBe('none');
+  const client = new Camunda8();
+  expect(client.requestValidationMode()).toBe('none');
+  expect(client.responseValidationMode()).toBe('none');
   });
   it('global strict', () => {
     set('strict');
-    expect(validationConfig()).toEqual({ req: 'strict', res: 'strict' });
+  const client = new Camunda8();
+  expect(client.validationConfig()).toEqual({ req: 'strict', res: 'strict' });
   });
   it('req only', () => {
     set('req:warn');
-    expect(validationConfig()).toEqual({ req: 'warn', res: 'none' });
+  const client = new Camunda8();
+  expect(client.validationConfig()).toEqual({ req: 'warn', res: 'none' });
   });
   it('res only', () => {
     set('res:strict');
-    expect(validationConfig()).toEqual({ req: 'none', res: 'strict' });
+  const client = new Camunda8();
+  expect(client.validationConfig()).toEqual({ req: 'none', res: 'strict' });
   });
   it('both sides pair list', () => {
     set('req:warn,res:strict');
-    expect(validationConfig()).toEqual({ req: 'warn', res: 'strict' });
+  const client = new Camunda8();
+  expect(client.validationConfig()).toEqual({ req: 'warn', res: 'strict' });
   });
   it('invalid tokens cause error', () => {
     set('foo:bar,res:warn');
-    expect(() => validationConfig()).toThrow();
+  // Construction should throw because hydration would error
+  expect(() => new Camunda8()).toThrow();
   });
 });

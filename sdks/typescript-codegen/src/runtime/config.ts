@@ -34,11 +34,27 @@ export type ValidationMode = 'strict' | 'warn' | 'none';
  */
 // This file now delegates to unified configuration hydration logic for backward compatibility.
 // Public API signatures preserved so existing imports continue working.
-import { hydrateConfig, CamundaConfig } from './unifiedConfiguration';
+// Import via a single resolved path; some tests load this module before others set globals.
+import { hydrateConfig, CamundaConfig, getConfig } from './unifiedConfiguration';
 
-// No caching: design calls for pure DI; legacy helpers should reflect current process.env each call (especially in tests).
+// Helper that prefers the most recently hydrated configuration (which may have been produced via
+// hydrateConfigAsync with a supplied env/fetch map) while still allowing process.env mutations to
+// take effect when callers rely on the legacy "set env var then read" pattern. We re-hydrate only
+// if no prior config exists OR the caller has changed CAMUNDA_SDK_VALIDATION in process.env since
+// the last hydration. This preserves the smoke test expectation that an async hydration with a
+// provided env map is immediately visible to validationConfig()/requestValidationMode()/etc.
 function ensure(): ReturnType<typeof hydrateConfig> {
-  return hydrateConfig({});
+  const existing = getConfig();
+  const liveEnvVal = typeof process !== 'undefined' ? process.env.CAMUNDA_SDK_VALIDATION : undefined;
+  if (!existing) {
+    return hydrateConfig({ env: (typeof process !== 'undefined' ? (process.env as any) : {}) });
+  }
+  // If process.env explicitly specifies a value different from the normalized raw in the existing config, rehydrate.
+  // existing.config.validation.raw is always normalized as req:<mode>,res:<mode>.
+  if (liveEnvVal && liveEnvVal.trim() && liveEnvVal !== existing.config.validation.raw) {
+    return hydrateConfig({ env: (typeof process !== 'undefined' ? (process.env as any) : {}) });
+  }
+  return existing as any; // already a HydratedConfiguration
 }
 
 function v(): CamundaConfig['validation'] { return ensure().config.validation; }
@@ -51,4 +67,4 @@ export function validationConfig(): { req: ValidationMode; res: ValidationMode }
 export function validationVerbose(): boolean { return v().verbose; }
 
 // Internal helper for tests wanting fresh parse.
-export function __resetValidationCacheForTests() { /* no-op now; kept for backward compatibility */ }
+export function __resetValidationCacheForTests() { /* no caching retained; function kept for API compatibility */ }
