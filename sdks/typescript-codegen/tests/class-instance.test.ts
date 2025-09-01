@@ -6,8 +6,8 @@ describe('Camunda8 class instances', () => {
     const f1 = vi.fn(async (req: Request) => new Response(JSON.stringify({ id: 'c1', url: req.url }), { status: 200, headers: { 'Content-Type':'application/json' } }));
     const f2 = vi.fn(async (req: Request) => new Response(JSON.stringify({ id: 'c2', url: req.url }), { status: 200, headers: { 'Content-Type':'application/json' } }));
 
-    const c1 = new Camunda8({ restAddress: 'http://cluster-one:8080', fetch: f1 as any });
-    const c2 = new Camunda8({ restAddress: 'http://cluster-two:8080', fetch: f2 as any });
+    const c1 = new Camunda8({ config: { CAMUNDA_REST_ADDRESS: 'http://cluster-one:8080' }, fetch: f1 as any });
+    const c2 = new Camunda8({ config: { CAMUNDA_REST_ADDRESS: 'http://cluster-two:8080' }, fetch: f2 as any });
 
   const r1 = await (c1 as any).getLicense();
   const r2 = await (c2 as any).getLicense();

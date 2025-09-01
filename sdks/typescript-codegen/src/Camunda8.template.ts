@@ -4,7 +4,8 @@
 import { createClient } from './gen/client/client.gen';
 import type { Client } from './gen/client/types.gen';
 import { createAuthFacade } from './runtime/auth';
-import type { CamundaConfig, CamundaFlatConfig } from './runtime/unifiedConfiguration';
+import type { CamundaConfig } from './runtime/unifiedConfiguration';
+import type { EnvOverrides } from './runtime/configSchema';
 import { hydrateConfig } from './runtime/unifiedConfiguration';
 import * as Sdk from './gen/sdk.gen';
 import { ConsistencyOptions, eventualPoll } from './runtime/eventual'
@@ -23,7 +24,19 @@ function toCancelable<T>(factory:(signal:AbortSignal)=>Promise<T>): CancelablePr
   return p as CancelablePromise<T>;
 }
 
-export type Camunda8InputConfig = (Partial<CamundaConfig> & { fetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>; }) | (CamundaFlatConfig & { fetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>; });
+// New simplified input: we only accept an already hydrated CamundaConfig. Users wanting env
+// overrides or partials should call hydrateConfig first (single source of truth) and pass
+// the resulting config.
+export interface Camunda8Options {
+  // Strongly typed env-style overrides (CAMUNDA_* keys). Optional.
+  config?: EnvOverrides;
+  // Custom fetch implementation.
+  fetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+  // Provide a custom env map (mainly for tests). Defaults to process.env.
+  env?: Record<string,string|undefined>;
+}
+
+export function createCamunda8(options?: Camunda8Options) { return new Camunda8(options); }
 
 export class Camunda8 {
   private _client: Client;
@@ -37,52 +50,25 @@ export class Camunda8 {
   } as any);
   private _fetch?: (input: RequestInfo | URL, init?: RequestInit)=>Promise<Response>;
 
-  constructor(cfg?: Camunda8InputConfig) {
-    // Accept three input shapes:
-    //  1. Fully shaped CamundaConfig (detected via auth + validation props) -> use directly
-    //  2. Flat env-style overrides object containing CAMUNDA_* keys -> hydrate with those as overrides
-    //  3. Nothing / partial shaped overrides -> hydrate from process.env then shallow merge explicit shaped fields
-    let hydrated: { config: CamundaConfig };
-    if (cfg && (cfg as any).auth && (cfg as any).validation) {
-      hydrated = { config: cfg as CamundaConfig };
-    } else if (cfg && Object.keys(cfg).some(k => k.startsWith('CAMUNDA_'))) {
-      const overrides = Object.fromEntries(Object.entries(cfg).filter(([k,v]) => k.startsWith('CAMUNDA_') && typeof v === 'string')) as Record<string,string>;
-      hydrated = hydrateConfig({ overrides });
-    } else {
-      hydrated = hydrateConfig();
-    }
-    // Merge in any shaped fields (restAddress, auth, validation, etc.) that were explicitly provided (non CAMUNDA_* keys)
-    const merged: CamundaConfig = { ...hydrated.config };
-    if (cfg) {
-      for (const [k,v] of Object.entries(cfg)) {
-        if (k === 'fetch') continue;
-        if (k.startsWith('CAMUNDA_')) continue; // already applied via overrides hydration
-        (merged as any)[k] = v;
-      }
-    }
-    this._config = merged;
-    this._fetch = (cfg as any)?.fetch;
-    this._client = createClient({ baseUrl: merged.restAddress, fetch: this._fetch });
-    this._auth = createAuthFacade(merged, { fetch: this._fetch });
+  private _overrides: EnvOverrides = {};
+
+  constructor(opts: Camunda8Options = {}) {
+    if (opts.config) this._overrides = { ...opts.config };
+    const { config } = hydrateConfig({ overrides: this._overrides, env: opts.env });
+    this._config = config;
+    this._fetch = opts.fetch;
+    this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
+    this._auth = createAuthFacade(this._config, { fetch: this._fetch });
   }
 
   get config() { return this._config; }
 
-  configure(next: Camunda8InputConfig) {
-    if (Object.keys(next || {}).some(k => k.startsWith('CAMUNDA_'))) {
-      // Re-hydrate with new overrides
-      const overrides = Object.fromEntries(Object.entries(next).filter(([k,v]) => k.startsWith('CAMUNDA_') && typeof v === 'string')) as Record<string,string>;
-      const hydrated = hydrateConfig({ overrides });
-      const merged: CamundaConfig = { ...this._config, ...hydrated.config };
-      for (const [k,v] of Object.entries(next)) {
-        if (k === 'fetch' || k.startsWith('CAMUNDA_')) continue;
-        (merged as any)[k] = v;
-      }
-      this._config = merged;
-    } else {
-      this._config = { ...this._config, ...(next as any) };
-    }
+  // Merge new overrides and re-hydrate.
+  configure(next: Camunda8Options) {
+    if (next.config) this._overrides = { ...this._overrides, ...next.config };
     if (next.fetch) this._fetch = next.fetch;
+    const { config } = hydrateConfig({ overrides: this._overrides, env: next.env });
+    this._config = config;
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
     this._auth = createAuthFacade(this._config, { fetch: this._fetch });
   }

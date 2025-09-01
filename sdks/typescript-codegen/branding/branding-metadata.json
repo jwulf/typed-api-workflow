@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2025-09-01T03:54:48.204Z",
-  "specHash": "sha256:da72cf9922c912cfc5b8cd58bdbb08fb33bcb2927aaf06b14135b4b51486c9d3",
+  "generatedAt": "2025-09-01T22:45:53.120Z",
+  "specHash": "sha256:aceb4d9216d1d8c42190aba1ca0d04d3165b1ddb8676debe88ccd4bf2c690cd9",
   "generator": {
     "name": "@hey-api/openapi-ts"
   },
@@ -41,7 +41,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/AuthorizationKey",
-        "lineStart": 5594
+        "lineStart": 5596
       },
       "extensions": {},
       "flags": {
@@ -53,6 +53,52 @@
       "stableId": "authorization-key",
       "notes": [
         "inline semantic-type: AuthorizationKey"
+      ]
+    },
+    {
+      "name": "DecisionDefinitionId",
+      "semanticType": "DecisionDefinitionId",
+      "category": "model-id",
+      "description": "Id of a decision definition, from the model. Only ids of decision definitions that are deployed are useful.",
+      "composition": {
+        "schemaKind": "allOf",
+        "refs": [
+          "CamundaKey"
+        ],
+        "inlineFragments": 3
+      },
+      "constraints": {
+        "format": "DecisionDefinitionId",
+        "pattern": "^[A-Za-z0-9_@.+-]+$",
+        "minLength": 1,
+        "maxLength": 256
+      },
+      "examples": [
+        "new-hire-onboarding-workflow"
+      ],
+      "brand": {
+        "tsType": "CamundaKey<'DecisionDefinitionId'>"
+      },
+      "zod": {
+        "schemaName": "zDecisionDefinitionId",
+        "transformPipeline": [
+          "brand-cast"
+        ]
+      },
+      "source": {
+        "schemaPointer": "#/components/schemas/DecisionDefinitionId",
+        "lineStart": 5558
+      },
+      "extensions": {},
+      "flags": {
+        "includesCamundaKeyRef": true,
+        "includesLongKeyRef": false,
+        "implicitCamundaKey": false,
+        "deprecated": false
+      },
+      "stableId": "decision-definition-id",
+      "notes": [
+        "inline semantic-type: DecisionDefinitionId"
       ]
     },
     {
@@ -85,7 +131,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DecisionDefinitionKey",
-        "lineStart": 5549
+        "lineStart": 5550
       },
       "extensions": {},
       "flags": {
@@ -129,7 +175,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DecisionEvaluationInstanceKey",
-        "lineStart": 5567
+        "lineStart": 5569
       },
       "extensions": {},
       "flags": {
@@ -176,7 +222,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DecisionEvaluationKey",
-        "lineStart": 5575
+        "lineStart": 5577
       },
       "extensions": {},
       "flags": {
@@ -220,7 +266,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DecisionInstanceKey",
-        "lineStart": 5610
+        "lineStart": 5612
       },
       "extensions": {},
       "flags": {
@@ -264,7 +310,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DecisionRequirementsKey",
-        "lineStart": 5586
+        "lineStart": 5588
       },
       "extensions": {},
       "flags": {
@@ -345,7 +391,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DocumentId",
-        "lineStart": 10581
+        "lineStart": 10567
       },
       "extensions": {},
       "flags": {
@@ -389,7 +435,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/ElementInstanceKey",
-        "lineStart": 5469
+        "lineStart": 5470
       },
       "extensions": {},
       "flags": {
@@ -479,7 +525,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/FormKey",
-        "lineStart": 5477
+        "lineStart": 5478
       },
       "extensions": {},
       "flags": {
@@ -523,7 +569,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/IncidentKey",
-        "lineStart": 5517
+        "lineStart": 5518
       },
       "extensions": {},
       "flags": {
@@ -567,7 +613,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/JobKey",
-        "lineStart": 5525
+        "lineStart": 5526
       },
       "extensions": {},
       "flags": {
@@ -611,7 +657,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/MessageCorrelationKey",
-        "lineStart": 5541
+        "lineStart": 5542
       },
       "extensions": {},
       "flags": {
@@ -655,7 +701,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/MessageKey",
-        "lineStart": 5602
+        "lineStart": 5604
       },
       "extensions": {},
       "flags": {
@@ -699,7 +745,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/MessageSubscriptionKey",
-        "lineStart": 5533
+        "lineStart": 5534
       },
       "extensions": {},
       "flags": {
@@ -711,6 +757,51 @@
       "stableId": "message-subscription-key",
       "notes": [
         "inline semantic-type: MessageSubscriptionKey"
+      ]
+    },
+    {
+      "name": "ProcessDefinitionId",
+      "semanticType": "ProcessDefinitionId",
+      "category": "model-id",
+      "description": "Id of a process definition, from the model. Only ids of process definitions that are deployed are useful.",
+      "composition": {
+        "schemaKind": "allOf",
+        "refs": [
+          "CamundaKey"
+        ],
+        "inlineFragments": 3
+      },
+      "constraints": {
+        "format": "ProcessDefinitionId",
+        "pattern": "^[a-zA-Z_][a-zA-Z0-9_\\-\\.]*$",
+        "minLength": 1
+      },
+      "examples": [
+        "new-hire-onboarding-workflow"
+      ],
+      "brand": {
+        "tsType": "CamundaKey<'ProcessDefinitionId'>"
+      },
+      "zod": {
+        "schemaName": "zProcessDefinitionId",
+        "transformPipeline": [
+          "brand-cast"
+        ]
+      },
+      "source": {
+        "schemaPointer": "#/components/schemas/ProcessDefinitionId",
+        "lineStart": 5460
+      },
+      "extensions": {},
+      "flags": {
+        "includesCamundaKeyRef": true,
+        "includesLongKeyRef": false,
+        "implicitCamundaKey": false,
+        "deprecated": false
+      },
+      "stableId": "process-definition-id",
+      "notes": [
+        "inline semantic-type: ProcessDefinitionId"
       ]
     },
     {
@@ -831,7 +922,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/ScopeKey",
-        "lineStart": 5509
+        "lineStart": 5510
       },
       "extensions": {},
       "flags": {
@@ -875,7 +966,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/SignalKey",
-        "lineStart": 5618
+        "lineStart": 5620
       },
       "extensions": {},
       "flags": {
@@ -967,7 +1058,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/TenantId",
-        "lineStart": 11666
+        "lineStart": 11647
       },
       "extensions": {},
       "flags": {
@@ -1013,7 +1104,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/Username",
-        "lineStart": 11676
+        "lineStart": 11657
       },
       "extensions": {},
       "flags": {
@@ -1098,7 +1189,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/VariableKey",
-        "lineStart": 5485
+        "lineStart": 5486
       },
       "extensions": {},
       "flags": {
@@ -1133,7 +1224,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BasicStringFilterProperty",
-        "lineStart": 6529
+        "lineStart": 6531
       },
       "stableId": "basic-string-filter-property"
     },
@@ -1159,7 +1250,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BatchOperationItemStateFilterProperty",
-        "lineStart": 11463
+        "lineStart": 11444
       },
       "stableId": "batch-operation-item-state-filter-property"
     },
@@ -1189,7 +1280,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BatchOperationKey",
-        "lineStart": 5626
+        "lineStart": 5628
       },
       "stableId": "batch-operation-key"
     },
@@ -1215,7 +1306,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BatchOperationStateFilterProperty",
-        "lineStart": 11369
+        "lineStart": 11350
       },
       "stableId": "batch-operation-state-filter-property"
     },
@@ -1241,7 +1332,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BatchOperationTypeFilterProperty",
-        "lineStart": 11336
+        "lineStart": 11317
       },
       "stableId": "batch-operation-type-filter-property"
     },
@@ -1264,7 +1355,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DateTimeFilterProperty",
-        "lineStart": 6571
+        "lineStart": 6573
       },
       "stableId": "date-time-filter-property"
     },
@@ -1287,7 +1378,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DecisionEvaluationInstruction",
-        "lineStart": 10076
+        "lineStart": 10064
       },
       "stableId": "decision-evaluation-instruction"
     },
@@ -1313,7 +1404,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/ElementInstanceStateFilterProperty",
-        "lineStart": 6561
+        "lineStart": 6563
       },
       "stableId": "element-instance-state-filter-property"
     },
@@ -1336,7 +1427,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/IntegerFilterProperty",
-        "lineStart": 6381
+        "lineStart": 6383
       },
       "stableId": "integer-filter-property"
     },
@@ -1362,7 +1453,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/JobKindFilterProperty",
-        "lineStart": 9795
+        "lineStart": 9783
       },
       "stableId": "job-kind-filter-property"
     },
@@ -1388,7 +1479,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/JobListenerEventTypeFilterProperty",
-        "lineStart": 9828
+        "lineStart": 9816
       },
       "stableId": "job-listener-event-type-filter-property"
     },
@@ -1414,7 +1505,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/JobStateFilterProperty",
-        "lineStart": 9762
+        "lineStart": 9750
       },
       "stableId": "job-state-filter-property"
     },
@@ -1440,7 +1531,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/MessageSubscriptionTypeFilterProperty",
-        "lineStart": 7658
+        "lineStart": 7656
       },
       "stableId": "message-subscription-type-filter-property"
     },
@@ -1488,7 +1579,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/OperationMetadata",
-        "lineStart": 11686
+        "lineStart": 11667
       },
       "stableId": "operation-metadata"
     },
@@ -1512,7 +1603,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/ProcessInstanceCreationInstruction",
-        "lineStart": 10816
+        "lineStart": 10800
       },
       "stableId": "process-instance-creation-instruction"
     },
@@ -1538,7 +1629,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/ProcessInstanceStateFilterProperty",
-        "lineStart": 6551
+        "lineStart": 6553
       },
       "stableId": "process-instance-state-filter-property"
     },
@@ -1570,7 +1661,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/ResourceKey",
-        "lineStart": 5493
+        "lineStart": 5494
       },
       "stableId": "resource-key"
     },
@@ -1598,7 +1689,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/SearchQueryPageRequest",
-        "lineStart": 9895
+        "lineStart": 9883
       },
       "stableId": "search-query-page-request"
     },
@@ -1621,7 +1712,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/StringFilterProperty",
-        "lineStart": 6537
+        "lineStart": 6539
       },
       "stableId": "string-filter-property"
     },
@@ -1647,13 +1738,13 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/UserTaskStateFilterProperty",
-        "lineStart": 5910
+        "lineStart": 5912
       },
       "stableId": "user-task-state-filter-property"
     }
   ],
   "integrity": {
-    "totalPrimaryKeys": 25,
+    "totalPrimaryKeys": 27,
     "totalUnionWrappers": 20,
     "implicitCamundaKeys": []
   }

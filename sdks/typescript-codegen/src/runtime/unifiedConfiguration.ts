@@ -1,23 +1,10 @@
-/**
- * Unified configuration hydration for Camunda TypeScript SDK.
- * Single declarative spec -> typed config object (pure DI, no global mutation).
- *
- * Design highlights implemented here (see configuration-coalescing.md):
- *  - Precedence (Node): defaults < process.env < explicit overrides object.
- *  - Browser (scaffolding): explicit overrides <fetch>/<window.CAMUNDA_CONFIG> < defaults (async variant provided).
- *  - Conditional requirements (requiredWhen { key, equals }).
- *  - Secrets redaction: keep length, mask all but last 4 (<=4 => all *).
- *  - Empty string trimmed -> missing.
- *  - Values equal to default are treated as explicitly provided (appear in provided map).
- *  - Boolean accepted literals: true/false/yes/no/1/0/on/off (case-insensitive). Invalid => fatal.
- *  - Integers only for number type (no + sign, no hex, no scientific). Invalid => fatal.
- *  - Enum normalization to canonical uppercase (silent).
- *  - Validation mini-language (req|res):(none|warn|strict) list or single global mode.
- *  - Aggregated errors with stable machine codes & sorted ordering.
- *  - Warnings structured { key, code, message, details? }.
- *  - Deep freeze returned config.
- *  - Serialization helpers: provided, effective, redacted, display string.
- */
+// Unified configuration hydration rebuilt on top of configSchema + typed-env.
+// Single source of truth: configSchema.ts (SCHEMA)
+// Responsibilities kept: precedence, conditional requirements, validation grammar,
+// strict parsing (booleans, ints), secrets redaction, aggregated errors.
+
+import { createEnv } from 'typed-env';
+import { SCHEMA, EnvVarKey, EnvOverrides, allKeys, schemaEntry, isSecret, requiredWhen as requiredWhenMeta } from './configSchema';
 
 export type AuthStrategy = 'NONE' | 'OAUTH' | 'BASIC';
 export type ValidationMode = 'none' | 'warn' | 'strict';
@@ -58,56 +45,10 @@ export class CamundaConfigurationError extends Error {
   }
 }
 
-interface ConditionalRequirement { key: string; equals: string; }
-
-type VarType = 'string' | 'enum' | 'boolean' | 'int';
-
-interface BaseSpecEntry {
-  key: string;                       // Environment variable name
-  doc: string;                       // Description for TypeDoc extraction
-  type: VarType;
-  default?: string;                  // Default (raw string form)
-  deprecated?: boolean;
-  sinceVersion?: string;
-  replacement?: string;
-  internalTag?: string;
-  requiredWhen?: ConditionalRequirement; // Conditional requirement
-  enumValues?: string[];             // For enum type (canonical uppercase forms)
-  secret?: boolean;                  // Secret for redaction
-}
-
-// Declarative spec. Order stable for deterministic serialization.
-const SPEC: BaseSpecEntry[] = [
-  { key: 'CAMUNDA_REST_ADDRESS', doc: 'Base REST endpoint address.', type: 'string', default: 'http://localhost:8080' },
-  { key: 'CAMUNDA_TOKEN_AUDIENCE', doc: 'Token audience for OAuth flows.', type: 'string', default: 'zeebe.camunda.io' },
-  { key: 'CAMUNDA_CLIENT_ID', doc: 'OAuth client id (required when CAMUNDA_AUTH_STRATEGY=OAUTH).', type: 'string', requiredWhen: { key: 'CAMUNDA_AUTH_STRATEGY', equals: 'OAUTH' } },
-  { key: 'CAMUNDA_CLIENT_SECRET', doc: 'OAuth client secret (required when CAMUNDA_AUTH_STRATEGY=OAUTH).', type: 'string', secret: true, requiredWhen: { key: 'CAMUNDA_AUTH_STRATEGY', equals: 'OAUTH' } },
-  { key: 'CAMUNDA_OAUTH_URL', doc: 'OAuth token URL.', type: 'string', default: 'https://login.cloud.camunda.io/oauth/token' },
-  { key: 'CAMUNDA_OAUTH_GRANT_TYPE', doc: 'OAuth grant type (currently client_credentials only).', type: 'string', default: 'client_credentials' },
-  { key: 'CAMUNDA_OAUTH_SCOPE', doc: 'Optional OAuth scope (space-separated).', type: 'string' },
-  { key: 'CAMUNDA_OAUTH_TIMEOUT_MS', doc: 'Timeout in ms for OAuth token fetch.', type: 'int', default: '5000' },
-  { key: 'CAMUNDA_OAUTH_RETRY_MAX', doc: 'Maximum OAuth token fetch attempts (including initial).', type: 'int', default: '5' },
-  { key: 'CAMUNDA_OAUTH_RETRY_BASE_DELAY_MS', doc: 'Base delay (ms) for first retry (exponential backoff).', type: 'int', default: '1000' },
-  { key: 'CAMUNDA_OAUTH_CACHE_DIR', doc: 'Directory for disk caching OAuth tokens (Node only).', type: 'string' },
-  { key: 'CAMUNDA_AUTH_STRATEGY', doc: 'Authentication strategy.', type: 'enum', enumValues: ['NONE','OAUTH','BASIC'], default: 'NONE' },
-  { key: 'CAMUNDA_BASIC_AUTH_USERNAME', doc: 'Basic auth username (required when CAMUNDA_AUTH_STRATEGY=BASIC).', type: 'string', requiredWhen: { key: 'CAMUNDA_AUTH_STRATEGY', equals: 'BASIC' } },
-  { key: 'CAMUNDA_BASIC_AUTH_PASSWORD', doc: 'Basic auth password (required when CAMUNDA_AUTH_STRATEGY=BASIC).', type: 'string', secret: true, requiredWhen: { key: 'CAMUNDA_AUTH_STRATEGY', equals: 'BASIC' } },
-  { key: 'CAMUNDA_SDK_VALIDATION', doc: 'Validation mini-language controlling req/res modes.', type: 'string', default: 'req:none,res:none' },
-  { key: 'CAMUNDA_SDK_VALIDATION_VERBOSE', doc: 'Verbose validation output flag.', type: 'boolean' },
-  { key: 'CAMUNDA_SDK_LOG_LEVEL', doc: 'SDK log level (silent|error|warn|info|debug|trace).', type: 'string', default: 'error' },
-  { key: 'CAMUNDA_MTLS_CERT_PATH', doc: 'Path to client certificate (PEM) for mTLS.', type: 'string' },
-  { key: 'CAMUNDA_MTLS_KEY_PATH', doc: 'Path to client private key (PEM) for mTLS.', type: 'string' },
-  { key: 'CAMUNDA_MTLS_CA_PATH', doc: 'Path to CA certificate bundle (PEM) for mTLS.', type: 'string' },
-  { key: 'CAMUNDA_MTLS_KEY_PASSPHRASE', doc: 'Optional passphrase for encrypted private key.', type: 'string', secret: true },
-  { key: 'CAMUNDA_MTLS_CERT', doc: 'Inline PEM client certificate.', type: 'string' },
-  { key: 'CAMUNDA_MTLS_KEY', doc: 'Inline PEM client private key.', type: 'string', secret: true },
-  { key: 'CAMUNDA_MTLS_CA', doc: 'Inline PEM CA bundle.', type: 'string' },
-  { key: 'CAMUNDA_SDK_EVENTUAL_POLL_DEFAULT_MS', doc: 'Default poll interval (ms) for eventually consistent endpoint polling (overridden per-call).', type: 'int', default: '500' }
-];
+// (Legacy SPEC removed; use SCHEMA in configSchema.ts)
 
 // Public type helpers for constructing flat env-style override objects
-export type CamundaEnvVarKey = typeof SPEC[number]['key'];
-export type CamundaFlatConfig = Partial<Record<CamundaEnvVarKey, string>>;
+// (Legacy flat config types removed; use EnvOverrides and EnvVarKey instead.)
 
 // Resulting strongly typed config
 export interface CamundaConfig {
@@ -157,8 +98,8 @@ export interface HydratedConfiguration {
 }
 
 export interface HydrateOptions {
-  env?: Record<string, string | undefined>;      // Injected env map (defaults to process.env in Node)
-  overrides?: Record<string, string | undefined>; // Explicit object (highest precedence)
+  env?: Record<string, string | undefined>;
+  overrides?: EnvOverrides; // strongly typed overrides
 }
 
 // Utility: deep freeze
@@ -184,7 +125,7 @@ function redactSecret(v: string): string {
 // Boolean parser
 function parseBoolean(raw: string, key: string, errors: ConfigErrorDetail[]): boolean | undefined {
   const v = raw.trim().toLowerCase();
-  if (v === '') return undefined; // missing
+  if (v === '') return undefined;
   if (['true','yes','1','on'].includes(v)) return true;
   if (['false','no','0','off'].includes(v)) return false;
   errors.push({ code: ConfigErrorCode.CONFIG_INVALID_BOOLEAN, key, message: `Invalid boolean value '${raw}'. Expected one of true,false,yes,no,1,0,on,off.` });
@@ -238,35 +179,97 @@ function parseValidation(raw: string, errors: ConfigErrorDetail[]): { req: Valid
 }
 
 export function hydrateConfig(options: HydrateOptions = {}): HydratedConfiguration {
-  const env = options.env || (typeof process !== 'undefined' ? (process.env as Record<string,string|undefined>) : {});
+  const baseEnv = options.env || (typeof process !== 'undefined' ? (process.env as Record<string,string|undefined>) : {});
   const overrides = options.overrides || {};
   const errors: ConfigErrorDetail[] = [];
   const warnings: Warning[] = [];
   const provided: Record<string,string> = {};
   const effective: Record<string,string> = {};
   const rawMap: Record<string,string|undefined> = {};
-
-  // First pass: determine raw effective value per spec entry (precedence: default < env < overrides)
-  for (const entry of SPEC) {
-    const fromEnv = env[entry.key];
-    const fromOverride = overrides[entry.key];
-    let value: string | undefined = undefined;
-    if (fromEnv !== undefined) value = fromEnv; // env precedence over default
-    if (fromOverride !== undefined) value = fromOverride; // override highest
-    if ((value === undefined || value.trim() === '') && entry.default !== undefined) value = entry.default; // apply default
-    rawMap[entry.key] = value;
-    // Track provided (user intent): if user supplied a non-empty string via env or override
-    const origin = fromOverride !== undefined ? fromOverride : fromEnv;
-    if (origin !== undefined) {
-      const trimmed = origin.trim();
-      if (trimmed !== '') {
-        // treat explicit default as provided
-        provided[entry.key] = trimmed;
-      }
+  // Track provided (user intent): env or override present (non-empty string for env)
+  for (const k of allKeys()) {
+    if ((overrides as any)[k] !== undefined) {
+      provided[k] = String((overrides as any)[k]).trim();
+    } else if (baseEnv[k] !== undefined && baseEnv[k]!.trim() !== '') {
+      provided[k] = baseEnv[k]!.trim();
     }
   }
 
-  // Second pass: parse & validate
+  // Build typed-env schema with parser functions that accumulate errors instead of throwing early
+  const parseErrors: ConfigErrorDetail[] = [];
+  function boolParserFactory(key: string) {
+    return (v: string) => {
+      const parsed = parseBoolean(v, key, parseErrors);
+      if (parsed === undefined) return undefined as any;
+      return parsed;
+    };
+  }
+  function intParserFactory(key: string) {
+    return (v: string) => {
+      const parsed = parseInteger(v, key, parseErrors);
+      if (parsed === undefined) return undefined as any;
+      return parsed;
+    };
+  }
+  function enumParserFactory(key: string, choices: readonly string[]) {
+    return (v: string) => {
+      const norm = v.trim().toUpperCase();
+      if (!choices.includes(norm)) {
+        parseErrors.push({ code: ConfigErrorCode.CONFIG_INVALID_ENUM, key, message: `Invalid value '${v}' (expected one of ${choices.join('|')}).` });
+        return undefined as any;
+      }
+      return norm;
+    };
+  }
+
+  const typedEnvSchema: Record<string, any> = {};
+  for (const k of allKeys()) {
+    const entry = schemaEntry(k);
+    const baseOpt = { optional: true };
+    if (entry.type === 'string') {
+      typedEnvSchema[k] = entry.default !== undefined ? { type: 'string', default: entry.default, ...baseOpt } : { type: 'string', ...baseOpt };
+    } else if (entry.type === 'boolean') {
+      const base: any = { parser: boolParserFactory(k), ...baseOpt };
+      if (entry.default !== undefined) base.default = !!entry.default;
+      typedEnvSchema[k] = base;
+    } else if (entry.type === 'int') {
+      const base: any = { parser: intParserFactory(k), ...baseOpt };
+      if (entry.default !== undefined) base.default = entry.default;
+      typedEnvSchema[k] = base;
+    } else if (entry.type === 'enum') {
+      const base: any = { parser: enumParserFactory(k, entry.choices || []), ...baseOpt };
+      if (entry.default !== undefined) base.default = entry.default;
+      typedEnvSchema[k] = base;
+    }
+  }
+
+  // Compose input env (process.env + overrides stringified) (defaults handled by typed-env schema)
+  const envInput: Record<string,string> = {};
+  for (const k of allKeys()) {
+    if ((overrides as any)[k] !== undefined) envInput[k] = String((overrides as any)[k]);
+    else if (baseEnv[k] !== undefined) envInput[k] = baseEnv[k]!;
+  }
+
+  // Run typed-env (will not throw for our parser-based validation; parseErrors collects issues)
+  let envTyped: Record<string, any> = {};
+  envTyped = createEnv(typedEnvSchema as any, { env: envInput });
+
+  // Build rawMap from typed values (string representation); fill in defaults for unset keys if defined
+  for (const k of allKeys()) {
+    const entry = schemaEntry(k);
+    const rawProvided = envInput[k];
+    const val = (envTyped as any)[k];
+    if (val !== undefined && val !== null) {
+      rawMap[k] = typeof val === 'string' ? val : String(val);
+    } else if (rawProvided !== undefined) {
+      // A provided value failed to parse; parseErrors already collected.
+      // Leave rawMap unset so conditional logic can still detect missing requiredWhen.
+    } else if (entry.default !== undefined) {
+      rawMap[k] = String(entry.default);
+    }
+  }
+
+  // Parse primitives (int, boolean, enum normalization) replicating original semantics
   const authStrategyRaw = (rawMap['CAMUNDA_AUTH_STRATEGY'] || 'NONE').toString();
   const authStrategy = authStrategyRaw.trim().toUpperCase();
   if (!['NONE','OAUTH','BASIC'].includes(authStrategy)) {
@@ -276,41 +279,29 @@ export function hydrateConfig(options: HydrateOptions = {}): HydratedConfigurati
   // Collect conditional missing keys by strategy for merged error messages
   const missingByCondition: Record<string,string[]> = {};
 
-  for (const entry of SPEC) {
-    const raw = rawMap[entry.key];
-    if (entry.type === 'enum' && raw !== undefined) {
-      const norm = raw.trim().toUpperCase();
-      if (!entry.enumValues!.includes(norm)) {
-        errors.push({ code: ConfigErrorCode.CONFIG_INVALID_ENUM, key: entry.key, message: `Invalid value '${raw}' (expected one of ${entry.enumValues!.join('|')}).` });
-      } else {
-        rawMap[entry.key] = norm; // canonical
-      }
-    }
-    else if (entry.type === 'boolean' && raw !== undefined) {
-      const parsed = parseBoolean(raw, entry.key, errors);
-      if (parsed !== undefined) rawMap[entry.key] = parsed ? 'true' : 'false'; else if (!errors.find(e => e.key === entry.key)) delete rawMap[entry.key];
-    }
-    else if (entry.type === 'int' && raw !== undefined) {
-      const parsed = parseInteger(raw, entry.key, errors);
-      if (parsed !== undefined) rawMap[entry.key] = String(parsed); else if (!errors.find(e => e.key === entry.key)) delete rawMap[entry.key];
-    }
-
-    // Conditional requirement evaluation (after parsing & normalization)
-    if (entry.requiredWhen) {
-      const condValue = rawMap[entry.requiredWhen.key]?.trim().toUpperCase();
-      if (condValue === entry.requiredWhen.equals) {
-        const currentVal = (env[entry.key] ?? overrides[entry.key] ?? '').trim();
-        if (currentVal === '') { // missing (empty) OR not provided at all
-          const list = missingByCondition[entry.requiredWhen.equals] || (missingByCondition[entry.requiredWhen.equals] = []);
-            list.push(entry.key);
+  // Conditional requirement evaluation
+  for (const k of allKeys()) {
+    const req = requiredWhenMeta(k as EnvVarKey);
+    if (req) {
+      const condValue = rawMap[req.key]?.trim().toUpperCase();
+      if (condValue === req.equals) {
+        const origin = (baseEnv[k] ?? (overrides as any)[k] ?? '').toString().trim();
+        if (origin === '') {
+          const list = missingByCondition[req.equals] || (missingByCondition[req.equals] = []);
+          list.push(k);
         }
       }
     }
-
-    if (entry.deprecated && (env[entry.key] !== undefined || overrides[entry.key] !== undefined)) {
-      warnings.push({ key: entry.key, code: WarningCode.DEPRECATED, message: `${entry.key} is deprecated${entry.replacement ? `; use ${entry.replacement}` : ''}.`, details: { since: entry.sinceVersion, replacement: entry.replacement } });
-    }
   }
+
+  // Merge parseErrors into main errors (after conditional pass to accumulate all)
+  for (const pe of parseErrors) errors.push(pe);
+  // Filter: eliminate any error without a key (we only care about keyed invalid values)
+  for (let i = errors.length -1; i >=0; i--) {
+    if (!errors[i].key) errors.splice(i,1);
+  }
+  // Remove any spurious errors recorded without key (guard future logic)
+  // Also, do not treat missing optional keys as errors: current parseErrors only include invalid provided values.
 
   // Aggregate missing condition keys into single error per condition (strategy)
   for (const cond of Object.keys(missingByCondition)) {
@@ -338,48 +329,47 @@ export function hydrateConfig(options: HydrateOptions = {}): HydratedConfigurati
   }
 
   // Build effective map (string values) & redacted
-  for (const entry of SPEC) {
-    const val = rawMap[entry.key];
-    if (val !== undefined) effective[entry.key] = val;
+  for (const k of allKeys()) {
+    const val = rawMap[k];
+    if (val !== undefined) effective[k] = val;
   }
   // Redacted copy
   const redacted: Record<string,string> = {};
   for (const [k,v] of Object.entries(effective)) {
-    const spec = SPEC.find(s => s.key === k)!;
-    if (spec.secret && v) redacted[k] = redactSecret(v); else redacted[k] = v;
+    if (isSecret(k as EnvVarKey) && v) redacted[k] = redactSecret(v); else redacted[k] = v;
   }
 
   const config: CamundaConfig = {
     restAddress: rawMap['CAMUNDA_REST_ADDRESS']!,
     tokenAudience: rawMap['CAMUNDA_TOKEN_AUDIENCE']!,
     oauth: {
-      clientId: env['CAMUNDA_CLIENT_ID']?.trim() || overrides['CAMUNDA_CLIENT_ID']?.trim() || undefined,
-      clientSecret: env['CAMUNDA_CLIENT_SECRET']?.trim() || overrides['CAMUNDA_CLIENT_SECRET']?.trim() || undefined,
+      clientId: rawMap['CAMUNDA_CLIENT_ID']?.trim() || undefined,
+      clientSecret: rawMap['CAMUNDA_CLIENT_SECRET']?.trim() || undefined,
       oauthUrl: rawMap['CAMUNDA_OAUTH_URL']!,
       grantType: rawMap['CAMUNDA_OAUTH_GRANT_TYPE']!,
-      scope: (env['CAMUNDA_OAUTH_SCOPE'] ?? overrides['CAMUNDA_OAUTH_SCOPE'])?.trim() || undefined,
+      scope: rawMap['CAMUNDA_OAUTH_SCOPE']?.trim() || undefined,
       timeoutMs: parseInt(rawMap['CAMUNDA_OAUTH_TIMEOUT_MS']!, 10),
       retry: { max: parseInt(rawMap['CAMUNDA_OAUTH_RETRY_MAX']!, 10), baseDelayMs: parseInt(rawMap['CAMUNDA_OAUTH_RETRY_BASE_DELAY_MS']!, 10) },
-      cacheDir: (env['CAMUNDA_OAUTH_CACHE_DIR'] ?? overrides['CAMUNDA_OAUTH_CACHE_DIR'])?.trim() || undefined
+      cacheDir: rawMap['CAMUNDA_OAUTH_CACHE_DIR']?.trim() || undefined
     },
     auth: {
       strategy: authStrategy as AuthStrategy,
       basic: (authStrategy === 'BASIC') ? {
-        username: env['CAMUNDA_BASIC_AUTH_USERNAME']?.trim() || overrides['CAMUNDA_BASIC_AUTH_USERNAME']?.trim(),
-        password: env['CAMUNDA_BASIC_AUTH_PASSWORD']?.trim() || overrides['CAMUNDA_BASIC_AUTH_PASSWORD']?.trim()
+        username: rawMap['CAMUNDA_BASIC_AUTH_USERNAME']?.trim(),
+        password: rawMap['CAMUNDA_BASIC_AUTH_PASSWORD']?.trim()
       } : undefined
     },
-  validation: { req: validation.req, res: validation.res, verbose, raw: validation.raw },
-  logLevel: (rawMap['CAMUNDA_SDK_LOG_LEVEL'] as any) as CamundaConfig['logLevel'] || 'error',
-  eventual: { pollDefaultMs: parseInt(rawMap['CAMUNDA_SDK_EVENTUAL_POLL_DEFAULT_MS'] || '500', 10) },
-    mtls: (env['CAMUNDA_MTLS_CERT_PATH'] || env['CAMUNDA_MTLS_KEY_PATH'] || env['CAMUNDA_MTLS_CA_PATH'] || env['CAMUNDA_MTLS_CERT'] || env['CAMUNDA_MTLS_KEY'] || env['CAMUNDA_MTLS_CA'] || overrides['CAMUNDA_MTLS_CERT'] || overrides['CAMUNDA_MTLS_KEY']) ? {
-      cert: (env['CAMUNDA_MTLS_CERT'] ?? overrides['CAMUNDA_MTLS_CERT']) || undefined,
-      key: (env['CAMUNDA_MTLS_KEY'] ?? overrides['CAMUNDA_MTLS_KEY']) || undefined,
-      ca: (env['CAMUNDA_MTLS_CA'] ?? overrides['CAMUNDA_MTLS_CA']) || undefined,
-      keyPassphrase: (env['CAMUNDA_MTLS_KEY_PASSPHRASE'] ?? overrides['CAMUNDA_MTLS_KEY_PASSPHRASE']) || undefined,
-      certPath: env['CAMUNDA_MTLS_CERT_PATH'] || undefined,
-      keyPath: env['CAMUNDA_MTLS_KEY_PATH'] || undefined,
-      caPath: env['CAMUNDA_MTLS_CA_PATH'] || undefined
+    validation: { req: validation.req, res: validation.res, verbose, raw: validation.raw },
+    logLevel: (rawMap['CAMUNDA_SDK_LOG_LEVEL'] as any) as CamundaConfig['logLevel'] || 'error',
+    eventual: { pollDefaultMs: parseInt(rawMap['CAMUNDA_SDK_EVENTUAL_POLL_DEFAULT_MS'] || '500', 10) },
+    mtls: (rawMap['CAMUNDA_MTLS_CERT_PATH'] || rawMap['CAMUNDA_MTLS_KEY_PATH'] || rawMap['CAMUNDA_MTLS_CA_PATH'] || rawMap['CAMUNDA_MTLS_CERT'] || rawMap['CAMUNDA_MTLS_KEY'] || rawMap['CAMUNDA_MTLS_CA'] || rawMap['CAMUNDA_MTLS_KEY_PASSPHRASE']) ? {
+      cert: rawMap['CAMUNDA_MTLS_CERT'] || undefined,
+      key: rawMap['CAMUNDA_MTLS_KEY'] || undefined,
+      ca: rawMap['CAMUNDA_MTLS_CA'] || undefined,
+      keyPassphrase: rawMap['CAMUNDA_MTLS_KEY_PASSPHRASE'] || undefined,
+      certPath: rawMap['CAMUNDA_MTLS_CERT_PATH'] || undefined,
+      keyPath: rawMap['CAMUNDA_MTLS_KEY_PATH'] || undefined,
+      caPath: rawMap['CAMUNDA_MTLS_CA_PATH'] || undefined
     } : undefined,
     __raw: { ...rawMap }
   };
@@ -429,7 +419,8 @@ async function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 }
 
 // Export spec for TypeDoc extraction tooling
-export function configurationSpec(): ReadonlyArray<BaseSpecEntry> { return SPEC.slice(); }
+// Export projection of schema entries for docs generation
+export function configurationSpec() { return SCHEMA; }
 
 /**
  * Non-mutating accessor for the most recently hydrated configuration.
