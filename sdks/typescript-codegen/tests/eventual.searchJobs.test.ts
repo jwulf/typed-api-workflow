@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { EventualConsistencyTimeoutError } from '../src';
-import { JobService } from '../src/gen/services/JobService';
+import { EventualConsistencyTimeoutError, searchJobs, configureFromEnv } from '../src';
 
 // We monkey patch fetch to simulate eventual consistency responses.
 
@@ -12,6 +11,8 @@ describe('eventual consistency searchJobs', () => {
   const originalFetch = global.fetch;
   beforeEach(() => {
     vi.useFakeTimers();
+    process.env.CAMUNDA_REST_ADDRESS = 'http://localhost:4567';
+    configureFromEnv();
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -28,7 +29,7 @@ describe('eventual consistency searchJobs', () => {
       return Promise.resolve(makeResponse(200, { items: [{ id: 1 }] }));
     });
 
-  const p = JobService.searchJobs({} as any, { waitUpToMs: 1000, pollIntervalMs: 50 });
+  const p = searchJobs({}, { consistency: { waitUpToMs: 1000, pollIntervalMs: 50 } });
     // advance two failed polls + third success
     await vi.advanceTimersByTimeAsync(0); // initial
     await vi.advanceTimersByTimeAsync(50);
@@ -45,7 +46,7 @@ describe('eventual consistency searchJobs', () => {
       calls++;
       return Promise.resolve(makeResponse(200, { items: [] }));
     });
-    const p = JobService.searchJobs({} as any, { waitUpToMs: 120, pollIntervalMs: 40 });
+  const p = searchJobs({} as any, { consistency: { waitUpToMs: 120, pollIntervalMs: 40 } });
     const expectation = expect(p).rejects.toBeInstanceOf(EventualConsistencyTimeoutError);
     await vi.advanceTimersByTimeAsync(0);
     await vi.advanceTimersByTimeAsync(40);

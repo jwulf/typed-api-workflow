@@ -105,6 +105,10 @@ const SPEC: BaseSpecEntry[] = [
   { key: 'CAMUNDA_SDK_EVENTUAL_POLL_DEFAULT_MS', doc: 'Default poll interval (ms) for eventually consistent endpoint polling (overridden per-call).', type: 'int', default: '500' }
 ];
 
+// Public type helpers for constructing flat env-style override objects
+export type CamundaEnvVarKey = typeof SPEC[number]['key'];
+export type CamundaFlatConfig = Partial<Record<CamundaEnvVarKey, string>>;
+
 // Resulting strongly typed config
 export interface CamundaConfig {
   restAddress: string;

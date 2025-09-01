@@ -23,7 +23,7 @@ describe('semantic key request unwrapping', () => {
     const capture: any = {};
     const client = makeClient(capture);
     const key = ProcessInstanceKey.assumeExists('12345');
-    await client.getProcessInstance({ path: { processInstanceKey: key } } as any);
+    await client.getProcessInstance(key, { consistency: { waitUpToMs: 0}});
     expect(capture.url).toContain('/process-instances/12345');
   });
 
@@ -31,7 +31,7 @@ describe('semantic key request unwrapping', () => {
     const capture: any = {};
     const client = makeClient(capture);
     const key = ProcessInstanceKey.assumeExists('67890');
-    await client.searchProcessInstances({ query: { processInstanceKey: key } } as any);
+    await client.searchProcessInstances({ filter: { processInstanceKey: key } }, { consistency: { waitUpToMs: 0 } });
     expect(capture.url).toMatch(/processInstanceKey=67890/);
   });
 

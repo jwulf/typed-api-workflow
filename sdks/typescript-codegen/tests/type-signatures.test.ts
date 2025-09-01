@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import camunda from '../src';
-import type { CancelablePromise } from '../src/gen/core/CancelablePromise';
+import { camunda } from '../src';
+// CancelablePromise is defined in facade operations (local implementation)
+import type { CancelablePromise } from '../src/facade/operations.gen';
 import type { CreateProcessInstanceResult } from '../src/gen/models/CreateProcessInstanceResult';
 import type { DeploymentResult } from '../src/gen/models/DeploymentResult';
 import type { ProcessInstanceCreationInstruction } from '../src/gen/models/ProcessInstanceCreationInstruction';

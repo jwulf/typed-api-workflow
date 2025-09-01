@@ -5,12 +5,13 @@
 import { createClient } from './gen/client/client.gen';
 import type { Client } from './gen/client/types.gen';
 import { createAuthFacade } from './runtime/auth';
-import type { CamundaConfig } from './runtime/unifiedConfiguration';
-import { hydrateConfig, getConfig } from './runtime/unifiedConfiguration';
+import type { CamundaConfig, CamundaFlatConfig } from './runtime/unifiedConfiguration';
+import { hydrateConfig } from './runtime/unifiedConfiguration';
 import * as Sdk from './gen/sdk.gen';
+import { ConsistencyOptions, eventualPoll } from './runtime/eventual'
 
 // === AUTO-GENERATED CAMUNDA8 SUPPORT TYPES START ===
-// Generated 2025-09-01T08:31:55.678Z
+// Generated 2025-09-01T11:29:12.001Z
 // Operations: 144
 type _RawReturn<F> = F extends (...a:any)=>Promise<infer R> ? R : never;
 type _DataOf<F> = Exclude<_RawReturn<F> extends { data: infer D } ? D : _RawReturn<F>, undefined>;
@@ -36,10 +37,20 @@ type broadcastSignalOptions = Parameters<typeof Sdk.broadcastSignal>[0];
 type broadcastSignalBody = (NonNullable<broadcastSignalOptions> extends { body?: infer B } ? B : never);
 type cancelBatchOperationOptions = Parameters<typeof Sdk.cancelBatchOperation>[0];
 type cancelBatchOperationBody = (NonNullable<cancelBatchOperationOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type cancelBatchOperationConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.cancelBatchOperation>> 
+};
 type cancelProcessInstanceOptions = Parameters<typeof Sdk.cancelProcessInstance>[0];
 type cancelProcessInstanceBody = (NonNullable<cancelProcessInstanceOptions> extends { body?: infer B } ? B : never);
 type cancelProcessInstancesBatchOperationOptions = Parameters<typeof Sdk.cancelProcessInstancesBatchOperation>[0];
 type cancelProcessInstancesBatchOperationBody = (NonNullable<cancelProcessInstancesBatchOperationOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type cancelProcessInstancesBatchOperationConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.cancelProcessInstancesBatchOperation>> 
+};
 type completeJobOptions = Parameters<typeof Sdk.completeJob>[0];
 type completeJobBody = (NonNullable<completeJobOptions> extends { body?: infer B } ? B : never);
 type completeUserTaskOptions = Parameters<typeof Sdk.completeUserTask>[0];
@@ -48,6 +59,11 @@ type correlateMessageOptions = Parameters<typeof Sdk.correlateMessage>[0];
 type correlateMessageBody = (NonNullable<correlateMessageOptions> extends { body?: infer B } ? B : never);
 type createAdminUserOptions = Parameters<typeof Sdk.createAdminUser>[0];
 type createAdminUserBody = (NonNullable<createAdminUserOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type createAdminUserConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.createAdminUser>> 
+};
 type createAuthorizationOptions = Parameters<typeof Sdk.createAuthorization>[0];
 type createAuthorizationBody = (NonNullable<createAuthorizationOptions> extends { body?: infer B } ? B : never);
 type createDeploymentOptions = Parameters<typeof Sdk.createDeployment>[0];
@@ -72,60 +88,244 @@ type createTenantOptions = Parameters<typeof Sdk.createTenant>[0];
 type createTenantBody = (NonNullable<createTenantOptions> extends { body?: infer B } ? B : never);
 type createUserOptions = Parameters<typeof Sdk.createUser>[0];
 type createUserBody = (NonNullable<createUserOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type createUserConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.createUser>> 
+};
 type deleteAuthorizationOptions = Parameters<typeof Sdk.deleteAuthorization>[0];
+type deleteAuthorizationPathParam = (NonNullable<deleteAuthorizationOptions> extends { path: { authorizationKey: infer P } } ? P : any);
 type deleteDocumentOptions = Parameters<typeof Sdk.deleteDocument>[0];
+type deleteDocumentPathParam = (NonNullable<deleteDocumentOptions> extends { path: { documentId: infer P } } ? P : any);
 type deleteGroupOptions = Parameters<typeof Sdk.deleteGroup>[0];
+type deleteGroupPathParam = (NonNullable<deleteGroupOptions> extends { path: { groupId: infer P } } ? P : any);
 type deleteMappingRuleOptions = Parameters<typeof Sdk.deleteMappingRule>[0];
+type deleteMappingRulePathParam = (NonNullable<deleteMappingRuleOptions> extends { path: { mappingRuleId: infer P } } ? P : any);
 type deleteResourceOptions = Parameters<typeof Sdk.deleteResource>[0];
 type deleteResourceBody = (NonNullable<deleteResourceOptions> extends { body?: infer B } ? B : never);
 type deleteRoleOptions = Parameters<typeof Sdk.deleteRole>[0];
+type deleteRolePathParam = (NonNullable<deleteRoleOptions> extends { path: { roleId: infer P } } ? P : any);
 type deleteTenantOptions = Parameters<typeof Sdk.deleteTenant>[0];
+type deleteTenantPathParam = (NonNullable<deleteTenantOptions> extends { path: { tenantId: infer P } } ? P : any);
 type deleteUserOptions = Parameters<typeof Sdk.deleteUser>[0];
+type deleteUserPathParam = (NonNullable<deleteUserOptions> extends { path: { username: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type deleteUserConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.deleteUser>> 
+};
 type evaluateDecisionOptions = Parameters<typeof Sdk.evaluateDecision>[0];
 type evaluateDecisionBody = (NonNullable<evaluateDecisionOptions> extends { body?: infer B } ? B : never);
 type failJobOptions = Parameters<typeof Sdk.failJob>[0];
 type failJobBody = (NonNullable<failJobOptions> extends { body?: infer B } ? B : never);
 type getAuthenticationOptions = Parameters<typeof Sdk.getAuthentication>[0];
 type getAuthorizationOptions = Parameters<typeof Sdk.getAuthorization>[0];
+type getAuthorizationPathParam = (NonNullable<getAuthorizationOptions> extends { path: { authorizationKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getAuthorizationConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getAuthorization>> 
+};
 type getBatchOperationOptions = Parameters<typeof Sdk.getBatchOperation>[0];
+type getBatchOperationPathParam = (NonNullable<getBatchOperationOptions> extends { path: { batchOperationKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getBatchOperationConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getBatchOperation>> 
+};
 type getDecisionDefinitionOptions = Parameters<typeof Sdk.getDecisionDefinition>[0];
+type getDecisionDefinitionPathParam = (NonNullable<getDecisionDefinitionOptions> extends { path: { decisionDefinitionKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getDecisionDefinitionConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getDecisionDefinition>> 
+};
 type getDecisionDefinitionXmlOptions = Parameters<typeof Sdk.getDecisionDefinitionXml>[0];
+type getDecisionDefinitionXmlPathParam = (NonNullable<getDecisionDefinitionXmlOptions> extends { path: { decisionDefinitionKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getDecisionDefinitionXmlConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getDecisionDefinitionXml>> 
+};
 type getDecisionInstanceOptions = Parameters<typeof Sdk.getDecisionInstance>[0];
+type getDecisionInstancePathParam = (NonNullable<getDecisionInstanceOptions> extends { path: { decisionEvaluationInstanceKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getDecisionInstanceConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getDecisionInstance>> 
+};
 type getDecisionRequirementsOptions = Parameters<typeof Sdk.getDecisionRequirements>[0];
+type getDecisionRequirementsPathParam = (NonNullable<getDecisionRequirementsOptions> extends { path: { decisionRequirementsKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getDecisionRequirementsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getDecisionRequirements>> 
+};
 type getDecisionRequirementsXmlOptions = Parameters<typeof Sdk.getDecisionRequirementsXml>[0];
+type getDecisionRequirementsXmlPathParam = (NonNullable<getDecisionRequirementsXmlOptions> extends { path: { decisionRequirementsKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getDecisionRequirementsXmlConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getDecisionRequirementsXml>> 
+};
 type getDocumentOptions = Parameters<typeof Sdk.getDocument>[0];
+type getDocumentPathParam = (NonNullable<getDocumentOptions> extends { path: { documentId: infer P } } ? P : any);
 type getElementInstanceOptions = Parameters<typeof Sdk.getElementInstance>[0];
+type getElementInstancePathParam = (NonNullable<getElementInstanceOptions> extends { path: { elementInstanceKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getElementInstanceConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getElementInstance>> 
+};
 type getGroupOptions = Parameters<typeof Sdk.getGroup>[0];
+type getGroupPathParam = (NonNullable<getGroupOptions> extends { path: { groupId: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getGroupConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getGroup>> 
+};
 type getIncidentOptions = Parameters<typeof Sdk.getIncident>[0];
+type getIncidentPathParam = (NonNullable<getIncidentOptions> extends { path: { incidentKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getIncidentConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getIncident>> 
+};
 type getLicenseOptions = Parameters<typeof Sdk.getLicense>[0];
 type getMappingRuleOptions = Parameters<typeof Sdk.getMappingRule>[0];
+type getMappingRulePathParam = (NonNullable<getMappingRuleOptions> extends { path: { mappingRuleId: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getMappingRuleConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getMappingRule>> 
+};
 type getProcessDefinitionOptions = Parameters<typeof Sdk.getProcessDefinition>[0];
+type getProcessDefinitionPathParam = (NonNullable<getProcessDefinitionOptions> extends { path: { processDefinitionKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getProcessDefinitionConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getProcessDefinition>> 
+};
 type getProcessDefinitionStatisticsOptions = Parameters<typeof Sdk.getProcessDefinitionStatistics>[0];
 type getProcessDefinitionStatisticsBody = (NonNullable<getProcessDefinitionStatisticsOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type getProcessDefinitionStatisticsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getProcessDefinitionStatistics>> 
+};
 type getProcessDefinitionXmlOptions = Parameters<typeof Sdk.getProcessDefinitionXml>[0];
+type getProcessDefinitionXmlPathParam = (NonNullable<getProcessDefinitionXmlOptions> extends { path: { processDefinitionKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getProcessDefinitionXmlConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getProcessDefinitionXml>> 
+};
 type getProcessInstanceOptions = Parameters<typeof Sdk.getProcessInstance>[0];
+type getProcessInstancePathParam = (NonNullable<getProcessInstanceOptions> extends { path: { processInstanceKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getProcessInstanceConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getProcessInstance>> 
+};
 type getProcessInstanceCallHierarchyOptions = Parameters<typeof Sdk.getProcessInstanceCallHierarchy>[0];
+type getProcessInstanceCallHierarchyPathParam = (NonNullable<getProcessInstanceCallHierarchyOptions> extends { path: { processInstanceKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getProcessInstanceCallHierarchyConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getProcessInstanceCallHierarchy>> 
+};
 type getProcessInstanceSequenceFlowsOptions = Parameters<typeof Sdk.getProcessInstanceSequenceFlows>[0];
+type getProcessInstanceSequenceFlowsPathParam = (NonNullable<getProcessInstanceSequenceFlowsOptions> extends { path: { processInstanceKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getProcessInstanceSequenceFlowsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getProcessInstanceSequenceFlows>> 
+};
 type getProcessInstanceStatisticsOptions = Parameters<typeof Sdk.getProcessInstanceStatistics>[0];
+type getProcessInstanceStatisticsPathParam = (NonNullable<getProcessInstanceStatisticsOptions> extends { path: { processInstanceKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getProcessInstanceStatisticsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getProcessInstanceStatistics>> 
+};
 type getResourceOptions = Parameters<typeof Sdk.getResource>[0];
+type getResourcePathParam = (NonNullable<getResourceOptions> extends { path: { resourceKey: infer P } } ? P : any);
 type getResourceContentOptions = Parameters<typeof Sdk.getResourceContent>[0];
+type getResourceContentPathParam = (NonNullable<getResourceContentOptions> extends { path: { resourceKey: infer P } } ? P : any);
 type getRoleOptions = Parameters<typeof Sdk.getRole>[0];
+type getRolePathParam = (NonNullable<getRoleOptions> extends { path: { roleId: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getRoleConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getRole>> 
+};
 type getStartProcessFormOptions = Parameters<typeof Sdk.getStartProcessForm>[0];
+type getStartProcessFormPathParam = (NonNullable<getStartProcessFormOptions> extends { path: { processDefinitionKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getStartProcessFormConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getStartProcessForm>> 
+};
 type getTenantOptions = Parameters<typeof Sdk.getTenant>[0];
+type getTenantPathParam = (NonNullable<getTenantOptions> extends { path: { tenantId: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getTenantConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getTenant>> 
+};
 type getTopologyOptions = Parameters<typeof Sdk.getTopology>[0];
 type getUsageMetricsOptions = Parameters<typeof Sdk.getUsageMetrics>[0];
+/** Management of eventual consistency **/
+type getUsageMetricsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getUsageMetrics>> 
+};
 type getUserOptions = Parameters<typeof Sdk.getUser>[0];
+type getUserPathParam = (NonNullable<getUserOptions> extends { path: { username: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getUserConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getUser>> 
+};
 type getUserTaskOptions = Parameters<typeof Sdk.getUserTask>[0];
+type getUserTaskPathParam = (NonNullable<getUserTaskOptions> extends { path: { userTaskKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getUserTaskConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getUserTask>> 
+};
 type getUserTaskFormOptions = Parameters<typeof Sdk.getUserTaskForm>[0];
+type getUserTaskFormPathParam = (NonNullable<getUserTaskFormOptions> extends { path: { userTaskKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getUserTaskFormConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getUserTaskForm>> 
+};
 type getVariableOptions = Parameters<typeof Sdk.getVariable>[0];
+type getVariablePathParam = (NonNullable<getVariableOptions> extends { path: { variableKey: infer P } } ? P : any);
+/** Management of eventual consistency **/
+type getVariableConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.getVariable>> 
+};
 type migrateProcessInstanceOptions = Parameters<typeof Sdk.migrateProcessInstance>[0];
 type migrateProcessInstanceBody = (NonNullable<migrateProcessInstanceOptions> extends { body?: infer B } ? B : never);
 type migrateProcessInstancesBatchOperationOptions = Parameters<typeof Sdk.migrateProcessInstancesBatchOperation>[0];
 type migrateProcessInstancesBatchOperationBody = (NonNullable<migrateProcessInstancesBatchOperationOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type migrateProcessInstancesBatchOperationConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.migrateProcessInstancesBatchOperation>> 
+};
 type modifyProcessInstanceOptions = Parameters<typeof Sdk.modifyProcessInstance>[0];
 type modifyProcessInstanceBody = (NonNullable<modifyProcessInstanceOptions> extends { body?: infer B } ? B : never);
 type modifyProcessInstancesBatchOperationOptions = Parameters<typeof Sdk.modifyProcessInstancesBatchOperation>[0];
 type modifyProcessInstancesBatchOperationBody = (NonNullable<modifyProcessInstancesBatchOperationOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type modifyProcessInstancesBatchOperationConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.modifyProcessInstancesBatchOperation>> 
+};
 type pinClockOptions = Parameters<typeof Sdk.pinClock>[0];
 type pinClockBody = (NonNullable<pinClockOptions> extends { body?: infer B } ? B : never);
 type publishMessageOptions = Parameters<typeof Sdk.publishMessage>[0];
@@ -135,78 +335,263 @@ type resolveIncidentOptions = Parameters<typeof Sdk.resolveIncident>[0];
 type resolveIncidentBody = (NonNullable<resolveIncidentOptions> extends { body?: infer B } ? B : never);
 type resolveIncidentsBatchOperationOptions = Parameters<typeof Sdk.resolveIncidentsBatchOperation>[0];
 type resolveIncidentsBatchOperationBody = (NonNullable<resolveIncidentsBatchOperationOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type resolveIncidentsBatchOperationConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.resolveIncidentsBatchOperation>> 
+};
 type resumeBatchOperationOptions = Parameters<typeof Sdk.resumeBatchOperation>[0];
 type resumeBatchOperationBody = (NonNullable<resumeBatchOperationOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type resumeBatchOperationConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.resumeBatchOperation>> 
+};
 type searchAuthorizationsOptions = Parameters<typeof Sdk.searchAuthorizations>[0];
 type searchAuthorizationsBody = (NonNullable<searchAuthorizationsOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchAuthorizationsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchAuthorizations>> 
+};
 type searchBatchOperationItemsOptions = Parameters<typeof Sdk.searchBatchOperationItems>[0];
 type searchBatchOperationItemsBody = (NonNullable<searchBatchOperationItemsOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchBatchOperationItemsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchBatchOperationItems>> 
+};
 type searchBatchOperationsOptions = Parameters<typeof Sdk.searchBatchOperations>[0];
 type searchBatchOperationsBody = (NonNullable<searchBatchOperationsOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchBatchOperationsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchBatchOperations>> 
+};
 type searchClientsForGroupOptions = Parameters<typeof Sdk.searchClientsForGroup>[0];
 type searchClientsForGroupBody = (NonNullable<searchClientsForGroupOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchClientsForGroupConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchClientsForGroup>> 
+};
 type searchClientsForRoleOptions = Parameters<typeof Sdk.searchClientsForRole>[0];
 type searchClientsForRoleBody = (NonNullable<searchClientsForRoleOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchClientsForRoleConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchClientsForRole>> 
+};
 type searchClientsForTenantOptions = Parameters<typeof Sdk.searchClientsForTenant>[0];
 type searchClientsForTenantBody = (NonNullable<searchClientsForTenantOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchClientsForTenantConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchClientsForTenant>> 
+};
 type searchDecisionDefinitionsOptions = Parameters<typeof Sdk.searchDecisionDefinitions>[0];
 type searchDecisionDefinitionsBody = (NonNullable<searchDecisionDefinitionsOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchDecisionDefinitionsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchDecisionDefinitions>> 
+};
 type searchDecisionInstancesOptions = Parameters<typeof Sdk.searchDecisionInstances>[0];
 type searchDecisionInstancesBody = (NonNullable<searchDecisionInstancesOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchDecisionInstancesConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchDecisionInstances>> 
+};
 type searchDecisionRequirementsOptions = Parameters<typeof Sdk.searchDecisionRequirements>[0];
 type searchDecisionRequirementsBody = (NonNullable<searchDecisionRequirementsOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchDecisionRequirementsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchDecisionRequirements>> 
+};
 type searchElementInstancesOptions = Parameters<typeof Sdk.searchElementInstances>[0];
 type searchElementInstancesBody = (NonNullable<searchElementInstancesOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchElementInstancesConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchElementInstances>> 
+};
 type searchGroupIdsForTenantOptions = Parameters<typeof Sdk.searchGroupIdsForTenant>[0];
 type searchGroupIdsForTenantBody = (NonNullable<searchGroupIdsForTenantOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchGroupIdsForTenantConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchGroupIdsForTenant>> 
+};
 type searchGroupsOptions = Parameters<typeof Sdk.searchGroups>[0];
 type searchGroupsBody = (NonNullable<searchGroupsOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchGroupsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchGroups>> 
+};
 type searchGroupsForRoleOptions = Parameters<typeof Sdk.searchGroupsForRole>[0];
 type searchGroupsForRoleBody = (NonNullable<searchGroupsForRoleOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchGroupsForRoleConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchGroupsForRole>> 
+};
 type searchIncidentsOptions = Parameters<typeof Sdk.searchIncidents>[0];
 type searchIncidentsBody = (NonNullable<searchIncidentsOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchIncidentsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchIncidents>> 
+};
 type searchJobsOptions = Parameters<typeof Sdk.searchJobs>[0];
 type searchJobsBody = (NonNullable<searchJobsOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchJobsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchJobs>> 
+};
 type searchMappingRuleOptions = Parameters<typeof Sdk.searchMappingRule>[0];
 type searchMappingRuleBody = (NonNullable<searchMappingRuleOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchMappingRuleConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchMappingRule>> 
+};
 type searchMappingRulesForGroupOptions = Parameters<typeof Sdk.searchMappingRulesForGroup>[0];
 type searchMappingRulesForGroupBody = (NonNullable<searchMappingRulesForGroupOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchMappingRulesForGroupConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchMappingRulesForGroup>> 
+};
 type searchMappingRulesForRoleOptions = Parameters<typeof Sdk.searchMappingRulesForRole>[0];
 type searchMappingRulesForRoleBody = (NonNullable<searchMappingRulesForRoleOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchMappingRulesForRoleConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchMappingRulesForRole>> 
+};
 type searchMappingsForTenantOptions = Parameters<typeof Sdk.searchMappingsForTenant>[0];
 type searchMappingsForTenantBody = (NonNullable<searchMappingsForTenantOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchMappingsForTenantConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchMappingsForTenant>> 
+};
 type searchMessageSubscriptionsOptions = Parameters<typeof Sdk.searchMessageSubscriptions>[0];
 type searchMessageSubscriptionsBody = (NonNullable<searchMessageSubscriptionsOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchMessageSubscriptionsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchMessageSubscriptions>> 
+};
 type searchProcessDefinitionsOptions = Parameters<typeof Sdk.searchProcessDefinitions>[0];
 type searchProcessDefinitionsBody = (NonNullable<searchProcessDefinitionsOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchProcessDefinitionsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchProcessDefinitions>> 
+};
 type searchProcessInstanceIncidentsOptions = Parameters<typeof Sdk.searchProcessInstanceIncidents>[0];
 type searchProcessInstanceIncidentsBody = (NonNullable<searchProcessInstanceIncidentsOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchProcessInstanceIncidentsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchProcessInstanceIncidents>> 
+};
 type searchProcessInstancesOptions = Parameters<typeof Sdk.searchProcessInstances>[0];
 type searchProcessInstancesBody = (NonNullable<searchProcessInstancesOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchProcessInstancesConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchProcessInstances>> 
+};
 type searchRolesOptions = Parameters<typeof Sdk.searchRoles>[0];
 type searchRolesBody = (NonNullable<searchRolesOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchRolesConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchRoles>> 
+};
 type searchRolesForGroupOptions = Parameters<typeof Sdk.searchRolesForGroup>[0];
 type searchRolesForGroupBody = (NonNullable<searchRolesForGroupOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchRolesForGroupConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchRolesForGroup>> 
+};
 type searchRolesForTenantOptions = Parameters<typeof Sdk.searchRolesForTenant>[0];
 type searchRolesForTenantBody = (NonNullable<searchRolesForTenantOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchRolesForTenantConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchRolesForTenant>> 
+};
 type searchTenantsOptions = Parameters<typeof Sdk.searchTenants>[0];
 type searchTenantsBody = (NonNullable<searchTenantsOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchTenantsConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchTenants>> 
+};
 type searchUsersOptions = Parameters<typeof Sdk.searchUsers>[0];
 type searchUsersBody = (NonNullable<searchUsersOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchUsersConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchUsers>> 
+};
 type searchUsersForGroupOptions = Parameters<typeof Sdk.searchUsersForGroup>[0];
 type searchUsersForGroupBody = (NonNullable<searchUsersForGroupOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchUsersForGroupConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchUsersForGroup>> 
+};
 type searchUsersForRoleOptions = Parameters<typeof Sdk.searchUsersForRole>[0];
 type searchUsersForRoleBody = (NonNullable<searchUsersForRoleOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchUsersForRoleConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchUsersForRole>> 
+};
 type searchUsersForTenantOptions = Parameters<typeof Sdk.searchUsersForTenant>[0];
 type searchUsersForTenantBody = (NonNullable<searchUsersForTenantOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchUsersForTenantConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchUsersForTenant>> 
+};
 type searchUserTasksOptions = Parameters<typeof Sdk.searchUserTasks>[0];
 type searchUserTasksBody = (NonNullable<searchUserTasksOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchUserTasksConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchUserTasks>> 
+};
 type searchUserTaskVariablesOptions = Parameters<typeof Sdk.searchUserTaskVariables>[0];
 type searchUserTaskVariablesBody = (NonNullable<searchUserTaskVariablesOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchUserTaskVariablesConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchUserTaskVariables>> 
+};
 type searchVariablesOptions = Parameters<typeof Sdk.searchVariables>[0];
 type searchVariablesBody = (NonNullable<searchVariablesOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type searchVariablesConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.searchVariables>> 
+};
 type suspendBatchOperationOptions = Parameters<typeof Sdk.suspendBatchOperation>[0];
 type suspendBatchOperationBody = (NonNullable<suspendBatchOperationOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type suspendBatchOperationConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.suspendBatchOperation>> 
+};
 type throwJobErrorOptions = Parameters<typeof Sdk.throwJobError>[0];
 type throwJobErrorBody = (NonNullable<throwJobErrorOptions> extends { body?: infer B } ? B : never);
 type unassignClientFromGroupOptions = Parameters<typeof Sdk.unassignClientFromGroup>[0];
@@ -222,6 +607,7 @@ type unassignRoleFromUserOptions = Parameters<typeof Sdk.unassignRoleFromUser>[0
 type unassignUserFromGroupOptions = Parameters<typeof Sdk.unassignUserFromGroup>[0];
 type unassignUserFromTenantOptions = Parameters<typeof Sdk.unassignUserFromTenant>[0];
 type unassignUserTaskOptions = Parameters<typeof Sdk.unassignUserTask>[0];
+type unassignUserTaskPathParam = (NonNullable<unassignUserTaskOptions> extends { path: { userTaskKey: infer P } } ? P : any);
 type updateAuthorizationOptions = Parameters<typeof Sdk.updateAuthorization>[0];
 type updateAuthorizationBody = (NonNullable<updateAuthorizationOptions> extends { body?: infer B } ? B : never);
 type updateGroupOptions = Parameters<typeof Sdk.updateGroup>[0];
@@ -236,6 +622,11 @@ type updateTenantOptions = Parameters<typeof Sdk.updateTenant>[0];
 type updateTenantBody = (NonNullable<updateTenantOptions> extends { body?: infer B } ? B : never);
 type updateUserOptions = Parameters<typeof Sdk.updateUser>[0];
 type updateUserBody = (NonNullable<updateUserOptions> extends { body?: infer B } ? B : never);
+/** Management of eventual consistency **/
+type updateUserConsistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.updateUser>> 
+};
 type updateUserTaskOptions = Parameters<typeof Sdk.updateUserTask>[0];
 type updateUserTaskBody = (NonNullable<updateUserTaskOptions> extends { body?: infer B } ? B : never);
 // === AUTO-GENERATED CAMUNDA8 SUPPORT TYPES END ===
@@ -250,47 +641,12 @@ function toCancelable<T>(factory:(signal:AbortSignal)=>Promise<T>): CancelablePr
   return p as CancelablePromise<T>;
 }
 
-export interface Camunda8InputConfig extends Partial<CamundaConfig> {
-  fetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
-  env?: Record<string,string|undefined>;        // optional ad-hoc env map (instance-scoped)
-  overrides?: Record<string,string|undefined>;  // optional overrides
-  // Direct env-style configuration (1:1 with environment variable names). If any CAMUNDA_* keys
-  // are present on the constructor options object they are treated as an implicit env map and
-  // hydrated exactly as if passed via the env property. Example:
-  //   new Camunda8({ CAMUNDA_SDK_VALIDATION: 'req:warn,res:strict', CAMUNDA_REST_ADDRESS: 'https://api' })
-  // This removes guesswork when moving from mapping environment configuration to explicit instance construction.
-  CAMUNDA_REST_ADDRESS?: string;
-  CAMUNDA_TOKEN_AUDIENCE?: string;
-  CAMUNDA_CLIENT_ID?: string;
-  CAMUNDA_CLIENT_SECRET?: string;
-  CAMUNDA_OAUTH_URL?: string;
-  CAMUNDA_OAUTH_GRANT_TYPE?: string;
-  CAMUNDA_OAUTH_SCOPE?: string;
-  CAMUNDA_OAUTH_TIMEOUT_MS?: string;
-  CAMUNDA_OAUTH_RETRY_MAX?: string;
-  CAMUNDA_OAUTH_RETRY_BASE_DELAY_MS?: string;
-  CAMUNDA_OAUTH_CACHE_DIR?: string;
-  CAMUNDA_AUTH_STRATEGY?: string;
-  CAMUNDA_BASIC_AUTH_USERNAME?: string;
-  CAMUNDA_BASIC_AUTH_PASSWORD?: string;
-  CAMUNDA_SDK_VALIDATION?: string;
-  CAMUNDA_SDK_VALIDATION_VERBOSE?: string;
-  CAMUNDA_SDK_LOG_LEVEL?: string;
-  CAMUNDA_MTLS_CERT_PATH?: string;
-  CAMUNDA_MTLS_KEY_PATH?: string;
-  CAMUNDA_MTLS_CA_PATH?: string;
-  CAMUNDA_MTLS_KEY_PASSPHRASE?: string;
-  CAMUNDA_MTLS_CERT?: string;
-  CAMUNDA_MTLS_KEY?: string;
-  CAMUNDA_MTLS_CA?: string;
-  CAMUNDA_SDK_EVENTUAL_POLL_DEFAULT_MS?: string;
-}
+export type Camunda8InputConfig = (Partial<CamundaConfig> & { fetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>; }) | (CamundaFlatConfig & { fetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>; });
 
 export class Camunda8 {
   private _client: Client;
   private _config: CamundaConfig;
   private _auth: ReturnType<typeof createAuthFacade> = createAuthFacade({
-    // Temporary minimal config; replaced in constructor. Using obvious placeholders to avoid accidental use pre-construction.
     restAddress: '',
     auth: { strategy: 'NONE', basic: { username: '', password: '' } } as any,
     validation: { req: 'none', res: 'none', verbose: false },
@@ -300,55 +656,54 @@ export class Camunda8 {
   private _fetch?: (input: RequestInfo | URL, init?: RequestInit)=>Promise<Response>;
 
   constructor(cfg?: Camunda8InputConfig) {
-    // Determine base configuration (instance-scoped)
-    let base: CamundaConfig;
-    const supplied = cfg || {} as Camunda8InputConfig;
-    const { fetch, env, overrides, ...rest } = supplied as any; // rest may contain CAMUNDA_* keys + partial structured overrides
-    // Detect inline CAMUNDA_* keys
-    const inlineEnvKeys = Object.keys(rest).filter(k => k.startsWith('CAMUNDA_'));
-    let effectiveEnv: Record<string,string|undefined> | undefined = env ? { ...env } : undefined;
-    if (inlineEnvKeys.length) {
-      effectiveEnv = effectiveEnv || {};
-      for (const k of inlineEnvKeys) {
-        effectiveEnv[k] = (rest as any)[k];
-        delete (rest as any)[k]; // prevent leaking raw env keys into structured merge
+    // Accept three input shapes:
+    //  1. Fully shaped CamundaConfig (detected via auth + validation props) -> use directly
+    //  2. Flat env-style overrides object containing CAMUNDA_* keys -> hydrate with those as overrides
+    //  3. Nothing / partial shaped overrides -> hydrate from process.env then shallow merge explicit shaped fields
+    let hydrated: { config: CamundaConfig };
+    if (cfg && (cfg as any).auth && (cfg as any).validation) {
+      hydrated = { config: cfg as CamundaConfig };
+    } else if (cfg && Object.keys(cfg).some(k => k.startsWith('CAMUNDA_'))) {
+      const overrides = Object.fromEntries(Object.entries(cfg).filter(([k,v]) => k.startsWith('CAMUNDA_') && typeof v === 'string')) as Record<string,string>;
+      hydrated = hydrateConfig({ overrides });
+    } else {
+      hydrated = hydrateConfig();
+    }
+    // Merge in any shaped fields (restAddress, auth, validation, etc.) that were explicitly provided (non CAMUNDA_* keys)
+    const merged: CamundaConfig = { ...hydrated.config };
+    if (cfg) {
+      for (const [k,v] of Object.entries(cfg)) {
+        if (k === 'fetch') continue;
+        if (k.startsWith('CAMUNDA_')) continue; // already applied via overrides hydration
+        (merged as any)[k] = v;
       }
     }
-    if (effectiveEnv || overrides) {
-      base = hydrateConfig({ env: effectiveEnv, overrides }).config;
-    } else if (supplied && (supplied as any).auth && (supplied as any).validation && (supplied as any).restAddress) {
-      base = supplied as any as CamundaConfig; // already structured
-    } else {
-      const last = getConfig();
-      base = last ? last.config : hydrateConfig().config;
-    }
-    this._config = { ...base, ...rest } as CamundaConfig;
-    this._fetch = fetch;
-    this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
-    this._auth = createAuthFacade(this._config, { fetch: this._fetch });
+    this._config = merged;
+    this._fetch = (cfg as any)?.fetch;
+    this._client = createClient({ baseUrl: merged.restAddress, fetch: this._fetch });
+    this._auth = createAuthFacade(merged, { fetch: this._fetch });
   }
 
   get config() { return this._config; }
 
   configure(next: Camunda8InputConfig) {
-    this._config = { ...this._config, ...(next as any) };
+    if (Object.keys(next || {}).some(k => k.startsWith('CAMUNDA_'))) {
+      // Re-hydrate with new overrides
+      const overrides = Object.fromEntries(Object.entries(next).filter(([k,v]) => k.startsWith('CAMUNDA_') && typeof v === 'string')) as Record<string,string>;
+      const hydrated = hydrateConfig({ overrides });
+      const merged: CamundaConfig = { ...this._config, ...hydrated.config };
+      for (const [k,v] of Object.entries(next)) {
+        if (k === 'fetch' || k.startsWith('CAMUNDA_')) continue;
+        (merged as any)[k] = v;
+      }
+      this._config = merged;
+    } else {
+      this._config = { ...this._config, ...(next as any) };
+    }
     if (next.fetch) this._fetch = next.fetch;
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
     this._auth = createAuthFacade(this._config, { fetch: this._fetch });
   }
-
-  // Convenience for tests / dynamic injection without re-providing other config
-  setFetch(fetchImpl: (input: RequestInfo | URL, init?: RequestInit)=>Promise<Response>) {
-    this._fetch = fetchImpl;
-    this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
-    this._auth = createAuthFacade(this._config, { fetch: this._fetch });
-  }
-
-  // Instance-scoped validation helpers (preferred over legacy free functions)
-  validationConfig() { return { req: this._config.validation.req, res: this._config.validation.res }; }
-  requestValidationMode() { return this._config.validation.req; }
-  responseValidationMode() { return this._config.validation.res; }
-  validationVerbose() { return this._config.validation.verbose; }
 
   // Auth helpers
   async getAuthHeaders() { return this._auth.getAuthHeaders(); }
@@ -356,41 +711,8 @@ export class Camunda8 {
   clearAuthCache(opts?: { disk?: boolean; memory?: boolean }) { this._auth.clearCache(opts); }
   onAuthHeaders(h: (headers: Record<string,string>) => Record<string,string>|Promise<Record<string,string>>) { this._auth.registerHeadersHook(h); }
 
-  async gateRequest(opId: string, schema: any, data: any) { // schema: ZodTypeAny (typed as any to avoid hard dep here)
-    return this.#runValidation(opId, 'request', schema, data, this._config.validation.req);
-  }
-  async gateResponse(opId: string, schema: any, data: any) {
-    return this.#runValidation(opId, 'response', schema, data, this._config.validation.res);
-  }
-
-  async #runValidation(opId: string, side: 'request'|'response', schema: any, data: any, mode: 'none'|'warn'|'strict') {
-    if (mode === 'none') return data;
-    try {
-  const parsed = schema?.parseAsync ? await schema.parseAsync(data) : schema?.parse ? schema.parse(data) : data;
-  return mode === 'warn' ? data : parsed;
-    } catch (err: any) {
-      // Lazy import to avoid cost when validation disabled
-      const { ZodError } = await import('zod');
-      if (err instanceof ZodError) {
-        if (mode === 'warn') {
-          // Best-effort formatting; avoid pulling full formatting stack for now
-            if (this.validationVerbose()) {
-              // eslint-disable-next-line no-console
-              console.warn(`[camunda-sdk][validation][warn] ${side} ${opId}: ${err.issues?.length||0} issue(s)`);
-            }
-          return data;
-        }
-        // Throw minimal error (avoid depending on CamundaValidationError class)
-        const e = new Error(`[camunda-sdk][validation][${side}] ${opId} failed validation: ${err.issues?.length||0} issue(s)`);
-        (e as any).issues = err.issues;
-        throw e;
-      }
-      throw err;
-    }
-  }
-
   // === AUTO-GENERATED CAMUNDA8 METHODS START ===
-  // Generated methods (2025-09-01T08:31:55.679Z)
+  // Generated methods (2025-09-01T11:29:12.001Z)
   /**
    * Activate activities within an ad-hoc sub-process
    * Activates selected activities within an ad-hoc sub-process identified by element ID.
@@ -406,9 +728,11 @@ export class Camunda8 {
   activateAdHocSubProcessActivities(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.activateAdHocSubProcessActivities({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.activateAdHocSubProcessActivities({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.activateAdHocSubProcessActivities({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.activateAdHocSubProcessActivities({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -425,9 +749,11 @@ export class Camunda8 {
   activateJobs(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.activateJobs({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.activateJobs({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.activateJobs({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.activateJobs({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -442,7 +768,8 @@ export class Camunda8 {
   assignClientToGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.assignClientToGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.assignClientToGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -457,7 +784,8 @@ export class Camunda8 {
   assignClientToTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.assignClientToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.assignClientToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -472,7 +800,8 @@ export class Camunda8 {
   assignGroupToTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.assignGroupToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.assignGroupToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -488,7 +817,8 @@ export class Camunda8 {
   assignMappingRuleToGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.assignMappingRuleToGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.assignMappingRuleToGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -503,7 +833,8 @@ export class Camunda8 {
   assignMappingRuleToTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.assignMappingRuleToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.assignMappingRuleToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -519,7 +850,8 @@ export class Camunda8 {
   assignRoleToClient(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.assignRoleToClient({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.assignRoleToClient({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -534,7 +866,8 @@ export class Camunda8 {
   assignRoleToGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.assignRoleToGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.assignRoleToGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -550,7 +883,8 @@ export class Camunda8 {
   assignRoleToMappingRule(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.assignRoleToMappingRule({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.assignRoleToMappingRule({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -565,7 +899,8 @@ export class Camunda8 {
   assignRoleToTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.assignRoleToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.assignRoleToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -580,7 +915,8 @@ export class Camunda8 {
   assignRoleToUser(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.assignRoleToUser({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.assignRoleToUser({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -596,9 +932,11 @@ export class Camunda8 {
   assignUserTask(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.assignUserTask({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.assignUserTask({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.assignUserTask({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.assignUserTask({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -613,7 +951,8 @@ export class Camunda8 {
   assignUserToGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.assignUserToGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.assignUserToGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -628,7 +967,8 @@ export class Camunda8 {
   assignUserToTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.assignUserToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.assignUserToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -644,9 +984,11 @@ export class Camunda8 {
   broadcastSignal(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.broadcastSignal({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.broadcastSignal({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.broadcastSignal({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.broadcastSignal({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -658,15 +1000,22 @@ export class Camunda8 {
     *
    * @operationId cancelBatchOperation
    * @tags Batch operation
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  cancelBatchOperation(body: cancelBatchOperationBody): CancelablePromise<_DataOf<typeof Sdk.cancelBatchOperation>>;
-  cancelBatchOperation(options: cancelBatchOperationOptions): CancelablePromise<_DataOf<typeof Sdk.cancelBatchOperation>>;
-  cancelBatchOperation(arg: any): CancelablePromise<any> {
+  cancelBatchOperation(body: cancelBatchOperationBody, /** Management of eventual consistency **/ consistencyManagement: cancelBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.cancelBatchOperation>>;
+  cancelBatchOperation(options: cancelBatchOperationOptions, /** Management of eventual consistency **/ consistencyManagement: cancelBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.cancelBatchOperation>>;
+  cancelBatchOperation(arg: any, /** Management of eventual consistency **/ consistencyManagement: cancelBatchOperationConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.cancelBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.cancelBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('cancelBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.cancelBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.cancelBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('cancelBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -682,9 +1031,11 @@ export class Camunda8 {
   cancelProcessInstance(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.cancelProcessInstance({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.cancelProcessInstance({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.cancelProcessInstance({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.cancelProcessInstance({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -698,15 +1049,22 @@ export class Camunda8 {
     *
    * @operationId cancelProcessInstancesBatchOperation
    * @tags Process instance
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  cancelProcessInstancesBatchOperation(body: cancelProcessInstancesBatchOperationBody): CancelablePromise<_DataOf<typeof Sdk.cancelProcessInstancesBatchOperation>>;
-  cancelProcessInstancesBatchOperation(options: cancelProcessInstancesBatchOperationOptions): CancelablePromise<_DataOf<typeof Sdk.cancelProcessInstancesBatchOperation>>;
-  cancelProcessInstancesBatchOperation(arg: any): CancelablePromise<any> {
+  cancelProcessInstancesBatchOperation(body: cancelProcessInstancesBatchOperationBody, /** Management of eventual consistency **/ consistencyManagement: cancelProcessInstancesBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.cancelProcessInstancesBatchOperation>>;
+  cancelProcessInstancesBatchOperation(options: cancelProcessInstancesBatchOperationOptions, /** Management of eventual consistency **/ consistencyManagement: cancelProcessInstancesBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.cancelProcessInstancesBatchOperation>>;
+  cancelProcessInstancesBatchOperation(arg: any, /** Management of eventual consistency **/ consistencyManagement: cancelProcessInstancesBatchOperationConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.cancelProcessInstancesBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.cancelProcessInstancesBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('cancelProcessInstancesBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.cancelProcessInstancesBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.cancelProcessInstancesBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('cancelProcessInstancesBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -723,9 +1081,11 @@ export class Camunda8 {
   completeJob(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.completeJob({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.completeJob({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.completeJob({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.completeJob({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -741,9 +1101,11 @@ export class Camunda8 {
   completeUserTask(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.completeUserTask({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.completeUserTask({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.completeUserTask({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.completeUserTask({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -763,9 +1125,11 @@ export class Camunda8 {
   correlateMessage(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.correlateMessage({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.correlateMessage({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.correlateMessage({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.correlateMessage({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -775,15 +1139,22 @@ export class Camunda8 {
     *
    * @operationId createAdminUser
    * @tags Setup
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  createAdminUser(body: createAdminUserBody): CancelablePromise<_DataOf<typeof Sdk.createAdminUser>>;
-  createAdminUser(options: createAdminUserOptions): CancelablePromise<_DataOf<typeof Sdk.createAdminUser>>;
-  createAdminUser(arg: any): CancelablePromise<any> {
+  createAdminUser(body: createAdminUserBody, /** Management of eventual consistency **/ consistencyManagement: createAdminUserConsistency): CancelablePromise<_DataOf<typeof Sdk.createAdminUser>>;
+  createAdminUser(options: createAdminUserOptions, /** Management of eventual consistency **/ consistencyManagement: createAdminUserConsistency): CancelablePromise<_DataOf<typeof Sdk.createAdminUser>>;
+  createAdminUser(arg: any, /** Management of eventual consistency **/ consistencyManagement: createAdminUserConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.createAdminUser({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.createAdminUser({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('createAdminUser', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.createAdminUser({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.createAdminUser({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('createAdminUser', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -799,9 +1170,11 @@ export class Camunda8 {
   createAuthorization(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.createAuthorization({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.createAuthorization({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.createAuthorization({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.createAuthorization({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -819,9 +1192,11 @@ export class Camunda8 {
   createDeployment(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.createDeployment({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.createDeployment({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.createDeployment({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.createDeployment({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -840,9 +1215,11 @@ export class Camunda8 {
   createDocument(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.createDocument({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.createDocument({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.createDocument({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.createDocument({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -861,9 +1238,11 @@ export class Camunda8 {
   createDocumentLink(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.createDocumentLink({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.createDocumentLink({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.createDocumentLink({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.createDocumentLink({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -904,9 +1283,11 @@ export class Camunda8 {
   createDocuments(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.createDocuments({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.createDocuments({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.createDocuments({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.createDocuments({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -924,9 +1305,11 @@ export class Camunda8 {
   createElementInstanceVariables(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.createElementInstanceVariables({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.createElementInstanceVariables({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.createElementInstanceVariables({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.createElementInstanceVariables({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -943,9 +1326,11 @@ export class Camunda8 {
   createGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.createGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.createGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.createGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.createGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -962,9 +1347,11 @@ export class Camunda8 {
   createMappingRule(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.createMappingRule({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.createMappingRule({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.createMappingRule({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.createMappingRule({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -986,9 +1373,11 @@ export class Camunda8 {
   createProcessInstance(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.createProcessInstance({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.createProcessInstance({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.createProcessInstance({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.createProcessInstance({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1005,9 +1394,11 @@ export class Camunda8 {
   createRole(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.createRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.createRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.createRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.createRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1023,9 +1414,11 @@ export class Camunda8 {
   createTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.createTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.createTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.createTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.createTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1035,15 +1428,22 @@ export class Camunda8 {
     *
    * @operationId createUser
    * @tags User
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  createUser(body: createUserBody): CancelablePromise<_DataOf<typeof Sdk.createUser>>;
-  createUser(options: createUserOptions): CancelablePromise<_DataOf<typeof Sdk.createUser>>;
-  createUser(arg: any): CancelablePromise<any> {
+  createUser(body: createUserBody, /** Management of eventual consistency **/ consistencyManagement: createUserConsistency): CancelablePromise<_DataOf<typeof Sdk.createUser>>;
+  createUser(options: createUserOptions, /** Management of eventual consistency **/ consistencyManagement: createUserConsistency): CancelablePromise<_DataOf<typeof Sdk.createUser>>;
+  createUser(arg: any, /** Management of eventual consistency **/ consistencyManagement: createUserConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.createUser({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.createUser({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('createUser', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.createUser({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.createUser({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('createUser', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1055,10 +1455,13 @@ export class Camunda8 {
    * @tags Authorization
    */
   deleteAuthorization(options?: deleteAuthorizationOptions): CancelablePromise<_DataOf<typeof Sdk.deleteAuthorization>>;
+  deleteAuthorization(authorizationKey: deleteAuthorizationPathParam): CancelablePromise<_DataOf<typeof Sdk.deleteAuthorization>>;
   deleteAuthorization(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.deleteAuthorization({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { authorizationKey: arg } };
+      const call = () => Sdk.deleteAuthorization({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1073,10 +1476,13 @@ export class Camunda8 {
    * @tags Document
    */
   deleteDocument(options?: deleteDocumentOptions): CancelablePromise<_DataOf<typeof Sdk.deleteDocument>>;
+  deleteDocument(documentId: deleteDocumentPathParam): CancelablePromise<_DataOf<typeof Sdk.deleteDocument>>;
   deleteDocument(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.deleteDocument({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { documentId: arg } };
+      const call = () => Sdk.deleteDocument({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1089,10 +1495,13 @@ export class Camunda8 {
    * @tags Group
    */
   deleteGroup(options?: deleteGroupOptions): CancelablePromise<_DataOf<typeof Sdk.deleteGroup>>;
+  deleteGroup(groupId: deleteGroupPathParam): CancelablePromise<_DataOf<typeof Sdk.deleteGroup>>;
   deleteGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.deleteGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { groupId: arg } };
+      const call = () => Sdk.deleteGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1105,10 +1514,13 @@ export class Camunda8 {
    * @tags Mapping rule
    */
   deleteMappingRule(options?: deleteMappingRuleOptions): CancelablePromise<_DataOf<typeof Sdk.deleteMappingRule>>;
+  deleteMappingRule(mappingRuleId: deleteMappingRulePathParam): CancelablePromise<_DataOf<typeof Sdk.deleteMappingRule>>;
   deleteMappingRule(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.deleteMappingRule({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { mappingRuleId: arg } };
+      const call = () => Sdk.deleteMappingRule({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1127,9 +1539,11 @@ export class Camunda8 {
   deleteResource(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.deleteResource({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.deleteResource({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.deleteResource({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.deleteResource({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1142,10 +1556,13 @@ export class Camunda8 {
    * @tags Role
    */
   deleteRole(options?: deleteRoleOptions): CancelablePromise<_DataOf<typeof Sdk.deleteRole>>;
+  deleteRole(roleId: deleteRolePathParam): CancelablePromise<_DataOf<typeof Sdk.deleteRole>>;
   deleteRole(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.deleteRole({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { roleId: arg } };
+      const call = () => Sdk.deleteRole({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1157,10 +1574,13 @@ export class Camunda8 {
    * @tags Tenant
    */
   deleteTenant(options?: deleteTenantOptions): CancelablePromise<_DataOf<typeof Sdk.deleteTenant>>;
+  deleteTenant(tenantId: deleteTenantPathParam): CancelablePromise<_DataOf<typeof Sdk.deleteTenant>>;
   deleteTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.deleteTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { tenantId: arg } };
+      const call = () => Sdk.deleteTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1171,12 +1591,19 @@ export class Camunda8 {
     *
    * @operationId deleteUser
    * @tags User
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  deleteUser(options?: deleteUserOptions): CancelablePromise<_DataOf<typeof Sdk.deleteUser>>;
-  deleteUser(arg: any): CancelablePromise<any> {
+  deleteUser(options: deleteUserOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: deleteUserConsistency): CancelablePromise<_DataOf<typeof Sdk.deleteUser>>;
+  deleteUser(username: deleteUserPathParam, /** Management of eventual consistency **/ consistencyManagement: deleteUserConsistency): CancelablePromise<_DataOf<typeof Sdk.deleteUser>>;
+  deleteUser(arg: any, /** Management of eventual consistency **/ consistencyManagement: deleteUserConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.deleteUser({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { username: arg } };
+      const call = () => Sdk.deleteUser({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('deleteUser', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1196,9 +1623,11 @@ export class Camunda8 {
   evaluateDecision(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.evaluateDecision({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.evaluateDecision({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.evaluateDecision({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.evaluateDecision({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1215,9 +1644,11 @@ export class Camunda8 {
   failJob(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.failJob({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.failJob({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.failJob({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.failJob({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1232,7 +1663,8 @@ export class Camunda8 {
   getAuthentication(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.getAuthentication({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.getAuthentication({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1242,12 +1674,19 @@ export class Camunda8 {
     *
    * @operationId getAuthorization
    * @tags Authorization
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getAuthorization(options?: getAuthorizationOptions): CancelablePromise<_DataOf<typeof Sdk.getAuthorization>>;
-  getAuthorization(arg: any): CancelablePromise<any> {
+  getAuthorization(options: getAuthorizationOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getAuthorizationConsistency): CancelablePromise<_DataOf<typeof Sdk.getAuthorization>>;
+  getAuthorization(authorizationKey: getAuthorizationPathParam, /** Management of eventual consistency **/ consistencyManagement: getAuthorizationConsistency): CancelablePromise<_DataOf<typeof Sdk.getAuthorization>>;
+  getAuthorization(arg: any, /** Management of eventual consistency **/ consistencyManagement: getAuthorizationConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getAuthorization({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { authorizationKey: arg } };
+      const call = () => Sdk.getAuthorization({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getAuthorization', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1257,12 +1696,19 @@ export class Camunda8 {
     *
    * @operationId getBatchOperation
    * @tags Batch operation
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getBatchOperation(options?: getBatchOperationOptions): CancelablePromise<_DataOf<typeof Sdk.getBatchOperation>>;
-  getBatchOperation(arg: any): CancelablePromise<any> {
+  getBatchOperation(options: getBatchOperationOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.getBatchOperation>>;
+  getBatchOperation(batchOperationKey: getBatchOperationPathParam, /** Management of eventual consistency **/ consistencyManagement: getBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.getBatchOperation>>;
+  getBatchOperation(arg: any, /** Management of eventual consistency **/ consistencyManagement: getBatchOperationConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getBatchOperation({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { batchOperationKey: arg } };
+      const call = () => Sdk.getBatchOperation({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getBatchOperation', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1273,12 +1719,19 @@ export class Camunda8 {
     *
    * @operationId getDecisionDefinition
    * @tags Decision definition
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getDecisionDefinition(options?: getDecisionDefinitionOptions): CancelablePromise<_DataOf<typeof Sdk.getDecisionDefinition>>;
-  getDecisionDefinition(arg: any): CancelablePromise<any> {
+  getDecisionDefinition(options: getDecisionDefinitionOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getDecisionDefinitionConsistency): CancelablePromise<_DataOf<typeof Sdk.getDecisionDefinition>>;
+  getDecisionDefinition(decisionDefinitionKey: getDecisionDefinitionPathParam, /** Management of eventual consistency **/ consistencyManagement: getDecisionDefinitionConsistency): CancelablePromise<_DataOf<typeof Sdk.getDecisionDefinition>>;
+  getDecisionDefinition(arg: any, /** Management of eventual consistency **/ consistencyManagement: getDecisionDefinitionConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getDecisionDefinition({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { decisionDefinitionKey: arg } };
+      const call = () => Sdk.getDecisionDefinition({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getDecisionDefinition', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1289,12 +1742,19 @@ export class Camunda8 {
     *
    * @operationId getDecisionDefinitionXML
    * @tags Decision definition
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getDecisionDefinitionXml(options?: getDecisionDefinitionXmlOptions): CancelablePromise<_DataOf<typeof Sdk.getDecisionDefinitionXml>>;
-  getDecisionDefinitionXml(arg: any): CancelablePromise<any> {
+  getDecisionDefinitionXml(options: getDecisionDefinitionXmlOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getDecisionDefinitionXmlConsistency): CancelablePromise<_DataOf<typeof Sdk.getDecisionDefinitionXml>>;
+  getDecisionDefinitionXml(decisionDefinitionKey: getDecisionDefinitionXmlPathParam, /** Management of eventual consistency **/ consistencyManagement: getDecisionDefinitionXmlConsistency): CancelablePromise<_DataOf<typeof Sdk.getDecisionDefinitionXml>>;
+  getDecisionDefinitionXml(arg: any, /** Management of eventual consistency **/ consistencyManagement: getDecisionDefinitionXmlConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getDecisionDefinitionXml({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { decisionDefinitionKey: arg } };
+      const call = () => Sdk.getDecisionDefinitionXml({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getDecisionDefinitionXML', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1305,12 +1765,19 @@ export class Camunda8 {
     *
    * @operationId getDecisionInstance
    * @tags Decision instance
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getDecisionInstance(options?: getDecisionInstanceOptions): CancelablePromise<_DataOf<typeof Sdk.getDecisionInstance>>;
-  getDecisionInstance(arg: any): CancelablePromise<any> {
+  getDecisionInstance(options: getDecisionInstanceOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getDecisionInstanceConsistency): CancelablePromise<_DataOf<typeof Sdk.getDecisionInstance>>;
+  getDecisionInstance(decisionEvaluationInstanceKey: getDecisionInstancePathParam, /** Management of eventual consistency **/ consistencyManagement: getDecisionInstanceConsistency): CancelablePromise<_DataOf<typeof Sdk.getDecisionInstance>>;
+  getDecisionInstance(arg: any, /** Management of eventual consistency **/ consistencyManagement: getDecisionInstanceConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getDecisionInstance({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { decisionEvaluationInstanceKey: arg } };
+      const call = () => Sdk.getDecisionInstance({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getDecisionInstance', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1321,12 +1788,19 @@ export class Camunda8 {
     *
    * @operationId getDecisionRequirements
    * @tags Decision requirements
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getDecisionRequirements(options?: getDecisionRequirementsOptions): CancelablePromise<_DataOf<typeof Sdk.getDecisionRequirements>>;
-  getDecisionRequirements(arg: any): CancelablePromise<any> {
+  getDecisionRequirements(options: getDecisionRequirementsOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getDecisionRequirementsConsistency): CancelablePromise<_DataOf<typeof Sdk.getDecisionRequirements>>;
+  getDecisionRequirements(decisionRequirementsKey: getDecisionRequirementsPathParam, /** Management of eventual consistency **/ consistencyManagement: getDecisionRequirementsConsistency): CancelablePromise<_DataOf<typeof Sdk.getDecisionRequirements>>;
+  getDecisionRequirements(arg: any, /** Management of eventual consistency **/ consistencyManagement: getDecisionRequirementsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getDecisionRequirements({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { decisionRequirementsKey: arg } };
+      const call = () => Sdk.getDecisionRequirements({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getDecisionRequirements', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1337,12 +1811,19 @@ export class Camunda8 {
     *
    * @operationId getDecisionRequirementsXML
    * @tags Decision requirements
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getDecisionRequirementsXml(options?: getDecisionRequirementsXmlOptions): CancelablePromise<_DataOf<typeof Sdk.getDecisionRequirementsXml>>;
-  getDecisionRequirementsXml(arg: any): CancelablePromise<any> {
+  getDecisionRequirementsXml(options: getDecisionRequirementsXmlOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getDecisionRequirementsXmlConsistency): CancelablePromise<_DataOf<typeof Sdk.getDecisionRequirementsXml>>;
+  getDecisionRequirementsXml(decisionRequirementsKey: getDecisionRequirementsXmlPathParam, /** Management of eventual consistency **/ consistencyManagement: getDecisionRequirementsXmlConsistency): CancelablePromise<_DataOf<typeof Sdk.getDecisionRequirementsXml>>;
+  getDecisionRequirementsXml(arg: any, /** Management of eventual consistency **/ consistencyManagement: getDecisionRequirementsXmlConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getDecisionRequirementsXml({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { decisionRequirementsKey: arg } };
+      const call = () => Sdk.getDecisionRequirementsXml({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getDecisionRequirementsXML', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1357,10 +1838,13 @@ export class Camunda8 {
    * @tags Document
    */
   getDocument(options?: getDocumentOptions): CancelablePromise<_DataOf<typeof Sdk.getDocument>>;
+  getDocument(documentId: getDocumentPathParam): CancelablePromise<_DataOf<typeof Sdk.getDocument>>;
   getDocument(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getDocument({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { documentId: arg } };
+      const call = () => Sdk.getDocument({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1371,12 +1855,19 @@ export class Camunda8 {
     *
    * @operationId getElementInstance
    * @tags Element instance
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getElementInstance(options?: getElementInstanceOptions): CancelablePromise<_DataOf<typeof Sdk.getElementInstance>>;
-  getElementInstance(arg: any): CancelablePromise<any> {
+  getElementInstance(options: getElementInstanceOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getElementInstanceConsistency): CancelablePromise<_DataOf<typeof Sdk.getElementInstance>>;
+  getElementInstance(elementInstanceKey: getElementInstancePathParam, /** Management of eventual consistency **/ consistencyManagement: getElementInstanceConsistency): CancelablePromise<_DataOf<typeof Sdk.getElementInstance>>;
+  getElementInstance(arg: any, /** Management of eventual consistency **/ consistencyManagement: getElementInstanceConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getElementInstance({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { elementInstanceKey: arg } };
+      const call = () => Sdk.getElementInstance({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getElementInstance', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1387,12 +1878,19 @@ export class Camunda8 {
     *
    * @operationId getGroup
    * @tags Group
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getGroup(options?: getGroupOptions): CancelablePromise<_DataOf<typeof Sdk.getGroup>>;
-  getGroup(arg: any): CancelablePromise<any> {
+  getGroup(options: getGroupOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getGroupConsistency): CancelablePromise<_DataOf<typeof Sdk.getGroup>>;
+  getGroup(groupId: getGroupPathParam, /** Management of eventual consistency **/ consistencyManagement: getGroupConsistency): CancelablePromise<_DataOf<typeof Sdk.getGroup>>;
+  getGroup(arg: any, /** Management of eventual consistency **/ consistencyManagement: getGroupConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { groupId: arg } };
+      const call = () => Sdk.getGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getGroup', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1403,12 +1901,19 @@ export class Camunda8 {
     *
    * @operationId getIncident
    * @tags Incident
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getIncident(options?: getIncidentOptions): CancelablePromise<_DataOf<typeof Sdk.getIncident>>;
-  getIncident(arg: any): CancelablePromise<any> {
+  getIncident(options: getIncidentOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getIncidentConsistency): CancelablePromise<_DataOf<typeof Sdk.getIncident>>;
+  getIncident(incidentKey: getIncidentPathParam, /** Management of eventual consistency **/ consistencyManagement: getIncidentConsistency): CancelablePromise<_DataOf<typeof Sdk.getIncident>>;
+  getIncident(arg: any, /** Management of eventual consistency **/ consistencyManagement: getIncidentConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getIncident({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { incidentKey: arg } };
+      const call = () => Sdk.getIncident({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getIncident', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1423,7 +1928,8 @@ export class Camunda8 {
   getLicense(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.getLicense({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.getLicense({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1434,12 +1940,19 @@ export class Camunda8 {
     *
    * @operationId getMappingRule
    * @tags Mapping rule
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getMappingRule(options?: getMappingRuleOptions): CancelablePromise<_DataOf<typeof Sdk.getMappingRule>>;
-  getMappingRule(arg: any): CancelablePromise<any> {
+  getMappingRule(options: getMappingRuleOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getMappingRuleConsistency): CancelablePromise<_DataOf<typeof Sdk.getMappingRule>>;
+  getMappingRule(mappingRuleId: getMappingRulePathParam, /** Management of eventual consistency **/ consistencyManagement: getMappingRuleConsistency): CancelablePromise<_DataOf<typeof Sdk.getMappingRule>>;
+  getMappingRule(arg: any, /** Management of eventual consistency **/ consistencyManagement: getMappingRuleConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getMappingRule({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { mappingRuleId: arg } };
+      const call = () => Sdk.getMappingRule({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getMappingRule', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1450,12 +1963,19 @@ export class Camunda8 {
     *
    * @operationId getProcessDefinition
    * @tags Process definition
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getProcessDefinition(options?: getProcessDefinitionOptions): CancelablePromise<_DataOf<typeof Sdk.getProcessDefinition>>;
-  getProcessDefinition(arg: any): CancelablePromise<any> {
+  getProcessDefinition(options: getProcessDefinitionOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getProcessDefinitionConsistency): CancelablePromise<_DataOf<typeof Sdk.getProcessDefinition>>;
+  getProcessDefinition(processDefinitionKey: getProcessDefinitionPathParam, /** Management of eventual consistency **/ consistencyManagement: getProcessDefinitionConsistency): CancelablePromise<_DataOf<typeof Sdk.getProcessDefinition>>;
+  getProcessDefinition(arg: any, /** Management of eventual consistency **/ consistencyManagement: getProcessDefinitionConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getProcessDefinition({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { processDefinitionKey: arg } };
+      const call = () => Sdk.getProcessDefinition({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getProcessDefinition', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1466,15 +1986,22 @@ export class Camunda8 {
     *
    * @operationId getProcessDefinitionStatistics
    * @tags Process definition
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getProcessDefinitionStatistics(body: getProcessDefinitionStatisticsBody): CancelablePromise<_DataOf<typeof Sdk.getProcessDefinitionStatistics>>;
-  getProcessDefinitionStatistics(options: getProcessDefinitionStatisticsOptions): CancelablePromise<_DataOf<typeof Sdk.getProcessDefinitionStatistics>>;
-  getProcessDefinitionStatistics(arg: any): CancelablePromise<any> {
+  getProcessDefinitionStatistics(body: getProcessDefinitionStatisticsBody, /** Management of eventual consistency **/ consistencyManagement: getProcessDefinitionStatisticsConsistency): CancelablePromise<_DataOf<typeof Sdk.getProcessDefinitionStatistics>>;
+  getProcessDefinitionStatistics(options: getProcessDefinitionStatisticsOptions, /** Management of eventual consistency **/ consistencyManagement: getProcessDefinitionStatisticsConsistency): CancelablePromise<_DataOf<typeof Sdk.getProcessDefinitionStatistics>>;
+  getProcessDefinitionStatistics(arg: any, /** Management of eventual consistency **/ consistencyManagement: getProcessDefinitionStatisticsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.getProcessDefinitionStatistics({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.getProcessDefinitionStatistics({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('getProcessDefinitionStatistics', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.getProcessDefinitionStatistics({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.getProcessDefinitionStatistics({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getProcessDefinitionStatistics', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1485,12 +2012,19 @@ export class Camunda8 {
     *
    * @operationId getProcessDefinitionXML
    * @tags Process definition
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getProcessDefinitionXml(options?: getProcessDefinitionXmlOptions): CancelablePromise<_DataOf<typeof Sdk.getProcessDefinitionXml>>;
-  getProcessDefinitionXml(arg: any): CancelablePromise<any> {
+  getProcessDefinitionXml(options: getProcessDefinitionXmlOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getProcessDefinitionXmlConsistency): CancelablePromise<_DataOf<typeof Sdk.getProcessDefinitionXml>>;
+  getProcessDefinitionXml(processDefinitionKey: getProcessDefinitionXmlPathParam, /** Management of eventual consistency **/ consistencyManagement: getProcessDefinitionXmlConsistency): CancelablePromise<_DataOf<typeof Sdk.getProcessDefinitionXml>>;
+  getProcessDefinitionXml(arg: any, /** Management of eventual consistency **/ consistencyManagement: getProcessDefinitionXmlConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getProcessDefinitionXml({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { processDefinitionKey: arg } };
+      const call = () => Sdk.getProcessDefinitionXml({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getProcessDefinitionXML', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1501,12 +2035,19 @@ export class Camunda8 {
     *
    * @operationId getProcessInstance
    * @tags Process instance
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getProcessInstance(options?: getProcessInstanceOptions): CancelablePromise<_DataOf<typeof Sdk.getProcessInstance>>;
-  getProcessInstance(arg: any): CancelablePromise<any> {
+  getProcessInstance(options: getProcessInstanceOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getProcessInstanceConsistency): CancelablePromise<_DataOf<typeof Sdk.getProcessInstance>>;
+  getProcessInstance(processInstanceKey: getProcessInstancePathParam, /** Management of eventual consistency **/ consistencyManagement: getProcessInstanceConsistency): CancelablePromise<_DataOf<typeof Sdk.getProcessInstance>>;
+  getProcessInstance(arg: any, /** Management of eventual consistency **/ consistencyManagement: getProcessInstanceConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getProcessInstance({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { processInstanceKey: arg } };
+      const call = () => Sdk.getProcessInstance({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getProcessInstance', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1517,12 +2058,19 @@ export class Camunda8 {
     *
    * @operationId getProcessInstanceCallHierarchy
    * @tags Process instance
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getProcessInstanceCallHierarchy(options?: getProcessInstanceCallHierarchyOptions): CancelablePromise<_DataOf<typeof Sdk.getProcessInstanceCallHierarchy>>;
-  getProcessInstanceCallHierarchy(arg: any): CancelablePromise<any> {
+  getProcessInstanceCallHierarchy(options: getProcessInstanceCallHierarchyOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getProcessInstanceCallHierarchyConsistency): CancelablePromise<_DataOf<typeof Sdk.getProcessInstanceCallHierarchy>>;
+  getProcessInstanceCallHierarchy(processInstanceKey: getProcessInstanceCallHierarchyPathParam, /** Management of eventual consistency **/ consistencyManagement: getProcessInstanceCallHierarchyConsistency): CancelablePromise<_DataOf<typeof Sdk.getProcessInstanceCallHierarchy>>;
+  getProcessInstanceCallHierarchy(arg: any, /** Management of eventual consistency **/ consistencyManagement: getProcessInstanceCallHierarchyConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getProcessInstanceCallHierarchy({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { processInstanceKey: arg } };
+      const call = () => Sdk.getProcessInstanceCallHierarchy({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getProcessInstanceCallHierarchy', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1533,12 +2081,19 @@ export class Camunda8 {
     *
    * @operationId getProcessInstanceSequenceFlows
    * @tags Process instance
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getProcessInstanceSequenceFlows(options?: getProcessInstanceSequenceFlowsOptions): CancelablePromise<_DataOf<typeof Sdk.getProcessInstanceSequenceFlows>>;
-  getProcessInstanceSequenceFlows(arg: any): CancelablePromise<any> {
+  getProcessInstanceSequenceFlows(options: getProcessInstanceSequenceFlowsOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getProcessInstanceSequenceFlowsConsistency): CancelablePromise<_DataOf<typeof Sdk.getProcessInstanceSequenceFlows>>;
+  getProcessInstanceSequenceFlows(processInstanceKey: getProcessInstanceSequenceFlowsPathParam, /** Management of eventual consistency **/ consistencyManagement: getProcessInstanceSequenceFlowsConsistency): CancelablePromise<_DataOf<typeof Sdk.getProcessInstanceSequenceFlows>>;
+  getProcessInstanceSequenceFlows(arg: any, /** Management of eventual consistency **/ consistencyManagement: getProcessInstanceSequenceFlowsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getProcessInstanceSequenceFlows({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { processInstanceKey: arg } };
+      const call = () => Sdk.getProcessInstanceSequenceFlows({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getProcessInstanceSequenceFlows', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1549,12 +2104,19 @@ export class Camunda8 {
     *
    * @operationId getProcessInstanceStatistics
    * @tags Process instance
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getProcessInstanceStatistics(options?: getProcessInstanceStatisticsOptions): CancelablePromise<_DataOf<typeof Sdk.getProcessInstanceStatistics>>;
-  getProcessInstanceStatistics(arg: any): CancelablePromise<any> {
+  getProcessInstanceStatistics(options: getProcessInstanceStatisticsOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getProcessInstanceStatisticsConsistency): CancelablePromise<_DataOf<typeof Sdk.getProcessInstanceStatistics>>;
+  getProcessInstanceStatistics(processInstanceKey: getProcessInstanceStatisticsPathParam, /** Management of eventual consistency **/ consistencyManagement: getProcessInstanceStatisticsConsistency): CancelablePromise<_DataOf<typeof Sdk.getProcessInstanceStatistics>>;
+  getProcessInstanceStatistics(arg: any, /** Management of eventual consistency **/ consistencyManagement: getProcessInstanceStatisticsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getProcessInstanceStatistics({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { processInstanceKey: arg } };
+      const call = () => Sdk.getProcessInstanceStatistics({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getProcessInstanceStatistics', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1570,10 +2132,13 @@ export class Camunda8 {
    * @tags Resource
    */
   getResource(options?: getResourceOptions): CancelablePromise<_DataOf<typeof Sdk.getResource>>;
+  getResource(resourceKey: getResourcePathParam): CancelablePromise<_DataOf<typeof Sdk.getResource>>;
   getResource(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getResource({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { resourceKey: arg } };
+      const call = () => Sdk.getResource({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1589,10 +2154,13 @@ export class Camunda8 {
    * @tags Resource
    */
   getResourceContent(options?: getResourceContentOptions): CancelablePromise<_DataOf<typeof Sdk.getResourceContent>>;
+  getResourceContent(resourceKey: getResourceContentPathParam): CancelablePromise<_DataOf<typeof Sdk.getResourceContent>>;
   getResourceContent(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getResourceContent({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { resourceKey: arg } };
+      const call = () => Sdk.getResourceContent({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1603,12 +2171,19 @@ export class Camunda8 {
     *
    * @operationId getRole
    * @tags Role
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getRole(options?: getRoleOptions): CancelablePromise<_DataOf<typeof Sdk.getRole>>;
-  getRole(arg: any): CancelablePromise<any> {
+  getRole(options: getRoleOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getRoleConsistency): CancelablePromise<_DataOf<typeof Sdk.getRole>>;
+  getRole(roleId: getRolePathParam, /** Management of eventual consistency **/ consistencyManagement: getRoleConsistency): CancelablePromise<_DataOf<typeof Sdk.getRole>>;
+  getRole(arg: any, /** Management of eventual consistency **/ consistencyManagement: getRoleConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getRole({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { roleId: arg } };
+      const call = () => Sdk.getRole({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getRole', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1621,12 +2196,19 @@ export class Camunda8 {
     *
    * @operationId getStartProcessForm
    * @tags Process definition
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getStartProcessForm(options?: getStartProcessFormOptions): CancelablePromise<_DataOf<typeof Sdk.getStartProcessForm>>;
-  getStartProcessForm(arg: any): CancelablePromise<any> {
+  getStartProcessForm(options: getStartProcessFormOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getStartProcessFormConsistency): CancelablePromise<_DataOf<typeof Sdk.getStartProcessForm>>;
+  getStartProcessForm(processDefinitionKey: getStartProcessFormPathParam, /** Management of eventual consistency **/ consistencyManagement: getStartProcessFormConsistency): CancelablePromise<_DataOf<typeof Sdk.getStartProcessForm>>;
+  getStartProcessForm(arg: any, /** Management of eventual consistency **/ consistencyManagement: getStartProcessFormConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getStartProcessForm({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { processDefinitionKey: arg } };
+      const call = () => Sdk.getStartProcessForm({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getStartProcessForm', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1636,12 +2218,19 @@ export class Camunda8 {
     *
    * @operationId getTenant
    * @tags Tenant
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getTenant(options?: getTenantOptions): CancelablePromise<_DataOf<typeof Sdk.getTenant>>;
-  getTenant(arg: any): CancelablePromise<any> {
+  getTenant(options: getTenantOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getTenantConsistency): CancelablePromise<_DataOf<typeof Sdk.getTenant>>;
+  getTenant(tenantId: getTenantPathParam, /** Management of eventual consistency **/ consistencyManagement: getTenantConsistency): CancelablePromise<_DataOf<typeof Sdk.getTenant>>;
+  getTenant(arg: any, /** Management of eventual consistency **/ consistencyManagement: getTenantConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { tenantId: arg } };
+      const call = () => Sdk.getTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getTenant', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1656,7 +2245,8 @@ export class Camunda8 {
   getTopology(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.getTopology({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.getTopology({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1666,12 +2256,17 @@ export class Camunda8 {
     *
    * @operationId getUsageMetrics
    * @tags System
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getUsageMetrics(options?: getUsageMetricsOptions): CancelablePromise<_DataOf<typeof Sdk.getUsageMetrics>>;
-  getUsageMetrics(arg: any): CancelablePromise<any> {
+  getUsageMetrics(options: getUsageMetricsOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getUsageMetricsConsistency): CancelablePromise<_DataOf<typeof Sdk.getUsageMetrics>>;
+  getUsageMetrics(arg: any, /** Management of eventual consistency **/ consistencyManagement: getUsageMetricsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.getUsageMetrics({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.getUsageMetrics({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getUsageMetrics', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1682,12 +2277,19 @@ export class Camunda8 {
     *
    * @operationId getUser
    * @tags User
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getUser(options?: getUserOptions): CancelablePromise<_DataOf<typeof Sdk.getUser>>;
-  getUser(arg: any): CancelablePromise<any> {
+  getUser(options: getUserOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getUserConsistency): CancelablePromise<_DataOf<typeof Sdk.getUser>>;
+  getUser(username: getUserPathParam, /** Management of eventual consistency **/ consistencyManagement: getUserConsistency): CancelablePromise<_DataOf<typeof Sdk.getUser>>;
+  getUser(arg: any, /** Management of eventual consistency **/ consistencyManagement: getUserConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getUser({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { username: arg } };
+      const call = () => Sdk.getUser({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getUser', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1698,12 +2300,19 @@ export class Camunda8 {
     *
    * @operationId getUserTask
    * @tags User task
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getUserTask(options?: getUserTaskOptions): CancelablePromise<_DataOf<typeof Sdk.getUserTask>>;
-  getUserTask(arg: any): CancelablePromise<any> {
+  getUserTask(options: getUserTaskOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getUserTaskConsistency): CancelablePromise<_DataOf<typeof Sdk.getUserTask>>;
+  getUserTask(userTaskKey: getUserTaskPathParam, /** Management of eventual consistency **/ consistencyManagement: getUserTaskConsistency): CancelablePromise<_DataOf<typeof Sdk.getUserTask>>;
+  getUserTask(arg: any, /** Management of eventual consistency **/ consistencyManagement: getUserTaskConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getUserTask({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { userTaskKey: arg } };
+      const call = () => Sdk.getUserTask({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getUserTask', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1716,12 +2325,19 @@ export class Camunda8 {
     *
    * @operationId getUserTaskForm
    * @tags User task
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getUserTaskForm(options?: getUserTaskFormOptions): CancelablePromise<_DataOf<typeof Sdk.getUserTaskForm>>;
-  getUserTaskForm(arg: any): CancelablePromise<any> {
+  getUserTaskForm(options: getUserTaskFormOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getUserTaskFormConsistency): CancelablePromise<_DataOf<typeof Sdk.getUserTaskForm>>;
+  getUserTaskForm(userTaskKey: getUserTaskFormPathParam, /** Management of eventual consistency **/ consistencyManagement: getUserTaskFormConsistency): CancelablePromise<_DataOf<typeof Sdk.getUserTaskForm>>;
+  getUserTaskForm(arg: any, /** Management of eventual consistency **/ consistencyManagement: getUserTaskFormConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getUserTaskForm({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { userTaskKey: arg } };
+      const call = () => Sdk.getUserTaskForm({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getUserTaskForm', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1732,12 +2348,19 @@ export class Camunda8 {
     *
    * @operationId getVariable
    * @tags Variable
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  getVariable(options?: getVariableOptions): CancelablePromise<_DataOf<typeof Sdk.getVariable>>;
-  getVariable(arg: any): CancelablePromise<any> {
+  getVariable(options: getVariableOptions | undefined, /** Management of eventual consistency **/ consistencyManagement: getVariableConsistency): CancelablePromise<_DataOf<typeof Sdk.getVariable>>;
+  getVariable(variableKey: getVariablePathParam, /** Management of eventual consistency **/ consistencyManagement: getVariableConsistency): CancelablePromise<_DataOf<typeof Sdk.getVariable>>;
+  getVariable(arg: any, /** Management of eventual consistency **/ consistencyManagement: getVariableConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.getVariable({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { variableKey: arg } };
+      const call = () => Sdk.getVariable({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('getVariable', true, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1760,9 +2383,11 @@ export class Camunda8 {
   migrateProcessInstance(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.migrateProcessInstance({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.migrateProcessInstance({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.migrateProcessInstance({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.migrateProcessInstance({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1776,15 +2401,22 @@ export class Camunda8 {
     *
    * @operationId migrateProcessInstancesBatchOperation
    * @tags Process instance
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  migrateProcessInstancesBatchOperation(body: migrateProcessInstancesBatchOperationBody): CancelablePromise<_DataOf<typeof Sdk.migrateProcessInstancesBatchOperation>>;
-  migrateProcessInstancesBatchOperation(options: migrateProcessInstancesBatchOperationOptions): CancelablePromise<_DataOf<typeof Sdk.migrateProcessInstancesBatchOperation>>;
-  migrateProcessInstancesBatchOperation(arg: any): CancelablePromise<any> {
+  migrateProcessInstancesBatchOperation(body: migrateProcessInstancesBatchOperationBody, /** Management of eventual consistency **/ consistencyManagement: migrateProcessInstancesBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.migrateProcessInstancesBatchOperation>>;
+  migrateProcessInstancesBatchOperation(options: migrateProcessInstancesBatchOperationOptions, /** Management of eventual consistency **/ consistencyManagement: migrateProcessInstancesBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.migrateProcessInstancesBatchOperation>>;
+  migrateProcessInstancesBatchOperation(arg: any, /** Management of eventual consistency **/ consistencyManagement: migrateProcessInstancesBatchOperationConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.migrateProcessInstancesBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.migrateProcessInstancesBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('migrateProcessInstancesBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.migrateProcessInstancesBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.migrateProcessInstancesBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('migrateProcessInstancesBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1806,9 +2438,11 @@ export class Camunda8 {
   modifyProcessInstance(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.modifyProcessInstance({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.modifyProcessInstance({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.modifyProcessInstance({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.modifyProcessInstance({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1824,15 +2458,22 @@ export class Camunda8 {
     *
    * @operationId modifyProcessInstancesBatchOperation
    * @tags Process instance
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  modifyProcessInstancesBatchOperation(body: modifyProcessInstancesBatchOperationBody): CancelablePromise<_DataOf<typeof Sdk.modifyProcessInstancesBatchOperation>>;
-  modifyProcessInstancesBatchOperation(options: modifyProcessInstancesBatchOperationOptions): CancelablePromise<_DataOf<typeof Sdk.modifyProcessInstancesBatchOperation>>;
-  modifyProcessInstancesBatchOperation(arg: any): CancelablePromise<any> {
+  modifyProcessInstancesBatchOperation(body: modifyProcessInstancesBatchOperationBody, /** Management of eventual consistency **/ consistencyManagement: modifyProcessInstancesBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.modifyProcessInstancesBatchOperation>>;
+  modifyProcessInstancesBatchOperation(options: modifyProcessInstancesBatchOperationOptions, /** Management of eventual consistency **/ consistencyManagement: modifyProcessInstancesBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.modifyProcessInstancesBatchOperation>>;
+  modifyProcessInstancesBatchOperation(arg: any, /** Management of eventual consistency **/ consistencyManagement: modifyProcessInstancesBatchOperationConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.modifyProcessInstancesBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.modifyProcessInstancesBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('modifyProcessInstancesBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.modifyProcessInstancesBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.modifyProcessInstancesBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('modifyProcessInstancesBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1854,9 +2495,11 @@ export class Camunda8 {
   pinClock(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.pinClock({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.pinClock({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.pinClock({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.pinClock({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1877,9 +2520,11 @@ export class Camunda8 {
   publishMessage(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.publishMessage({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.publishMessage({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.publishMessage({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.publishMessage({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1900,7 +2545,8 @@ export class Camunda8 {
   resetClock(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.resetClock({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.resetClock({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1917,9 +2563,11 @@ export class Camunda8 {
   resolveIncident(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.resolveIncident({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.resolveIncident({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.resolveIncident({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.resolveIncident({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -1933,15 +2581,22 @@ export class Camunda8 {
     *
    * @operationId resolveIncidentsBatchOperation
    * @tags Process instance
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  resolveIncidentsBatchOperation(body: resolveIncidentsBatchOperationBody): CancelablePromise<_DataOf<typeof Sdk.resolveIncidentsBatchOperation>>;
-  resolveIncidentsBatchOperation(options: resolveIncidentsBatchOperationOptions): CancelablePromise<_DataOf<typeof Sdk.resolveIncidentsBatchOperation>>;
-  resolveIncidentsBatchOperation(arg: any): CancelablePromise<any> {
+  resolveIncidentsBatchOperation(body: resolveIncidentsBatchOperationBody, /** Management of eventual consistency **/ consistencyManagement: resolveIncidentsBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.resolveIncidentsBatchOperation>>;
+  resolveIncidentsBatchOperation(options: resolveIncidentsBatchOperationOptions, /** Management of eventual consistency **/ consistencyManagement: resolveIncidentsBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.resolveIncidentsBatchOperation>>;
+  resolveIncidentsBatchOperation(arg: any, /** Management of eventual consistency **/ consistencyManagement: resolveIncidentsBatchOperationConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.resolveIncidentsBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.resolveIncidentsBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('resolveIncidentsBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.resolveIncidentsBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.resolveIncidentsBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('resolveIncidentsBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1953,15 +2608,22 @@ export class Camunda8 {
     *
    * @operationId resumeBatchOperation
    * @tags Batch operation
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  resumeBatchOperation(body: resumeBatchOperationBody): CancelablePromise<_DataOf<typeof Sdk.resumeBatchOperation>>;
-  resumeBatchOperation(options: resumeBatchOperationOptions): CancelablePromise<_DataOf<typeof Sdk.resumeBatchOperation>>;
-  resumeBatchOperation(arg: any): CancelablePromise<any> {
+  resumeBatchOperation(body: resumeBatchOperationBody, /** Management of eventual consistency **/ consistencyManagement: resumeBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.resumeBatchOperation>>;
+  resumeBatchOperation(options: resumeBatchOperationOptions, /** Management of eventual consistency **/ consistencyManagement: resumeBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.resumeBatchOperation>>;
+  resumeBatchOperation(arg: any, /** Management of eventual consistency **/ consistencyManagement: resumeBatchOperationConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.resumeBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.resumeBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('resumeBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.resumeBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.resumeBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('resumeBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1972,15 +2634,22 @@ export class Camunda8 {
     *
    * @operationId searchAuthorizations
    * @tags Authorization
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchAuthorizations(body: searchAuthorizationsBody): CancelablePromise<_DataOf<typeof Sdk.searchAuthorizations>>;
-  searchAuthorizations(options: searchAuthorizationsOptions): CancelablePromise<_DataOf<typeof Sdk.searchAuthorizations>>;
-  searchAuthorizations(arg: any): CancelablePromise<any> {
+  searchAuthorizations(body: searchAuthorizationsBody, /** Management of eventual consistency **/ consistencyManagement: searchAuthorizationsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchAuthorizations>>;
+  searchAuthorizations(options: searchAuthorizationsOptions, /** Management of eventual consistency **/ consistencyManagement: searchAuthorizationsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchAuthorizations>>;
+  searchAuthorizations(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchAuthorizationsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchAuthorizations({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchAuthorizations({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchAuthorizations', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchAuthorizations({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchAuthorizations({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchAuthorizations', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -1990,15 +2659,22 @@ export class Camunda8 {
     *
    * @operationId searchBatchOperationItems
    * @tags Batch operation
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchBatchOperationItems(body: searchBatchOperationItemsBody): CancelablePromise<_DataOf<typeof Sdk.searchBatchOperationItems>>;
-  searchBatchOperationItems(options: searchBatchOperationItemsOptions): CancelablePromise<_DataOf<typeof Sdk.searchBatchOperationItems>>;
-  searchBatchOperationItems(arg: any): CancelablePromise<any> {
+  searchBatchOperationItems(body: searchBatchOperationItemsBody, /** Management of eventual consistency **/ consistencyManagement: searchBatchOperationItemsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchBatchOperationItems>>;
+  searchBatchOperationItems(options: searchBatchOperationItemsOptions, /** Management of eventual consistency **/ consistencyManagement: searchBatchOperationItemsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchBatchOperationItems>>;
+  searchBatchOperationItems(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchBatchOperationItemsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchBatchOperationItems({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchBatchOperationItems({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchBatchOperationItems', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchBatchOperationItems({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchBatchOperationItems({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchBatchOperationItems', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2008,15 +2684,22 @@ export class Camunda8 {
     *
    * @operationId searchBatchOperations
    * @tags Batch operation
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchBatchOperations(body: searchBatchOperationsBody): CancelablePromise<_DataOf<typeof Sdk.searchBatchOperations>>;
-  searchBatchOperations(options: searchBatchOperationsOptions): CancelablePromise<_DataOf<typeof Sdk.searchBatchOperations>>;
-  searchBatchOperations(arg: any): CancelablePromise<any> {
+  searchBatchOperations(body: searchBatchOperationsBody, /** Management of eventual consistency **/ consistencyManagement: searchBatchOperationsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchBatchOperations>>;
+  searchBatchOperations(options: searchBatchOperationsOptions, /** Management of eventual consistency **/ consistencyManagement: searchBatchOperationsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchBatchOperations>>;
+  searchBatchOperations(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchBatchOperationsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchBatchOperations({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchBatchOperations({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchBatchOperations', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchBatchOperations({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchBatchOperations({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchBatchOperations', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2027,15 +2710,22 @@ export class Camunda8 {
     *
    * @operationId searchClientsForGroup
    * @tags Group
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchClientsForGroup(body: searchClientsForGroupBody): CancelablePromise<_DataOf<typeof Sdk.searchClientsForGroup>>;
-  searchClientsForGroup(options: searchClientsForGroupOptions): CancelablePromise<_DataOf<typeof Sdk.searchClientsForGroup>>;
-  searchClientsForGroup(arg: any): CancelablePromise<any> {
+  searchClientsForGroup(body: searchClientsForGroupBody, /** Management of eventual consistency **/ consistencyManagement: searchClientsForGroupConsistency): CancelablePromise<_DataOf<typeof Sdk.searchClientsForGroup>>;
+  searchClientsForGroup(options: searchClientsForGroupOptions, /** Management of eventual consistency **/ consistencyManagement: searchClientsForGroupConsistency): CancelablePromise<_DataOf<typeof Sdk.searchClientsForGroup>>;
+  searchClientsForGroup(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchClientsForGroupConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchClientsForGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchClientsForGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchClientsForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchClientsForGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchClientsForGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchClientsForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2046,15 +2736,22 @@ export class Camunda8 {
     *
    * @operationId searchClientsForRole
    * @tags Role
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchClientsForRole(body: searchClientsForRoleBody): CancelablePromise<_DataOf<typeof Sdk.searchClientsForRole>>;
-  searchClientsForRole(options: searchClientsForRoleOptions): CancelablePromise<_DataOf<typeof Sdk.searchClientsForRole>>;
-  searchClientsForRole(arg: any): CancelablePromise<any> {
+  searchClientsForRole(body: searchClientsForRoleBody, /** Management of eventual consistency **/ consistencyManagement: searchClientsForRoleConsistency): CancelablePromise<_DataOf<typeof Sdk.searchClientsForRole>>;
+  searchClientsForRole(options: searchClientsForRoleOptions, /** Management of eventual consistency **/ consistencyManagement: searchClientsForRoleConsistency): CancelablePromise<_DataOf<typeof Sdk.searchClientsForRole>>;
+  searchClientsForRole(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchClientsForRoleConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchClientsForRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchClientsForRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchClientsForRole', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchClientsForRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchClientsForRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchClientsForRole', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2064,15 +2761,22 @@ export class Camunda8 {
     *
    * @operationId searchClientsForTenant
    * @tags Tenant
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchClientsForTenant(body: searchClientsForTenantBody): CancelablePromise<_DataOf<typeof Sdk.searchClientsForTenant>>;
-  searchClientsForTenant(options: searchClientsForTenantOptions): CancelablePromise<_DataOf<typeof Sdk.searchClientsForTenant>>;
-  searchClientsForTenant(arg: any): CancelablePromise<any> {
+  searchClientsForTenant(body: searchClientsForTenantBody, /** Management of eventual consistency **/ consistencyManagement: searchClientsForTenantConsistency): CancelablePromise<_DataOf<typeof Sdk.searchClientsForTenant>>;
+  searchClientsForTenant(options: searchClientsForTenantOptions, /** Management of eventual consistency **/ consistencyManagement: searchClientsForTenantConsistency): CancelablePromise<_DataOf<typeof Sdk.searchClientsForTenant>>;
+  searchClientsForTenant(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchClientsForTenantConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchClientsForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchClientsForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchClientsForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchClientsForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchClientsForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchClientsForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2083,15 +2787,22 @@ export class Camunda8 {
     *
    * @operationId searchDecisionDefinitions
    * @tags Decision definition
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchDecisionDefinitions(body: searchDecisionDefinitionsBody): CancelablePromise<_DataOf<typeof Sdk.searchDecisionDefinitions>>;
-  searchDecisionDefinitions(options: searchDecisionDefinitionsOptions): CancelablePromise<_DataOf<typeof Sdk.searchDecisionDefinitions>>;
-  searchDecisionDefinitions(arg: any): CancelablePromise<any> {
+  searchDecisionDefinitions(body: searchDecisionDefinitionsBody, /** Management of eventual consistency **/ consistencyManagement: searchDecisionDefinitionsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchDecisionDefinitions>>;
+  searchDecisionDefinitions(options: searchDecisionDefinitionsOptions, /** Management of eventual consistency **/ consistencyManagement: searchDecisionDefinitionsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchDecisionDefinitions>>;
+  searchDecisionDefinitions(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchDecisionDefinitionsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchDecisionDefinitions({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchDecisionDefinitions({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchDecisionDefinitions', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchDecisionDefinitions({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchDecisionDefinitions({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchDecisionDefinitions', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2102,15 +2813,22 @@ export class Camunda8 {
     *
    * @operationId searchDecisionInstances
    * @tags Decision instance
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchDecisionInstances(body: searchDecisionInstancesBody): CancelablePromise<_DataOf<typeof Sdk.searchDecisionInstances>>;
-  searchDecisionInstances(options: searchDecisionInstancesOptions): CancelablePromise<_DataOf<typeof Sdk.searchDecisionInstances>>;
-  searchDecisionInstances(arg: any): CancelablePromise<any> {
+  searchDecisionInstances(body: searchDecisionInstancesBody, /** Management of eventual consistency **/ consistencyManagement: searchDecisionInstancesConsistency): CancelablePromise<_DataOf<typeof Sdk.searchDecisionInstances>>;
+  searchDecisionInstances(options: searchDecisionInstancesOptions, /** Management of eventual consistency **/ consistencyManagement: searchDecisionInstancesConsistency): CancelablePromise<_DataOf<typeof Sdk.searchDecisionInstances>>;
+  searchDecisionInstances(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchDecisionInstancesConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchDecisionInstances({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchDecisionInstances({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchDecisionInstances', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchDecisionInstances({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchDecisionInstances({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchDecisionInstances', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2121,15 +2839,22 @@ export class Camunda8 {
     *
    * @operationId searchDecisionRequirements
    * @tags Decision requirements
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchDecisionRequirements(body: searchDecisionRequirementsBody): CancelablePromise<_DataOf<typeof Sdk.searchDecisionRequirements>>;
-  searchDecisionRequirements(options: searchDecisionRequirementsOptions): CancelablePromise<_DataOf<typeof Sdk.searchDecisionRequirements>>;
-  searchDecisionRequirements(arg: any): CancelablePromise<any> {
+  searchDecisionRequirements(body: searchDecisionRequirementsBody, /** Management of eventual consistency **/ consistencyManagement: searchDecisionRequirementsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchDecisionRequirements>>;
+  searchDecisionRequirements(options: searchDecisionRequirementsOptions, /** Management of eventual consistency **/ consistencyManagement: searchDecisionRequirementsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchDecisionRequirements>>;
+  searchDecisionRequirements(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchDecisionRequirementsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchDecisionRequirements({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchDecisionRequirements({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchDecisionRequirements', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchDecisionRequirements({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchDecisionRequirements({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchDecisionRequirements', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2140,15 +2865,22 @@ export class Camunda8 {
     *
    * @operationId searchElementInstances
    * @tags Element instance
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchElementInstances(body: searchElementInstancesBody): CancelablePromise<_DataOf<typeof Sdk.searchElementInstances>>;
-  searchElementInstances(options: searchElementInstancesOptions): CancelablePromise<_DataOf<typeof Sdk.searchElementInstances>>;
-  searchElementInstances(arg: any): CancelablePromise<any> {
+  searchElementInstances(body: searchElementInstancesBody, /** Management of eventual consistency **/ consistencyManagement: searchElementInstancesConsistency): CancelablePromise<_DataOf<typeof Sdk.searchElementInstances>>;
+  searchElementInstances(options: searchElementInstancesOptions, /** Management of eventual consistency **/ consistencyManagement: searchElementInstancesConsistency): CancelablePromise<_DataOf<typeof Sdk.searchElementInstances>>;
+  searchElementInstances(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchElementInstancesConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchElementInstances({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchElementInstances({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchElementInstances', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchElementInstances({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchElementInstances({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchElementInstances', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2158,15 +2890,22 @@ export class Camunda8 {
     *
    * @operationId searchGroupIdsForTenant
    * @tags Tenant
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchGroupIdsForTenant(body: searchGroupIdsForTenantBody): CancelablePromise<_DataOf<typeof Sdk.searchGroupIdsForTenant>>;
-  searchGroupIdsForTenant(options: searchGroupIdsForTenantOptions): CancelablePromise<_DataOf<typeof Sdk.searchGroupIdsForTenant>>;
-  searchGroupIdsForTenant(arg: any): CancelablePromise<any> {
+  searchGroupIdsForTenant(body: searchGroupIdsForTenantBody, /** Management of eventual consistency **/ consistencyManagement: searchGroupIdsForTenantConsistency): CancelablePromise<_DataOf<typeof Sdk.searchGroupIdsForTenant>>;
+  searchGroupIdsForTenant(options: searchGroupIdsForTenantOptions, /** Management of eventual consistency **/ consistencyManagement: searchGroupIdsForTenantConsistency): CancelablePromise<_DataOf<typeof Sdk.searchGroupIdsForTenant>>;
+  searchGroupIdsForTenant(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchGroupIdsForTenantConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchGroupIdsForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchGroupIdsForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchGroupIdsForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchGroupIdsForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchGroupIdsForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchGroupIdsForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2177,15 +2916,22 @@ export class Camunda8 {
     *
    * @operationId searchGroups
    * @tags Group
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchGroups(body: searchGroupsBody): CancelablePromise<_DataOf<typeof Sdk.searchGroups>>;
-  searchGroups(options: searchGroupsOptions): CancelablePromise<_DataOf<typeof Sdk.searchGroups>>;
-  searchGroups(arg: any): CancelablePromise<any> {
+  searchGroups(body: searchGroupsBody, /** Management of eventual consistency **/ consistencyManagement: searchGroupsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchGroups>>;
+  searchGroups(options: searchGroupsOptions, /** Management of eventual consistency **/ consistencyManagement: searchGroupsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchGroups>>;
+  searchGroups(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchGroupsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchGroups({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchGroups({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchGroups', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchGroups({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchGroups({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchGroups', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2196,15 +2942,22 @@ export class Camunda8 {
     *
    * @operationId searchGroupsForRole
    * @tags Role
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchGroupsForRole(body: searchGroupsForRoleBody): CancelablePromise<_DataOf<typeof Sdk.searchGroupsForRole>>;
-  searchGroupsForRole(options: searchGroupsForRoleOptions): CancelablePromise<_DataOf<typeof Sdk.searchGroupsForRole>>;
-  searchGroupsForRole(arg: any): CancelablePromise<any> {
+  searchGroupsForRole(body: searchGroupsForRoleBody, /** Management of eventual consistency **/ consistencyManagement: searchGroupsForRoleConsistency): CancelablePromise<_DataOf<typeof Sdk.searchGroupsForRole>>;
+  searchGroupsForRole(options: searchGroupsForRoleOptions, /** Management of eventual consistency **/ consistencyManagement: searchGroupsForRoleConsistency): CancelablePromise<_DataOf<typeof Sdk.searchGroupsForRole>>;
+  searchGroupsForRole(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchGroupsForRoleConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchGroupsForRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchGroupsForRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchGroupsForRole', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchGroupsForRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchGroupsForRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchGroupsForRole', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2215,15 +2968,22 @@ export class Camunda8 {
     *
    * @operationId searchIncidents
    * @tags Incident
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchIncidents(body: searchIncidentsBody): CancelablePromise<_DataOf<typeof Sdk.searchIncidents>>;
-  searchIncidents(options: searchIncidentsOptions): CancelablePromise<_DataOf<typeof Sdk.searchIncidents>>;
-  searchIncidents(arg: any): CancelablePromise<any> {
+  searchIncidents(body: searchIncidentsBody, /** Management of eventual consistency **/ consistencyManagement: searchIncidentsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchIncidents>>;
+  searchIncidents(options: searchIncidentsOptions, /** Management of eventual consistency **/ consistencyManagement: searchIncidentsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchIncidents>>;
+  searchIncidents(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchIncidentsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchIncidents({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchIncidents({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchIncidents', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchIncidents({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchIncidents({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchIncidents', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2233,15 +2993,22 @@ export class Camunda8 {
     *
    * @operationId searchJobs
    * @tags Job
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchJobs(body: searchJobsBody): CancelablePromise<_DataOf<typeof Sdk.searchJobs>>;
-  searchJobs(options: searchJobsOptions): CancelablePromise<_DataOf<typeof Sdk.searchJobs>>;
-  searchJobs(arg: any): CancelablePromise<any> {
+  searchJobs(body: searchJobsBody, /** Management of eventual consistency **/ consistencyManagement: searchJobsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchJobs>>;
+  searchJobs(options: searchJobsOptions, /** Management of eventual consistency **/ consistencyManagement: searchJobsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchJobs>>;
+  searchJobs(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchJobsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchJobs({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchJobs({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchJobs', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchJobs({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchJobs({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchJobs', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2252,15 +3019,22 @@ export class Camunda8 {
     *
    * @operationId searchMappingRule
    * @tags Mapping rule
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchMappingRule(body: searchMappingRuleBody): CancelablePromise<_DataOf<typeof Sdk.searchMappingRule>>;
-  searchMappingRule(options: searchMappingRuleOptions): CancelablePromise<_DataOf<typeof Sdk.searchMappingRule>>;
-  searchMappingRule(arg: any): CancelablePromise<any> {
+  searchMappingRule(body: searchMappingRuleBody, /** Management of eventual consistency **/ consistencyManagement: searchMappingRuleConsistency): CancelablePromise<_DataOf<typeof Sdk.searchMappingRule>>;
+  searchMappingRule(options: searchMappingRuleOptions, /** Management of eventual consistency **/ consistencyManagement: searchMappingRuleConsistency): CancelablePromise<_DataOf<typeof Sdk.searchMappingRule>>;
+  searchMappingRule(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchMappingRuleConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchMappingRule({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchMappingRule({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchMappingRule', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchMappingRule({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchMappingRule({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchMappingRule', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2271,15 +3045,22 @@ export class Camunda8 {
     *
    * @operationId searchMappingRulesForGroup
    * @tags Group
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchMappingRulesForGroup(body: searchMappingRulesForGroupBody): CancelablePromise<_DataOf<typeof Sdk.searchMappingRulesForGroup>>;
-  searchMappingRulesForGroup(options: searchMappingRulesForGroupOptions): CancelablePromise<_DataOf<typeof Sdk.searchMappingRulesForGroup>>;
-  searchMappingRulesForGroup(arg: any): CancelablePromise<any> {
+  searchMappingRulesForGroup(body: searchMappingRulesForGroupBody, /** Management of eventual consistency **/ consistencyManagement: searchMappingRulesForGroupConsistency): CancelablePromise<_DataOf<typeof Sdk.searchMappingRulesForGroup>>;
+  searchMappingRulesForGroup(options: searchMappingRulesForGroupOptions, /** Management of eventual consistency **/ consistencyManagement: searchMappingRulesForGroupConsistency): CancelablePromise<_DataOf<typeof Sdk.searchMappingRulesForGroup>>;
+  searchMappingRulesForGroup(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchMappingRulesForGroupConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchMappingRulesForGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchMappingRulesForGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchMappingRulesForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchMappingRulesForGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchMappingRulesForGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchMappingRulesForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2290,15 +3071,22 @@ export class Camunda8 {
     *
    * @operationId searchMappingRulesForRole
    * @tags Role
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchMappingRulesForRole(body: searchMappingRulesForRoleBody): CancelablePromise<_DataOf<typeof Sdk.searchMappingRulesForRole>>;
-  searchMappingRulesForRole(options: searchMappingRulesForRoleOptions): CancelablePromise<_DataOf<typeof Sdk.searchMappingRulesForRole>>;
-  searchMappingRulesForRole(arg: any): CancelablePromise<any> {
+  searchMappingRulesForRole(body: searchMappingRulesForRoleBody, /** Management of eventual consistency **/ consistencyManagement: searchMappingRulesForRoleConsistency): CancelablePromise<_DataOf<typeof Sdk.searchMappingRulesForRole>>;
+  searchMappingRulesForRole(options: searchMappingRulesForRoleOptions, /** Management of eventual consistency **/ consistencyManagement: searchMappingRulesForRoleConsistency): CancelablePromise<_DataOf<typeof Sdk.searchMappingRulesForRole>>;
+  searchMappingRulesForRole(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchMappingRulesForRoleConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchMappingRulesForRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchMappingRulesForRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchMappingRulesForRole', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchMappingRulesForRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchMappingRulesForRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchMappingRulesForRole', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2308,15 +3096,22 @@ export class Camunda8 {
     *
    * @operationId searchMappingsForTenant
    * @tags Tenant
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchMappingsForTenant(body: searchMappingsForTenantBody): CancelablePromise<_DataOf<typeof Sdk.searchMappingsForTenant>>;
-  searchMappingsForTenant(options: searchMappingsForTenantOptions): CancelablePromise<_DataOf<typeof Sdk.searchMappingsForTenant>>;
-  searchMappingsForTenant(arg: any): CancelablePromise<any> {
+  searchMappingsForTenant(body: searchMappingsForTenantBody, /** Management of eventual consistency **/ consistencyManagement: searchMappingsForTenantConsistency): CancelablePromise<_DataOf<typeof Sdk.searchMappingsForTenant>>;
+  searchMappingsForTenant(options: searchMappingsForTenantOptions, /** Management of eventual consistency **/ consistencyManagement: searchMappingsForTenantConsistency): CancelablePromise<_DataOf<typeof Sdk.searchMappingsForTenant>>;
+  searchMappingsForTenant(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchMappingsForTenantConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchMappingsForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchMappingsForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchMappingsForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchMappingsForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchMappingsForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchMappingsForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2327,15 +3122,22 @@ export class Camunda8 {
     *
    * @operationId searchMessageSubscriptions
    * @tags Message subscription
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchMessageSubscriptions(body: searchMessageSubscriptionsBody): CancelablePromise<_DataOf<typeof Sdk.searchMessageSubscriptions>>;
-  searchMessageSubscriptions(options: searchMessageSubscriptionsOptions): CancelablePromise<_DataOf<typeof Sdk.searchMessageSubscriptions>>;
-  searchMessageSubscriptions(arg: any): CancelablePromise<any> {
+  searchMessageSubscriptions(body: searchMessageSubscriptionsBody, /** Management of eventual consistency **/ consistencyManagement: searchMessageSubscriptionsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchMessageSubscriptions>>;
+  searchMessageSubscriptions(options: searchMessageSubscriptionsOptions, /** Management of eventual consistency **/ consistencyManagement: searchMessageSubscriptionsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchMessageSubscriptions>>;
+  searchMessageSubscriptions(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchMessageSubscriptionsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchMessageSubscriptions({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchMessageSubscriptions({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchMessageSubscriptions', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchMessageSubscriptions({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchMessageSubscriptions({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchMessageSubscriptions', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2346,15 +3148,22 @@ export class Camunda8 {
     *
    * @operationId searchProcessDefinitions
    * @tags Process definition
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchProcessDefinitions(body: searchProcessDefinitionsBody): CancelablePromise<_DataOf<typeof Sdk.searchProcessDefinitions>>;
-  searchProcessDefinitions(options: searchProcessDefinitionsOptions): CancelablePromise<_DataOf<typeof Sdk.searchProcessDefinitions>>;
-  searchProcessDefinitions(arg: any): CancelablePromise<any> {
+  searchProcessDefinitions(body: searchProcessDefinitionsBody, /** Management of eventual consistency **/ consistencyManagement: searchProcessDefinitionsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchProcessDefinitions>>;
+  searchProcessDefinitions(options: searchProcessDefinitionsOptions, /** Management of eventual consistency **/ consistencyManagement: searchProcessDefinitionsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchProcessDefinitions>>;
+  searchProcessDefinitions(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchProcessDefinitionsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchProcessDefinitions({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchProcessDefinitions({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchProcessDefinitions', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchProcessDefinitions({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchProcessDefinitions({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchProcessDefinitions', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2365,15 +3174,22 @@ export class Camunda8 {
     *
    * @operationId searchProcessInstanceIncidents
    * @tags Process instance
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchProcessInstanceIncidents(body: searchProcessInstanceIncidentsBody): CancelablePromise<_DataOf<typeof Sdk.searchProcessInstanceIncidents>>;
-  searchProcessInstanceIncidents(options: searchProcessInstanceIncidentsOptions): CancelablePromise<_DataOf<typeof Sdk.searchProcessInstanceIncidents>>;
-  searchProcessInstanceIncidents(arg: any): CancelablePromise<any> {
+  searchProcessInstanceIncidents(body: searchProcessInstanceIncidentsBody, /** Management of eventual consistency **/ consistencyManagement: searchProcessInstanceIncidentsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchProcessInstanceIncidents>>;
+  searchProcessInstanceIncidents(options: searchProcessInstanceIncidentsOptions, /** Management of eventual consistency **/ consistencyManagement: searchProcessInstanceIncidentsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchProcessInstanceIncidents>>;
+  searchProcessInstanceIncidents(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchProcessInstanceIncidentsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchProcessInstanceIncidents({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchProcessInstanceIncidents({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchProcessInstanceIncidents', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchProcessInstanceIncidents({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchProcessInstanceIncidents({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchProcessInstanceIncidents', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2384,15 +3200,22 @@ export class Camunda8 {
     *
    * @operationId searchProcessInstances
    * @tags Process instance
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchProcessInstances(body: searchProcessInstancesBody): CancelablePromise<_DataOf<typeof Sdk.searchProcessInstances>>;
-  searchProcessInstances(options: searchProcessInstancesOptions): CancelablePromise<_DataOf<typeof Sdk.searchProcessInstances>>;
-  searchProcessInstances(arg: any): CancelablePromise<any> {
+  searchProcessInstances(body: searchProcessInstancesBody, /** Management of eventual consistency **/ consistencyManagement: searchProcessInstancesConsistency): CancelablePromise<_DataOf<typeof Sdk.searchProcessInstances>>;
+  searchProcessInstances(options: searchProcessInstancesOptions, /** Management of eventual consistency **/ consistencyManagement: searchProcessInstancesConsistency): CancelablePromise<_DataOf<typeof Sdk.searchProcessInstances>>;
+  searchProcessInstances(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchProcessInstancesConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchProcessInstances({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchProcessInstances({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchProcessInstances', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchProcessInstances({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchProcessInstances({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchProcessInstances', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2403,15 +3226,22 @@ export class Camunda8 {
     *
    * @operationId searchRoles
    * @tags Role
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchRoles(body: searchRolesBody): CancelablePromise<_DataOf<typeof Sdk.searchRoles>>;
-  searchRoles(options: searchRolesOptions): CancelablePromise<_DataOf<typeof Sdk.searchRoles>>;
-  searchRoles(arg: any): CancelablePromise<any> {
+  searchRoles(body: searchRolesBody, /** Management of eventual consistency **/ consistencyManagement: searchRolesConsistency): CancelablePromise<_DataOf<typeof Sdk.searchRoles>>;
+  searchRoles(options: searchRolesOptions, /** Management of eventual consistency **/ consistencyManagement: searchRolesConsistency): CancelablePromise<_DataOf<typeof Sdk.searchRoles>>;
+  searchRoles(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchRolesConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchRoles({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchRoles({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchRoles', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchRoles({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchRoles({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchRoles', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2422,15 +3252,22 @@ export class Camunda8 {
     *
    * @operationId searchRolesForGroup
    * @tags Group
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchRolesForGroup(body: searchRolesForGroupBody): CancelablePromise<_DataOf<typeof Sdk.searchRolesForGroup>>;
-  searchRolesForGroup(options: searchRolesForGroupOptions): CancelablePromise<_DataOf<typeof Sdk.searchRolesForGroup>>;
-  searchRolesForGroup(arg: any): CancelablePromise<any> {
+  searchRolesForGroup(body: searchRolesForGroupBody, /** Management of eventual consistency **/ consistencyManagement: searchRolesForGroupConsistency): CancelablePromise<_DataOf<typeof Sdk.searchRolesForGroup>>;
+  searchRolesForGroup(options: searchRolesForGroupOptions, /** Management of eventual consistency **/ consistencyManagement: searchRolesForGroupConsistency): CancelablePromise<_DataOf<typeof Sdk.searchRolesForGroup>>;
+  searchRolesForGroup(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchRolesForGroupConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchRolesForGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchRolesForGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchRolesForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchRolesForGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchRolesForGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchRolesForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2440,15 +3277,22 @@ export class Camunda8 {
     *
    * @operationId searchRolesForTenant
    * @tags Tenant
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchRolesForTenant(body: searchRolesForTenantBody): CancelablePromise<_DataOf<typeof Sdk.searchRolesForTenant>>;
-  searchRolesForTenant(options: searchRolesForTenantOptions): CancelablePromise<_DataOf<typeof Sdk.searchRolesForTenant>>;
-  searchRolesForTenant(arg: any): CancelablePromise<any> {
+  searchRolesForTenant(body: searchRolesForTenantBody, /** Management of eventual consistency **/ consistencyManagement: searchRolesForTenantConsistency): CancelablePromise<_DataOf<typeof Sdk.searchRolesForTenant>>;
+  searchRolesForTenant(options: searchRolesForTenantOptions, /** Management of eventual consistency **/ consistencyManagement: searchRolesForTenantConsistency): CancelablePromise<_DataOf<typeof Sdk.searchRolesForTenant>>;
+  searchRolesForTenant(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchRolesForTenantConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchRolesForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchRolesForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchRolesForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchRolesForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchRolesForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchRolesForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2458,15 +3302,22 @@ export class Camunda8 {
     *
    * @operationId searchTenants
    * @tags Tenant
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchTenants(body: searchTenantsBody): CancelablePromise<_DataOf<typeof Sdk.searchTenants>>;
-  searchTenants(options: searchTenantsOptions): CancelablePromise<_DataOf<typeof Sdk.searchTenants>>;
-  searchTenants(arg: any): CancelablePromise<any> {
+  searchTenants(body: searchTenantsBody, /** Management of eventual consistency **/ consistencyManagement: searchTenantsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchTenants>>;
+  searchTenants(options: searchTenantsOptions, /** Management of eventual consistency **/ consistencyManagement: searchTenantsConsistency): CancelablePromise<_DataOf<typeof Sdk.searchTenants>>;
+  searchTenants(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchTenantsConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchTenants({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchTenants({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchTenants', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchTenants({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchTenants({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchTenants', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2477,15 +3328,22 @@ export class Camunda8 {
     *
    * @operationId searchUsers
    * @tags User
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchUsers(body: searchUsersBody): CancelablePromise<_DataOf<typeof Sdk.searchUsers>>;
-  searchUsers(options: searchUsersOptions): CancelablePromise<_DataOf<typeof Sdk.searchUsers>>;
-  searchUsers(arg: any): CancelablePromise<any> {
+  searchUsers(body: searchUsersBody, /** Management of eventual consistency **/ consistencyManagement: searchUsersConsistency): CancelablePromise<_DataOf<typeof Sdk.searchUsers>>;
+  searchUsers(options: searchUsersOptions, /** Management of eventual consistency **/ consistencyManagement: searchUsersConsistency): CancelablePromise<_DataOf<typeof Sdk.searchUsers>>;
+  searchUsers(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchUsersConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchUsers({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchUsers({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchUsers', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchUsers({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchUsers({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchUsers', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2496,15 +3354,22 @@ export class Camunda8 {
     *
    * @operationId searchUsersForGroup
    * @tags Group
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchUsersForGroup(body: searchUsersForGroupBody): CancelablePromise<_DataOf<typeof Sdk.searchUsersForGroup>>;
-  searchUsersForGroup(options: searchUsersForGroupOptions): CancelablePromise<_DataOf<typeof Sdk.searchUsersForGroup>>;
-  searchUsersForGroup(arg: any): CancelablePromise<any> {
+  searchUsersForGroup(body: searchUsersForGroupBody, /** Management of eventual consistency **/ consistencyManagement: searchUsersForGroupConsistency): CancelablePromise<_DataOf<typeof Sdk.searchUsersForGroup>>;
+  searchUsersForGroup(options: searchUsersForGroupOptions, /** Management of eventual consistency **/ consistencyManagement: searchUsersForGroupConsistency): CancelablePromise<_DataOf<typeof Sdk.searchUsersForGroup>>;
+  searchUsersForGroup(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchUsersForGroupConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchUsersForGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchUsersForGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchUsersForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchUsersForGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchUsersForGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchUsersForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2515,15 +3380,22 @@ export class Camunda8 {
     *
    * @operationId searchUsersForRole
    * @tags Role
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchUsersForRole(body: searchUsersForRoleBody): CancelablePromise<_DataOf<typeof Sdk.searchUsersForRole>>;
-  searchUsersForRole(options: searchUsersForRoleOptions): CancelablePromise<_DataOf<typeof Sdk.searchUsersForRole>>;
-  searchUsersForRole(arg: any): CancelablePromise<any> {
+  searchUsersForRole(body: searchUsersForRoleBody, /** Management of eventual consistency **/ consistencyManagement: searchUsersForRoleConsistency): CancelablePromise<_DataOf<typeof Sdk.searchUsersForRole>>;
+  searchUsersForRole(options: searchUsersForRoleOptions, /** Management of eventual consistency **/ consistencyManagement: searchUsersForRoleConsistency): CancelablePromise<_DataOf<typeof Sdk.searchUsersForRole>>;
+  searchUsersForRole(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchUsersForRoleConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchUsersForRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchUsersForRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchUsersForRole', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchUsersForRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchUsersForRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchUsersForRole', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2533,15 +3405,22 @@ export class Camunda8 {
     *
    * @operationId searchUsersForTenant
    * @tags Tenant
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchUsersForTenant(body: searchUsersForTenantBody): CancelablePromise<_DataOf<typeof Sdk.searchUsersForTenant>>;
-  searchUsersForTenant(options: searchUsersForTenantOptions): CancelablePromise<_DataOf<typeof Sdk.searchUsersForTenant>>;
-  searchUsersForTenant(arg: any): CancelablePromise<any> {
+  searchUsersForTenant(body: searchUsersForTenantBody, /** Management of eventual consistency **/ consistencyManagement: searchUsersForTenantConsistency): CancelablePromise<_DataOf<typeof Sdk.searchUsersForTenant>>;
+  searchUsersForTenant(options: searchUsersForTenantOptions, /** Management of eventual consistency **/ consistencyManagement: searchUsersForTenantConsistency): CancelablePromise<_DataOf<typeof Sdk.searchUsersForTenant>>;
+  searchUsersForTenant(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchUsersForTenantConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchUsersForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchUsersForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchUsersForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchUsersForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchUsersForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchUsersForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2552,15 +3431,22 @@ export class Camunda8 {
     *
    * @operationId searchUserTasks
    * @tags User task
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchUserTasks(body: searchUserTasksBody): CancelablePromise<_DataOf<typeof Sdk.searchUserTasks>>;
-  searchUserTasks(options: searchUserTasksOptions): CancelablePromise<_DataOf<typeof Sdk.searchUserTasks>>;
-  searchUserTasks(arg: any): CancelablePromise<any> {
+  searchUserTasks(body: searchUserTasksBody, /** Management of eventual consistency **/ consistencyManagement: searchUserTasksConsistency): CancelablePromise<_DataOf<typeof Sdk.searchUserTasks>>;
+  searchUserTasks(options: searchUserTasksOptions, /** Management of eventual consistency **/ consistencyManagement: searchUserTasksConsistency): CancelablePromise<_DataOf<typeof Sdk.searchUserTasks>>;
+  searchUserTasks(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchUserTasksConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchUserTasks({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchUserTasks({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchUserTasks', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchUserTasks({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchUserTasks({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchUserTasks', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2571,15 +3457,22 @@ export class Camunda8 {
     *
    * @operationId searchUserTaskVariables
    * @tags User task
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchUserTaskVariables(body: searchUserTaskVariablesBody): CancelablePromise<_DataOf<typeof Sdk.searchUserTaskVariables>>;
-  searchUserTaskVariables(options: searchUserTaskVariablesOptions): CancelablePromise<_DataOf<typeof Sdk.searchUserTaskVariables>>;
-  searchUserTaskVariables(arg: any): CancelablePromise<any> {
+  searchUserTaskVariables(body: searchUserTaskVariablesBody, /** Management of eventual consistency **/ consistencyManagement: searchUserTaskVariablesConsistency): CancelablePromise<_DataOf<typeof Sdk.searchUserTaskVariables>>;
+  searchUserTaskVariables(options: searchUserTaskVariablesOptions, /** Management of eventual consistency **/ consistencyManagement: searchUserTaskVariablesConsistency): CancelablePromise<_DataOf<typeof Sdk.searchUserTaskVariables>>;
+  searchUserTaskVariables(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchUserTaskVariablesConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchUserTaskVariables({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchUserTaskVariables({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchUserTaskVariables', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchUserTaskVariables({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchUserTaskVariables({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchUserTaskVariables', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2590,15 +3483,22 @@ export class Camunda8 {
     *
    * @operationId searchVariables
    * @tags Variable
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  searchVariables(body: searchVariablesBody): CancelablePromise<_DataOf<typeof Sdk.searchVariables>>;
-  searchVariables(options: searchVariablesOptions): CancelablePromise<_DataOf<typeof Sdk.searchVariables>>;
-  searchVariables(arg: any): CancelablePromise<any> {
+  searchVariables(body: searchVariablesBody, /** Management of eventual consistency **/ consistencyManagement: searchVariablesConsistency): CancelablePromise<_DataOf<typeof Sdk.searchVariables>>;
+  searchVariables(options: searchVariablesOptions, /** Management of eventual consistency **/ consistencyManagement: searchVariablesConsistency): CancelablePromise<_DataOf<typeof Sdk.searchVariables>>;
+  searchVariables(arg: any, /** Management of eventual consistency **/ consistencyManagement: searchVariablesConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.searchVariables({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.searchVariables({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('searchVariables', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.searchVariables({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.searchVariables({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('searchVariables', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2610,15 +3510,22 @@ export class Camunda8 {
     *
    * @operationId suspendBatchOperation
    * @tags Batch operation
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  suspendBatchOperation(body: suspendBatchOperationBody): CancelablePromise<_DataOf<typeof Sdk.suspendBatchOperation>>;
-  suspendBatchOperation(options: suspendBatchOperationOptions): CancelablePromise<_DataOf<typeof Sdk.suspendBatchOperation>>;
-  suspendBatchOperation(arg: any): CancelablePromise<any> {
+  suspendBatchOperation(body: suspendBatchOperationBody, /** Management of eventual consistency **/ consistencyManagement: suspendBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.suspendBatchOperation>>;
+  suspendBatchOperation(options: suspendBatchOperationOptions, /** Management of eventual consistency **/ consistencyManagement: suspendBatchOperationConsistency): CancelablePromise<_DataOf<typeof Sdk.suspendBatchOperation>>;
+  suspendBatchOperation(arg: any, /** Management of eventual consistency **/ consistencyManagement: suspendBatchOperationConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.suspendBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.suspendBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('suspendBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.suspendBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.suspendBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('suspendBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2635,9 +3542,11 @@ export class Camunda8 {
   throwJobError(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.throwJobError({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.throwJobError({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.throwJobError({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.throwJobError({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2653,7 +3562,8 @@ export class Camunda8 {
   unassignClientFromGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.unassignClientFromGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.unassignClientFromGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2668,7 +3578,8 @@ export class Camunda8 {
   unassignClientFromTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.unassignClientFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.unassignClientFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2683,7 +3594,8 @@ export class Camunda8 {
   unassignGroupFromTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.unassignGroupFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.unassignGroupFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2699,7 +3611,8 @@ export class Camunda8 {
   unassignMappingRuleFromGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.unassignMappingRuleFromGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.unassignMappingRuleFromGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2714,7 +3627,8 @@ export class Camunda8 {
   unassignMappingRuleFromTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.unassignMappingRuleFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.unassignMappingRuleFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2729,7 +3643,8 @@ export class Camunda8 {
   unassignRoleFromClient(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.unassignRoleFromClient({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.unassignRoleFromClient({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2744,7 +3659,8 @@ export class Camunda8 {
   unassignRoleFromGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.unassignRoleFromGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.unassignRoleFromGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2760,7 +3676,8 @@ export class Camunda8 {
   unassignRoleFromMappingRule(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.unassignRoleFromMappingRule({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.unassignRoleFromMappingRule({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2775,7 +3692,8 @@ export class Camunda8 {
   unassignRoleFromTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.unassignRoleFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.unassignRoleFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2791,7 +3709,8 @@ export class Camunda8 {
   unassignRoleFromUser(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.unassignRoleFromUser({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.unassignRoleFromUser({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2807,7 +3726,8 @@ export class Camunda8 {
   unassignUserFromGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.unassignUserFromGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.unassignUserFromGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2822,7 +3742,8 @@ export class Camunda8 {
   unassignUserFromTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      return Sdk.unassignUserFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.unassignUserFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2834,10 +3755,13 @@ export class Camunda8 {
    * @tags User task
    */
   unassignUserTask(options?: unassignUserTaskOptions): CancelablePromise<_DataOf<typeof Sdk.unassignUserTask>>;
+  unassignUserTask(userTaskKey: unassignUserTaskPathParam): CancelablePromise<_DataOf<typeof Sdk.unassignUserTask>>;
   unassignUserTask(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
-      const opts = arg || {};
-      return Sdk.unassignUserTask({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      let opts: any;
+      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { userTaskKey: arg } };
+      const call = () => Sdk.unassignUserTask({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2853,9 +3777,11 @@ export class Camunda8 {
   updateAuthorization(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.updateAuthorization({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.updateAuthorization({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.updateAuthorization({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.updateAuthorization({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2872,9 +3798,11 @@ export class Camunda8 {
   updateGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.updateGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.updateGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.updateGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.updateGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2890,9 +3818,11 @@ export class Camunda8 {
   updateJob(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.updateJob({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.updateJob({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.updateJob({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.updateJob({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2909,9 +3839,11 @@ export class Camunda8 {
   updateMappingRule(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.updateMappingRule({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.updateMappingRule({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.updateMappingRule({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.updateMappingRule({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2928,9 +3860,11 @@ export class Camunda8 {
   updateRole(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.updateRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.updateRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.updateRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.updateRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2946,9 +3880,11 @@ export class Camunda8 {
   updateTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.updateTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.updateTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.updateTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.updateTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 
@@ -2959,15 +3895,22 @@ export class Camunda8 {
     *
    * @operationId updateUser
    * @tags User
+   * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.
    */
-  updateUser(body: updateUserBody): CancelablePromise<_DataOf<typeof Sdk.updateUser>>;
-  updateUser(options: updateUserOptions): CancelablePromise<_DataOf<typeof Sdk.updateUser>>;
-  updateUser(arg: any): CancelablePromise<any> {
+  updateUser(body: updateUserBody, /** Management of eventual consistency **/ consistencyManagement: updateUserConsistency): CancelablePromise<_DataOf<typeof Sdk.updateUser>>;
+  updateUser(options: updateUserOptions, /** Management of eventual consistency **/ consistencyManagement: updateUserConsistency): CancelablePromise<_DataOf<typeof Sdk.updateUser>>;
+  updateUser(arg: any, /** Management of eventual consistency **/ consistencyManagement: updateUserConsistency): CancelablePromise<any> {
+    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");
+    const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.updateUser({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.updateUser({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        if (useConsistency) return eventualPoll('updateUser', false, ()=>toCancelable(()=>call()), useConsistency);
+        return call();
       }
-      return Sdk.updateUser({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.updateUser({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      if (useConsistency) return eventualPoll('updateUser', false, ()=>toCancelable(()=>call()), useConsistency);
+      return call();
     });
   }
 
@@ -2983,9 +3926,11 @@ export class Camunda8 {
   updateUserTask(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return Sdk.updateUserTask({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = () => Sdk.updateUserTask({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        return call();
       }
-      return Sdk.updateUserTask({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = () => Sdk.updateUserTask({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      return call();
     });
   }
 

@@ -10,8 +10,8 @@ async function main() {
   await stat(distIndex).catch(() => { throw new Error('dist/index.js missing; did build succeed?'); });
   const mod = await import(pathToFileURL(distIndex).href);
   if (!mod.default) throw new Error('Default export missing');
-  const camunda = mod.default;
-  if (typeof camunda.createProcessInstance !== 'function') throw new Error('Expected operation function on default export');
+  const {Camunda8} = mod;
+  if (typeof Camunda8 !== 'function') throw new Error('Expected Camunda8 class on default export');
   const { ProcessDefinitionKey } = mod;
   if (typeof ProcessDefinitionKey?.create !== 'function') throw new Error('ProcessDefinitionKey.create missing');
   const k = ProcessDefinitionKey.assumeExists('42');

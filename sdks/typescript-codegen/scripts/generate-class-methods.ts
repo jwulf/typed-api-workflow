@@ -6,7 +6,7 @@ interface OA3Parameter { in?: string; name?: string }
 interface OA3Schema { oneOf?: any[]; anyOf?: any[]; $ref?: string }
 interface OA3MediaType { schema?: OA3Schema }
 interface OA3RequestBody { content?: Record<string, OA3MediaType> }
-interface OA3Operation { operationId?: string; parameters?: OA3Parameter[]; requestBody?: OA3RequestBody; summary?: string; description?: string; tags?: string[] }
+interface OA3Operation { operationId?: string; parameters?: OA3Parameter[]; requestBody?: OA3RequestBody; summary?: string; description?: string; tags?: string[]; ['x-eventually-consistent']?: boolean }
 interface OA3PathItem { [method: string]: OA3Operation | any }
 interface OA3Spec { paths?: Record<string, OA3PathItem> }
 
@@ -37,16 +37,18 @@ function main() {
   const re = /\n\/\*\*([\s\S]*?)\*\/\nexport const (\w+)\s*=\s*</g; let m; while((m=re.exec(sdk))) docs[m[2]]='/**'+m[1]+'*/';
   }
 
-  interface OpMeta { opId: string; hasBody: boolean; bodyOnly: boolean; summary?: string; description?: string; tags?: string[]; originalOpId: string; unionBodies: string[] }
+  interface OpMeta { opId: string; hasBody: boolean; bodyOnly: boolean; summary?: string; description?: string; tags?: string[]; originalOpId: string; unionBodies: string[]; eventual: boolean; verb: string; pathParams: string[] }
   const ops: OpMeta[] = [];
   for (const item of Object.values(spec.paths||{})) {
-    for (const raw of Object.values(item as any)) {
+    for (const [verb, raw] of Object.entries(item as any)) {
       const op = raw as OA3Operation; if (!op?.operationId) continue;
       const originalId = op.operationId; const opId = sanitize(op.operationId);
-      const params = (op.parameters||[]) as OA3Parameter[];
-      const hasPQ = params.some(p=> p.in==='path' || p.in==='query');
+  const params = (op.parameters||[]) as OA3Parameter[];
+  const pathParams = params.filter(p=>p.in==='path' && !!p.name).map(p=>p.name!) as string[];
+  const hasPQ = params.some(p=> p.in==='path' || p.in==='query');
       const hasBody = !!op.requestBody && hasJsonLike(op.requestBody);
       const bodyOnly = !!(hasBody && !hasPQ);
+      const eventual = !!(op as any)['x-eventually-consistent'];
       // Detect union body variants (top-level oneOf/anyOf) when bodyOnly
       const unionBodies: string[] = [];
       if (bodyOnly && op.requestBody?.content) {
@@ -64,7 +66,7 @@ function main() {
           }
         }
       }
-  ops.push({ opId, hasBody, bodyOnly, summary: op.summary, description: op.description, tags: op.tags, originalOpId: originalId, unionBodies: Array.from(new Set(unionBodies)) });
+  ops.push({ opId, hasBody, bodyOnly, summary: op.summary, description: op.description, tags: op.tags, originalOpId: originalId, unionBodies: Array.from(new Set(unionBodies)), eventual, verb: verb.toLowerCase(), pathParams });
     }
   }
   ops.sort((a,b)=> a.opId.localeCompare(b.opId));
@@ -77,38 +79,91 @@ function main() {
   for (const o of ops) {
   support.push(`type ${o.opId}Options = Parameters<typeof Sdk.${o.opId}>[0];`);
   if (o.hasBody) support.push(`type ${o.opId}Body = (NonNullable<${o.opId}Options> extends { body?: infer B } ? B : never);`);
+  if (!o.hasBody && o.pathParams.length === 1) {
+    const pp = o.pathParams[0];
+    support.push(`type ${o.opId}PathParam = (NonNullable<${o.opId}Options> extends { path: { ${pp}: infer P } } ? P : any);`);
+  }
+  // Consistency types must reference the local runtime folder (same directory as this output file)
+  if (o.eventual) support.push(`/** Management of eventual consistency **/
+type ${o.opId}Consistency = { 
+/** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
+    consistency: ConsistencyOptions<_DataOf<typeof Sdk.${o.opId}>> 
+};`);
   }
 
   const methods: string[] = [];
   methods.push('  // Generated methods ('+ new Date().toISOString() +')');
   for (const o of ops) {
-    const jsdoc = forwardJsDoc(o, docs); if (jsdoc) methods.push(indent(jsdoc,2));
+      let jsdoc = forwardJsDoc(o, docs);
+      if (jsdoc && o.eventual) {
+        jsdoc = jsdoc.replace(/\n \* @tags[^\n]*\n/, (m)=> m + ' * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.\n');
+        if(!/@consistency eventual/.test(jsdoc)) {
+          jsdoc = jsdoc.replace(/\*\/$/, ' * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.\n */');
+        }
+      }
+      if (jsdoc) methods.push(indent(jsdoc,2));
 
   if (o.hasBody) {
       if (o.unionBodies.length > 1) {
         for (const variant of o.unionBodies) {
-          methods.push(`  ${o.opId}(body: ${variant}): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;`);
+  methods.push(o.eventual ? `  ${o.opId}(body: ${variant}, /** Management of eventual consistency **/ consistencyManagement: ${o.opId}Consistency): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;` : `  ${o.opId}(body: ${variant}): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;`);
         }
       } else {
-        methods.push(`  ${o.opId}(body: ${o.opId}Body): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;`);
+  methods.push(o.eventual ? `  ${o.opId}(body: ${o.opId}Body, /** Management of eventual consistency **/ consistencyManagement: ${o.opId}Consistency): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;` : `  ${o.opId}(body: ${o.opId}Body): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;`);
       }
       // Always provide options-shape overload
-      methods.push(`  ${o.opId}(options: ${o.opId}Options): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;`);
+  methods.push(o.eventual ? `  ${o.opId}(options: ${o.opId}Options, /** Management of eventual consistency **/ consistencyManagement: ${o.opId}Consistency): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;` : `  ${o.opId}(options: ${o.opId}Options): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;`);
     } else {
-      methods.push(`  ${o.opId}(options?: ${o.opId}Options): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;`);
+      // options overload
+      methods.push(o.eventual ? `  ${o.opId}(options: ${o.opId}Options | undefined, /** Management of eventual consistency **/ consistencyManagement: ${o.opId}Consistency): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;` : `  ${o.opId}(options?: ${o.opId}Options): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;`);
+      // raw single path param overload
+      if (o.pathParams.length === 1) {
+        const pp = o.pathParams[0];
+        methods.push(o.eventual ? `  ${o.opId}(${pp}: ${o.opId}PathParam, /** Management of eventual consistency **/ consistencyManagement: ${o.opId}Consistency): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;` : `  ${o.opId}(${pp}: ${o.opId}PathParam): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;`);
+      }
     }
 
-    methods.push(`  ${o.opId}(arg: any): CancelablePromise<any> {`);
-    methods.push('    return toCancelable(signal => {');
-  if (o.hasBody) {
-      methods.push("      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {");
-      methods.push(`        return Sdk.${o.opId}({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);`);
-      methods.push('      }');
-      methods.push(`      return Sdk.${o.opId}({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);`);
-    } else {
-      methods.push('      const opts = arg || {};');
-      methods.push(`      return Sdk.${o.opId}({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);`);
+  methods.push(`  ${o.opId}(arg: any${o.eventual ? ', /** Management of eventual consistency **/ consistencyManagement: '+o.opId+'Consistency' : ''}): CancelablePromise<any> {`);
+    if (o.eventual) {
+      methods.push('    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");');
+      methods.push('    const useConsistency = consistencyManagement.consistency;');
     }
+  // (generator) removed stray lines from earlier patch attempt
+    methods.push('    return toCancelable(signal => {');
+      if (o.hasBody) {
+        methods.push("      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {");
+        methods.push(`        const call = () => Sdk.${o.opId}({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);`);
+        if (o.eventual) {
+          methods.push(`        if (useConsistency) return eventualPoll('${o.originalOpId}', ${o.verb === 'get'}, ()=>toCancelable(()=>call()), useConsistency);`);
+          methods.push('        return call();');
+        } else {
+          methods.push('        return call();');
+        }
+        methods.push('      }');
+        methods.push(`      const call = () => Sdk.${o.opId}({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);`);
+        if (o.eventual) {
+          methods.push(`      if (useConsistency) return eventualPoll('${o.originalOpId}', ${o.verb === 'get'}, ()=>toCancelable(()=>call()), useConsistency);`);
+          methods.push('      return call();');
+        } else {
+          methods.push('      return call();');
+        }
+      } else {
+        // no body endpoint
+        if (o.pathParams.length === 1) {
+          const pp = o.pathParams[0];
+          methods.push(`      let opts: any;`);
+          methods.push(`      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { ${pp}: arg } };`);
+        } else {
+          methods.push('      const opts = arg || {};');
+        }
+        methods.push(`      const call = () => Sdk.${o.opId}({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);`);
+        if (o.eventual) {
+          methods.push(`      if (useConsistency) return eventualPoll('${o.originalOpId}', ${o.verb === 'get'}, ()=>toCancelable(()=>call()), useConsistency);`);
+          methods.push('      return call();');
+        } else {
+          methods.push('      return call();');
+        }
+      }
     methods.push('    });');
     methods.push('  }');
     methods.push('');

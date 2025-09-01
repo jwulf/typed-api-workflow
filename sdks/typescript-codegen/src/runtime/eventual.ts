@@ -1,14 +1,37 @@
-import { CancelablePromise, CancelError } from '../gen/core/CancelablePromise';
-import { ApiError } from '../gen/core/ApiError';
+// Eventual consistency polling runtime.
+// This file purposely avoids depending on generated core modules (legacy path ../gen/core/* removed)
+// and instead provides a lightweight CancelablePromise wrapper locally so it can be used
+// by codegen without circular deps.
 import { EventualConsistencyTimeoutError } from './errors';
 import { getLogger } from './logger';
 import { hydrateConfig } from './unifiedConfiguration';
 
 const log = () => getLogger('eventual');
 
+export interface CancelablePromise<T> extends Promise<T> { cancel(): void }
+
+function toCancelable<T>(factory:(signal:AbortSignal)=>void | Promise<T>): CancelablePromise<T> {
+  const ac = new AbortController();
+  let rejectFn: (e:any)=>void = () => {};
+  let resolveFn: (v:T)=>void = () => {};
+  const p = new Promise<T>((resolve, reject) => {
+    resolveFn = resolve; rejectFn = reject;
+    const r = factory(ac.signal);
+    if (r && typeof (r as Promise<T>).then === 'function') {
+      (r as Promise<T>).then(resolve, reject);
+    }
+  }) as CancelablePromise<T>;
+  (p as any).cancel = () => { ac.abort(); rejectFn(new Error('Cancelled')); };
+  return p;
+}
+
+/** Manages eventual consistency for a given operation */
 export interface ConsistencyOptions<T> {
+  /* How long are you willing to wait, in ms? Set to 0 to ignore eventual consistency */
   waitUpToMs: number;
-  pollIntervalMs?: number; // user provided
+  /* How often will we poll the endpoint? Default 500ms */
+  pollIntervalMs?: number; // user provided (optional override)
+  /* Optional predicate function to determine if the result is valid */
   predicate?: (result: T) => boolean | Promise<boolean>;
   onAttempt?: (info: { attempt: number; elapsedMs: number; remainingMs: number; status?: number; predicateResult?: boolean; nextDelayMs?: number }) => void;
   onComplete?: (info: { attempts: number; elapsedMs: number }) => void;
@@ -20,128 +43,81 @@ type PollInvokeResult<T> = { kind: 'success'; value: T; status?: number } | { ki
 
 function now() { return Date.now(); }
 
-function computeNextDelay(base: number, attempt: number, lastError?: any): number {
-  if (lastError instanceof ApiError && lastError.status === 429) {
-    // 429 backoff handled outside via provided delay
-    return base;
-  }
-  return base;
-}
-
 export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () => CancelablePromise<T>, options: ConsistencyOptions<T>): CancelablePromise<T> {
   const { waitUpToMs, predicate, onAttempt, onComplete, abortSignal } = options;
   const pollDefaultMs = hydrateConfig().config.eventual?.pollDefaultMs || 500;
   const userInterval = options.pollIntervalMs;
   const baseInterval = userInterval != null ? userInterval : pollDefaultMs;
-  let pollInterval = Math.max(10, baseInterval); // floor 10ms
-  if (waitUpToMs === 0) {
-    // Single fire; still invoke predicate if provided? spec: immediate result
-    return invoke();
-  }
-  return new CancelablePromise<T>((resolve, reject, onCancel) => {
-    let cancelled = false;
+  const pollInterval = Math.max(10, baseInterval);
+
+  if (waitUpToMs === 0) return invoke();
+
+  return toCancelable<T>(outerSignal => {
     let attempts = 0;
     const started = now();
-    let lastStatus: number | undefined;
-    let inFlight: CancelablePromise<T> | undefined;
+    let cancelled = false;
+    const abortImmediateStatuses = new Set([400,401,403,409,422]);
 
-    const abortHandler = () => {
-      if (!cancelled) {
-        cancelled = true;
-        inFlight?.cancel();
-        reject(new CancelError('Request aborted'));
-      }
-    };
+    const externalAbort = () => { cancelled = true; };
     if (abortSignal) {
-      if (abortSignal.aborted) return abortHandler();
-      abortSignal.addEventListener('abort', abortHandler);
-      onCancel(() => abortSignal.removeEventListener('abort', abortHandler));
+      if (abortSignal.aborted) externalAbort();
+      else abortSignal.addEventListener('abort', externalAbort);
     }
 
-    onCancel(() => abortHandler());
-
-    const abortStatusesImmediate = new Set([400,401,403,409,422]);
-
-    const loop = () => {
-      if (cancelled) return;
+    const loop = (resolve: (v:T)=>void, reject:(e:any)=>void) => {
+      if (cancelled || outerSignal.aborted) return reject(new Error('Cancelled'));
       attempts++;
-      inFlight = invoke();
-      onCancel(() => (inFlight as any)?.cancel?.());
-      inFlight.then(async (res: any) => {
-        if (cancelled) return;
-        lastStatus = 200; // success assumed
-        let predOk = true;
-        if (predicate) {
-          try { predOk = await predicate(res); } catch (e) { reject(e); return; }
-        } else if (!isGet) {
-          // default predicate for searches with items
-          if (res && typeof res === 'object' && Array.isArray((res as any).items)) {
-            predOk = (res as any).items.length > 0;
-          }
-        }
+      const attemptStarted = now();
+      let settled = false;
+      const settleOk = (val: T) => { if (settled) return; settled = true; resolve(val); };
+      const settleErr = (err: any) => { if (settled) return; settled = true; reject(err); };
+      const req = invoke();
+      (req as any).then(async (res: any) => {
+        if (cancelled || outerSignal.aborted) return settleErr(new Error('Cancelled'));
+        let ok = true;
+        try {
+          if (predicate) ok = await predicate(res);
+          else if (!isGet && res && typeof res === 'object' && Array.isArray((res as any).items)) ok = (res as any).items.length > 0;
+        } catch (e) { return settleErr(e); }
         const elapsed = now() - started;
         const remaining = waitUpToMs - elapsed;
-        if (predOk) {
-          onAttempt?.({ attempt: attempts, elapsedMs: elapsed, remainingMs: Math.max(0, remaining), status: 200, predicateResult: predOk, nextDelayMs: 0 });
+        if (ok) {
+          onAttempt?.({ attempt: attempts, elapsedMs: elapsed, remainingMs: Math.max(0, remaining), status: 200, predicateResult: ok, nextDelayMs: 0 });
           onComplete?.({ attempts, elapsedMs: elapsed });
-          resolve(res);
-          return;
+          return settleOk(res);
         }
         if (remaining <= 0) {
-          reject(new EventualConsistencyTimeoutError({ attempts, elapsedMs: elapsed, lastStatus: 200, lastResponse: res, operationId }));
-          return;
+          return settleErr(new EventualConsistencyTimeoutError({ attempts, elapsedMs: elapsed, lastStatus: 200, lastResponse: res, operationId }));
         }
-        const nextDelay = Math.min(pollInterval, remaining);
-        onAttempt?.({ attempt: attempts, elapsedMs: elapsed, remainingMs: Math.max(0, remaining), status: 200, predicateResult: predOk, nextDelayMs: nextDelay });
-        log().debug?.(`[eventual] op=${operationId} attempt=${attempts} status=200 predicate=false nextDelay=${nextDelay}ms remaining=${remaining}`);
-        setTimeout(loop, nextDelay);
+        const delay = Math.min(pollInterval, remaining);
+        onAttempt?.({ attempt: attempts, elapsedMs: elapsed, remainingMs: Math.max(0, remaining), status: 200, predicateResult: ok, nextDelayMs: delay });
+        log().debug?.(`[eventual] op=${operationId} attempt=${attempts} status=200 predicate=false nextDelay=${delay}ms remaining=${remaining}`);
+        setTimeout(() => loop(resolve, reject), delay);
       }).catch((err: any) => {
-        if (cancelled) return;
-        let status: number | undefined = err?.status;
-        lastStatus = status;
+        if (cancelled || outerSignal.aborted) return settleErr(new Error('Cancelled'));
+        const status: number | undefined = err?.status;
         const elapsed = now() - started;
         const remaining = waitUpToMs - elapsed;
         if (status === 404 && isGet && remaining > 0) {
-          const nextDelay = Math.min(pollInterval, remaining);
-          onAttempt?.({ attempt: attempts, elapsedMs: elapsed, remainingMs: Math.max(0, remaining), status, predicateResult: false, nextDelayMs: nextDelay });
-          log().debug?.(`[eventual] op=${operationId} attempt=${attempts} status=404 retry nextDelay=${nextDelay}`);
-          setTimeout(loop, nextDelay); return;
+          const delay = Math.min(pollInterval, remaining);
+          onAttempt?.({ attempt: attempts, elapsedMs: elapsed, remainingMs: Math.max(0, remaining), status, predicateResult: false, nextDelayMs: delay });
+          return setTimeout(() => loop(resolve, reject), delay);
         }
         if (status === 429 && remaining > 0) {
-            let delay = pollInterval * 2; // exponential baseline
-            const ra = err?.body?.['retryAfter'] || err?.body?.['Retry-After'];
-            if (ra) {
-              const parsed = parseInt(ra, 10);
-              if (!isNaN(parsed)) delay = parsed * (parsed < 1000 ? 1000 : 1); // if seconds convert
-            }
-            delay = Math.min(delay, pollInterval * 5, 2000, remaining);
-            const jitter = 0.9 + Math.random() * 0.2;
-            delay = Math.floor(delay * jitter);
-            onAttempt?.({ attempt: attempts, elapsedMs: elapsed, remainingMs: Math.max(0, remaining), status, predicateResult: false, nextDelayMs: delay });
-            log().debug?.(`[eventual] op=${operationId} attempt=${attempts} status=429 backoff delay=${delay}`);
-            setTimeout(loop, delay); return;
+          let delay = pollInterval * 2;
+          const ra = (err?.headers?.['retry-after']) || (err?.headers?.['Retry-After']) || err?.body?.['retryAfter'] || err?.body?.['Retry-After'];
+            if (ra) { const parsed = parseInt(ra,10); if (!isNaN(parsed)) delay = parsed < 1000 ? parsed*1000 : parsed; }
+          delay = Math.min(delay, pollInterval * 5, 2000, remaining);
+          const jitter = 0.9 + Math.random()*0.2; delay = Math.floor(delay * jitter);
+          onAttempt?.({ attempt: attempts, elapsedMs: elapsed, remainingMs: Math.max(0, remaining), status, predicateResult: false, nextDelayMs: delay });
+          return setTimeout(() => loop(resolve, reject), delay);
         }
-        if (status === 503 && remaining > 0) {
-          // 503 retry similar to normal predicate failure
-          const nextDelay = Math.min(pollInterval, remaining);
-          onAttempt?.({ attempt: attempts, elapsedMs: elapsed, remainingMs: Math.max(0, remaining), status, predicateResult: false, nextDelayMs: nextDelay });
-          log().debug?.(`[eventual] op=${operationId} attempt=${attempts} status=503 retry nextDelay=${nextDelay}`);
-          setTimeout(loop, nextDelay); return;
-        }
-        if (abortStatusesImmediate.has(status!)) {
-          reject(err); return;
-        }
-        // Non-retryable or no time left
-        if (remaining <= 0) {
-          if (waitUpToMs > 0) {
-            reject(new EventualConsistencyTimeoutError({ attempts, elapsedMs: elapsed, lastStatus: status, lastResponse: err?.body, operationId }));
-          } else reject(err);
-          return;
-        }
-        reject(err);
+        if (status && (abortImmediateStatuses.has(status) || status >= 500)) return settleErr(err);
+        if (remaining <= 0) return settleErr(new EventualConsistencyTimeoutError({ attempts, elapsedMs: elapsed, lastStatus: status, lastResponse: err?.body, operationId }));
+        return settleErr(err);
       });
     };
 
-    loop();
+    return new Promise<T>((resolve,reject)=> loop(resolve,reject));
   });
 }

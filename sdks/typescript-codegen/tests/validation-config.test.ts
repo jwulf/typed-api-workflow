@@ -10,33 +10,28 @@ function set(val?: string) {
 describe('CAMUNDA_SDK_VALIDATION parsing', () => {
   it('defaults to none/none when unset', () => {
     set(undefined);
-  const client = new Camunda8();
+  const client = new Camunda8({CAMUNDA_SDK_VALIDATION: undefined});
   expect(client.requestValidationMode()).toBe('none');
   expect(client.responseValidationMode()).toBe('none');
   });
-  it('global strict', () => {
-    set('strict');
-  const client = new Camunda8();
+  it('strict', () => {
+  const client = new Camunda8({CAMUNDA_SDK_VALIDATION: 'strict'});
   expect(client.validationConfig()).toEqual({ req: 'strict', res: 'strict' });
   });
   it('req only', () => {
-    set('req:warn');
-  const client = new Camunda8();
+  const client = new Camunda8({CAMUNDA_SDK_VALIDATION: 'req:warn'});
   expect(client.validationConfig()).toEqual({ req: 'warn', res: 'none' });
   });
   it('res only', () => {
-    set('res:strict');
-  const client = new Camunda8();
+  const client = new Camunda8({CAMUNDA_SDK_VALIDATION: 'res:strict'});
   expect(client.validationConfig()).toEqual({ req: 'none', res: 'strict' });
   });
   it('both sides pair list', () => {
-    set('req:warn,res:strict');
-  const client = new Camunda8();
+  const client = new Camunda8({CAMUNDA_SDK_VALIDATION: 'req:warn,res:strict'});
   expect(client.validationConfig()).toEqual({ req: 'warn', res: 'strict' });
   });
   it('invalid tokens cause error', () => {
-    set('foo:bar,res:warn');
   // Construction should throw because hydration would error
-  expect(() => new Camunda8()).toThrow();
+  expect(() => new Camunda8({CAMUNDA_SDK_VALIDATION: 'foo:bar,res:warn'})).toThrow();
   });
 });

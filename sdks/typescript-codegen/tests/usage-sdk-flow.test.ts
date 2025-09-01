@@ -29,7 +29,7 @@ describe('End-to-end usage (mocked) - create instance -> search', () => {
     const createResult = await camunda.createProcessInstance({ processDefinitionKey });
     const instanceKey: ProcessInstanceKey = ProcessInstanceKey.assumeExists(String(createResult.processInstanceKey));
 
-    const searchRes = await camunda.searchProcessInstances({ filter: { processInstanceKey: instanceKey } });
+    const searchRes = await camunda.searchProcessInstances({ filter: { processInstanceKey: instanceKey } }, { consistency: { waitUpToMs: 0 } });
     expect(createResult).toHaveProperty('processInstanceKey');
     expect(searchRes.items[0].processInstanceKey).toBe(String(instanceKey));
     expect(fetchMock).toHaveBeenCalledTimes(3);

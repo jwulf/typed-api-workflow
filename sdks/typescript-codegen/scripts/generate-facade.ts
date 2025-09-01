@@ -18,7 +18,7 @@ import { parse } from 'yaml';
 
 interface OA3Parameter { in?: string; name?: string }
 interface OA3RequestBody { content?: Record<string, any> }
-interface OA3Operation { operationId?: string; parameters?: OA3Parameter[]; requestBody?: OA3RequestBody; summary?: string; description?: string; tags?: string[] }
+interface OA3Operation { operationId?: string; parameters?: OA3Parameter[]; requestBody?: OA3RequestBody; summary?: string; description?: string; tags?: string[]; ['x-eventually-consistent']?: boolean }
 interface OA3PathItem { [method: string]: OA3Operation | any }
 interface OA3Spec { paths?: Record<string, OA3PathItem> }
 
@@ -31,7 +31,7 @@ const SDK_GEN_PATH = path.join(ROOT, 'src/gen/sdk.gen.ts');
 function main() {
   if (!fs.existsSync(SPEC_PATH)) { console.warn('[facade-gen] Spec missing, skipping'); return; }
   const spec: OA3Spec = parse(fs.readFileSync(SPEC_PATH, 'utf8'));
-  interface OpMeta { opId: string; summary?: string; description?: string; hasBody: boolean; bodyOnly: boolean; tags?: string[] }
+  interface OpMeta { opId: string; summary?: string; description?: string; hasBody: boolean; bodyOnly: boolean; tags?: string[]; eventual: boolean; verb: string }
   const allOps: OpMeta[] = [];
   const bodyOnlyOps: OpMeta[] = [];
 
@@ -57,7 +57,8 @@ function main() {
       const params = (op.parameters || []) as OA3Parameter[];
       const hasPathOrQuery = params.some(pr => pr.in === 'path' || pr.in === 'query');
       const hasBody = !!op.requestBody && hasJsonLike(op.requestBody);
-  const meta: OpMeta = { opId: sanitizedId, summary: op.summary, description: op.description, hasBody, bodyOnly: !!(hasBody && !hasPathOrQuery), tags: op.tags };
+      const eventual = !!(op as any)['x-eventually-consistent'];
+  const meta: OpMeta = { opId: sanitizedId, summary: op.summary, description: op.description, hasBody, bodyOnly: !!(hasBody && !hasPathOrQuery), tags: op.tags, eventual, verb: verb.toLowerCase() };
       (meta as any).originalOpId = originalId; // preserve for deprecated alias emission
       allOps.push(meta);
       if (meta.bodyOnly) bodyOnlyOps.push(meta);
@@ -75,6 +76,10 @@ function main() {
   // Import every underlying operation (body-only + passthrough)
   const importOps = allOps.map(o => o.opId);
   lines.push("import { /* underlying */ " + importOps.map(o=> `${o} as _${o}`).join(', ') + " } from '../gen/sdk.gen';");
+  const anyEventual = allOps.some(o=> o.eventual);
+  if (anyEventual) {
+    lines.push("import { eventualPoll, ConsistencyOptions } from '../runtime/eventual';");
+  }
   lines.push('');
   lines.push('// Lightweight CancelablePromise implementation (local to facade)');
   lines.push('export class CancelError extends Error { constructor(){ super("Cancelled"); this.name = "CancelError"; } }');
@@ -102,9 +107,28 @@ function main() {
     lines.push(`type _${op.opId}_MaybeBody = _${op.opId}_Options extends { body?: infer B } ? B : never;`);
     lines.push(`type _${op.opId}_Body = [ _${op.opId}_MaybeBody ] extends [never] ? unknown : _${op.opId}_MaybeBody;`);
   const jsdoc = forwardJsDoc(op, underlyingDocs);
-  if (jsdoc) lines.push(jsdoc); // Place JSDoc directly above overload signatures
-  lines.push(`export function ${op.opId}(body: _${op.opId}_Body): CancelablePromise<_DataOf<typeof _${op.opId}>>;`);
-  lines.push(`export function ${op.opId}(options: _${op.opId}_Options): CancelablePromise<_DataOf<typeof _${op.opId}>>;`);
+  if (jsdoc) {
+    if (op.eventual) {
+      const inject = jsdoc.replace(/\*\/$/, ' *\n * Consistency: Eventually consistent – may return 404/empty until propagation.\n */');
+      lines.push(inject);
+    } else lines.push(jsdoc);
+  }
+  if (op.eventual) {
+    lines.push(`export function ${op.opId}(body: _${op.opId}_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _${op.opId}>> }): CancelablePromise<_DataOf<typeof _${op.opId}>>;`);
+    lines.push(`export function ${op.opId}(options: _${op.opId}_Options, ec: { consistency: ConsistencyOptions<_DataOf<typeof _${op.opId}>> }): CancelablePromise<_DataOf<typeof _${op.opId}>>;`);
+    lines.push(`export function ${op.opId}(arg: any, ec: { consistency: ConsistencyOptions<_DataOf<typeof _${op.opId}>> }): CancelablePromise<_DataOf<typeof _${op.opId}>> {`);
+    lines.push(`  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');`);
+    lines.push(`  const invoke = () => toCancelable(signal => {`);
+    lines.push(`    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {`);
+    lines.push(`      return _${op.opId}({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);`);
+    lines.push('    }');
+    lines.push(`    return _${op.opId}({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);`);
+    lines.push('  });');
+    lines.push(`  return eventualPoll('${(op as any).originalOpId}', '${op.verb}' === 'get', invoke, ec.consistency);`);
+    lines.push('}');
+  } else {
+    lines.push(`export function ${op.opId}(body: _${op.opId}_Body): CancelablePromise<_DataOf<typeof _${op.opId}>>;`);
+    lines.push(`export function ${op.opId}(options: _${op.opId}_Options): CancelablePromise<_DataOf<typeof _${op.opId}>>;`);
     lines.push(`export function ${op.opId}(arg: any): CancelablePromise<_DataOf<typeof _${op.opId}>> {`);
     lines.push(`  return toCancelable(signal => {`);
     lines.push(`    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {`);
@@ -113,6 +137,7 @@ function main() {
     lines.push(`    return _${op.opId}({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);`);
     lines.push('  });');
     lines.push('}');
+  }
     const original = (op as any).originalOpId;
     if (original && original !== op.opId) {
       lines.push('/** @deprecated Use ' + op.opId + ' instead; legacy operationId retained for transitional compatibility. */');
@@ -124,10 +149,23 @@ function main() {
   // Passthrough wrappers for all remaining operations so users get a uniform surface
   for (const op of passthroughOps) {
   const jsdoc = forwardJsDoc(op, underlyingDocs);
-  if (jsdoc) lines.push(jsdoc);
-    lines.push(`export function ${op.opId}(options?: Parameters<typeof _${op.opId}>[0]): CancelablePromise<_DataOf<typeof _${op.opId}>> {`);
-    lines.push(`  return toCancelable(signal => _${op.opId}({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));`);
-    lines.push('}');
+  if (jsdoc) {
+    if (op.eventual) {
+      const inject = jsdoc.replace(/\*\/$/, ' *\n * Consistency: Eventually consistent – may return 404/empty until propagation.\n */');
+      lines.push(inject);
+    } else lines.push(jsdoc);
+  }
+    if (op.eventual) {
+      lines.push(`export function ${op.opId}(options: Parameters<typeof _${op.opId}>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _${op.opId}>> }): CancelablePromise<_DataOf<typeof _${op.opId}>> {`);
+      lines.push(`  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');`);
+      lines.push(`  const invoke = () => toCancelable(signal => _${op.opId}({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));`);
+      lines.push(`  return eventualPoll('${(op as any).originalOpId}', '${op.verb}' === 'get', invoke, ec.consistency);`);
+      lines.push('}');
+    } else {
+      lines.push(`export function ${op.opId}(options?: Parameters<typeof _${op.opId}>[0]): CancelablePromise<_DataOf<typeof _${op.opId}>> {`);
+      lines.push(`  return toCancelable(signal => _${op.opId}({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));`);
+      lines.push('}');
+    }
     const original = (op as any).originalOpId;
     if (original && original !== op.opId) {
       lines.push('/** @deprecated Use ' + op.opId + ' instead; legacy operationId retained for transitional compatibility. */');

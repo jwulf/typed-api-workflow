@@ -1,33 +1,25 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ServicesWrapped, OpenAPI } from '../src';
+import { Camunda8, configureFromEnv, createProcessInstance } from '../src';
 
 // We rely on generated schema for ProcessInstanceCreationInstruction.
 
 describe('request-side validation', () => {
   it('throws in req:strict mode on invalid body', async () => {
-    process.env.CAMUNDA_SDK_VALIDATION = 'req:strict';
-    OpenAPI.BASE = 'https://mock.local';
-    const reqMod = await import('../src/gen/core/request');
-    const spy = vi.spyOn(reqMod, 'request');
-  expect(() => ServicesWrapped.ProcessInstanceService.createProcessInstance({ requestBody: 123 as any })).toThrow();
-    expect(spy).not.toHaveBeenCalled();
+    process.env.CAMUNDA_REST_ADDRESS = 'http://local';
+    const client = new Camunda8({ CAMUNDA_SDK_VALIDATION: 'req:strict', CAMUNDA_REST_ADDRESS: 'http://local' });
+    await expect(client.gateRequest('createProcessInstance', { parse: ()=>{ throw new (class extends Error{})(); } }, 123 as any)).rejects.toBeTruthy();
   });
   it('warns and proceeds in req:warn mode', async () => {
-    process.env.CAMUNDA_SDK_VALIDATION = 'req:warn';
-    OpenAPI.BASE = 'https://mock.local';
-    const reqMod = await import('../src/gen/core/request');
-    const spy = vi.spyOn(reqMod, 'request').mockResolvedValue({ processInstanceKey: '1' } as any);
-  const res = await ServicesWrapped.ProcessInstanceService.createProcessInstance({ requestBody: 123 as any });
-    expect(res).toBeDefined();
-    expect(spy).toHaveBeenCalled();
+    const client = new Camunda8({ CAMUNDA_SDK_VALIDATION: 'req:warn', CAMUNDA_REST_ADDRESS: 'http://local' });
+    // Schema that will throw; gateRequest should swallow in warn mode
+    const schema = { parse: ()=> { throw new (class extends Error{})(); }} as any;
+    const res = await client.gateRequest('createProcessInstance', schema, 123);
+    expect(res).toBe(123);
   });
   it('skips in req:none mode', async () => {
-    process.env.CAMUNDA_SDK_VALIDATION = 'req:none';
-    OpenAPI.BASE = 'https://mock.local';
-    const reqMod = await import('../src/gen/core/request');
-    const spy = vi.spyOn(reqMod, 'request').mockResolvedValue({ processInstanceKey: '1' } as any);
-  const res = await ServicesWrapped.ProcessInstanceService.createProcessInstance({ requestBody: 123 as any });
-    expect(res).toBeDefined();
-    expect(spy).toHaveBeenCalled();
+    const client = new Camunda8({ CAMUNDA_SDK_VALIDATION: 'req:none', CAMUNDA_REST_ADDRESS: 'http://local' });
+    const schema = { parse: ()=> { throw new (class extends Error{})(); }} as any;
+    const res = await client.gateRequest('createProcessInstance', schema, 123);
+    expect(res).toBe(123);
   });
 });
