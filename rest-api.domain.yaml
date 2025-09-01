@@ -5459,6 +5459,7 @@ components:
           example: "2251799813686749"
     ProcessDefinitionId: 
       allOf:  
+        - $ref: "#/components/schemas/CamundaKey"
         - description: "Id of a process definition, from the model. Only ids of process definitions that are deployed\
             \ are useful."
         - format: "ProcessDefinitionId"
@@ -5556,6 +5557,7 @@ components:
           example: "2251799813326547"
     DecisionDefinitionId:
       allOf:
+        - $ref: "#/components/schemas/CamundaKey"
         - description: "Id of a decision definition, from the model. Only ids of decision definitions that are deployed\
             \ are useful."
         - format: "DecisionDefinitionId"
