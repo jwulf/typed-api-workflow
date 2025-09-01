@@ -9,3 +9,8 @@ We need to add cross-validation. We should run a string grepping strategy over t
 
 We still need to assert the required nature of response fields in the spec. 
 
+
+ProcessDefinitionId 
+
+ - we lift the type
+ - but for advanced filter searches, we want to allow partial matching on free strings

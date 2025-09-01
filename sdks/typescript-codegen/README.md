@@ -70,10 +70,17 @@ import { ProcessInstanceService } from '@camunda8/orchestration-cluster';
 await ProcessInstanceService.createProcessInstance({ requestBody: { /* ... */ } });
 ```
 
-Branded key helpers:
+Branded key helpers (root import – no extra subpath needed):
 ```ts
-import { ProcessInstanceKey } from '@camunda8/orchestration-cluster';
-const key = ProcessInstanceKey.assumeExists('123'); // runtime brand (string at runtime, distinct type in TS)
+import { ProcessDefinitionKey, ProcessInstanceKey } from '@camunda8/orchestration-cluster';
+
+// Lift raw string (already obtained from server) into a branded key
+const processDefinitionKey = ProcessDefinitionKey.assumeExists('2251799813686749');
+const processInstanceKey = ProcessInstanceKey.assumeExists('2251799813686750');
+
+// Compile-time: the two branded types are NOT interchangeable
+// @ts-expect-error
+const shouldFail: ProcessInstanceKey = processDefinitionKey;
 ```
 
 ## Validation

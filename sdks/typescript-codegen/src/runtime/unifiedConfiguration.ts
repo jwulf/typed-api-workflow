@@ -101,7 +101,8 @@ const SPEC: BaseSpecEntry[] = [
   { key: 'CAMUNDA_MTLS_KEY_PASSPHRASE', doc: 'Optional passphrase for encrypted private key.', type: 'string', secret: true },
   { key: 'CAMUNDA_MTLS_CERT', doc: 'Inline PEM client certificate.', type: 'string' },
   { key: 'CAMUNDA_MTLS_KEY', doc: 'Inline PEM client private key.', type: 'string', secret: true },
-  { key: 'CAMUNDA_MTLS_CA', doc: 'Inline PEM CA bundle.', type: 'string' }
+  { key: 'CAMUNDA_MTLS_CA', doc: 'Inline PEM CA bundle.', type: 'string' },
+  { key: 'CAMUNDA_SDK_EVENTUAL_POLL_DEFAULT_MS', doc: 'Default poll interval (ms) for eventually consistent endpoint polling (overridden per-call).', type: 'int', default: '500' }
 ];
 
 // Resulting strongly typed config
@@ -129,6 +130,7 @@ export interface CamundaConfig {
     raw: string; // normalized raw spec for reproducibility
   };
   logLevel: 'silent' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
+  eventual?: { pollDefaultMs: number };
   // authVerbose removed (pre-release cleanup)
   mtls?: {
   cert?: string; key?: string; ca?: string; keyPassphrase?: string;
@@ -363,8 +365,9 @@ export function hydrateConfig(options: HydrateOptions = {}): HydratedConfigurati
         password: env['CAMUNDA_BASIC_AUTH_PASSWORD']?.trim() || overrides['CAMUNDA_BASIC_AUTH_PASSWORD']?.trim()
       } : undefined
     },
-    validation: { req: validation.req, res: validation.res, verbose, raw: validation.raw },
+  validation: { req: validation.req, res: validation.res, verbose, raw: validation.raw },
   logLevel: (rawMap['CAMUNDA_SDK_LOG_LEVEL'] as any) as CamundaConfig['logLevel'] || 'error',
+  eventual: { pollDefaultMs: parseInt(rawMap['CAMUNDA_SDK_EVENTUAL_POLL_DEFAULT_MS'] || '500', 10) },
     mtls: (env['CAMUNDA_MTLS_CERT_PATH'] || env['CAMUNDA_MTLS_KEY_PATH'] || env['CAMUNDA_MTLS_CA_PATH'] || env['CAMUNDA_MTLS_CERT'] || env['CAMUNDA_MTLS_KEY'] || env['CAMUNDA_MTLS_CA'] || overrides['CAMUNDA_MTLS_CERT'] || overrides['CAMUNDA_MTLS_KEY']) ? {
       cert: (env['CAMUNDA_MTLS_CERT'] ?? overrides['CAMUNDA_MTLS_CERT']) || undefined,
       key: (env['CAMUNDA_MTLS_KEY'] ?? overrides['CAMUNDA_MTLS_KEY']) || undefined,

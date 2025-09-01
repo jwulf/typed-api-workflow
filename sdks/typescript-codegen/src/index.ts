@@ -1,17 +1,18 @@
-/** Stable SDK entrypoint (manual). The generated exports now live in ./gen/public-index.ts */
-import * as Generated from './gen/public-index';
-import * as Ops from './gen/wrappers/flatExports';
+/** Stable SDK entrypoint (manual). The generated exports now live in ./gen/index.ts */
+import * as Generated from './gen';
 import { auth } from './runtime/auth';
-// Re-export generated named symbols (schemas, keys, config, wrappers, operations)
-export * from './gen/public-index';
-export { CamundaValidationError } from './runtime/errors';
+import * as Facade from './gen/facade.gen';
+// Re-export facade barrel (operations + key types) plus raw generated types
+export * from './gen/facade.gen';
+export * from './gen/types.gen';
+export { CamundaValidationError, EventualConsistencyTimeoutError } from './runtime/errors';
 
 // Curated namespaces for clarity (optional to import)
 // Schemas: all exported Zod schemas (they are already individually exported)
 // Keys: all branded key helpers/types (re-exported from semantic camundaKeys)
-import * as SchemasNS from './gen/semantic/zodModels';
+// Key namespace shim (branding helpers)
 import * as KeysNS from './gen/semantic/camundaKeys';
-export const Schemas = SchemasNS;
+export const Schemas = {} as Record<string, unknown>;
 export const Keys = KeysNS;
 
 // Build minimal default export containing only callable API methods (wrapped)
@@ -37,6 +38,13 @@ const OpenAPI = new Proxy(__OpenAPI, {
 	}
 });
 
-// Default export: OpenAPI plus all flat operation wrapper functions and auth facade.
-const camunda = { OpenAPI, auth, ...Ops };
+// Build default export object exposing:
+//  - OpenAPI config proxy
+//  - auth facade
+//  - all ergonomic operation functions (from facade.gen)
+//  - Keys namespace (runtime helper namespaces for branded keys)
+// Note: Type exports (CamundaKey<...>) remain as separate named exports – they don't exist at runtime.
+const camunda = {...Facade, ...Keys, OpenAPI}
+
+export { camunda };
 export default camunda;

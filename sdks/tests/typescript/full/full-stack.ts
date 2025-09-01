@@ -192,6 +192,7 @@ async function main() {
         console.log(`- First result ProcessInstanceKey is ProcessDefinitionKey: ${isProcessDefinitionKey(processInstanceKey)}`);
         console.log(`- First result ProcessInstanceKey is ProcessInstanceKey: ${isProcessInstanceKey(processInstanceKey)}`);
 
+        process.exit(0)
 
         const jobsResult = await jobs.searchJobs.eventually({
                 filter: {

@@ -48,7 +48,7 @@ describe('End-to-end usage (mocked) - deploy -> create instance -> search', () =
 
     // Step 1: Deploy a BPMN resource
     const bpmn = mockBpmn('demo.bpmn', 'demoProcess');
-    const deployment = await camunda.createDeployment({ formData: { resources: [bpmn] } });
+    const deployment = await camunda.createDeployment({body: {  resources: [bpmn] } });
     // Some generator variants may not type 'processes'; use bracket access to avoid strict missing prop in model typings
     const rawDefKey = deployment.deployments[0].processDefinition!.processDefinitionKey;
 
@@ -56,12 +56,12 @@ describe('End-to-end usage (mocked) - deploy -> create instance -> search', () =
   const defKey: ProcessDefinitionKey = ProcessDefinitionKey.assumeExists(String(rawDefKey));
 
     // Step 2: Start a process instance using the key overload
-    const createResult = await camunda.createProcessInstance({ requestBody: { processDefinitionKey: defKey } });
+    const createResult = await camunda.createProcessInstance({ processDefinitionKey: defKey });
     const rawInstanceKey = createResult.processInstanceKey;
   const instanceKey: ProcessInstanceKey = ProcessInstanceKey.assumeExists(String(rawInstanceKey));
 
     // Step 3: Search for that process instance (using wrapped service for demo)
-  const searchRes = await camunda.searchProcessInstances({ requestBody: { filter: { processInstanceKey: instanceKey } } });
+  const searchRes = await camunda.searchProcessInstances({ filter: { processInstanceKey: instanceKey } });
 
     expect(searchRes.items[0].processInstanceKey).toBe(String(instanceKey));
     expect(requestSpy).toHaveBeenCalledTimes(3);

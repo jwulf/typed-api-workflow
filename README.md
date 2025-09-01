@@ -144,6 +144,18 @@ npm run test:typescript # Run the acceptance tests for the TypeScript SDK
 
 See the `README.md` file in `sdks` for information about generating SDKs. 
 
+### SDK Reference Documentation
+
+The generated TypeScript SDK exports a unified configuration system (including `CAMUNDA_AUTH_STRATEGY`, which defaults to `NONE`). A machine‑generated reference (including all configuration keys, defaults, conditional requirements, and secret redaction flags) is available here:
+
+[`sdks/typescript-codegen/docs/SDK_REFERENCE.md`](./sdks/typescript-codegen/docs/SDK_REFERENCE.md)
+
+Regenerate this file after changing configuration spec or code generation logic with:
+
+```bash
+cd sdks/typescript-codegen && npm run docs
+```
+
 ## Eventual Consistency
 
 This project adds metadata to the OpenAPI spec about the eventually-consistent nature of endpoints, based on static analysis of the controller code. 

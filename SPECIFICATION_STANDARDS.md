@@ -4,6 +4,18 @@ The Camunda 8 Public API specification is a compile-time guarantee of predictabl
 
 It enables static reasoning about the runtime behaviour of the integrated system of the Camunda engine and customer application code.
 
+## Operation tags
+
+Each operation must have one, and only one tag.
+
+Operation tags are used to structure documentation output, and they also have implications for code generators. 
+
+The schema component is used in the following ways: 
+
+- Determines which sidebar section of the documentation that this endpoint is categorised under
+- Some code generation tools use the operation tags as the high-level organising structure for methods. Placing two tags results in duplicate methods. 
+
+
 ## Camunda Keys
 
 Marked by: 
@@ -172,8 +184,8 @@ Note: the pattern for these keys is removed from documentation in the `generatio
 
 ## Eventual Consistency
 
-  Marked by: 
-  - `x-eventually-consistent: true`
+Marked by: 
+- `x-eventually-consistent: true`
 
   Example: 
 
@@ -197,8 +209,21 @@ The schema component is used in the following way:
 - `x-eventually-consistent: false`
   - Documentation. Adds a note that the endpoint is strongly consistent.
 
-  ## Operation Kind
+## Operation Kind
 
+Marked by: 
+- `x-operation-kind`
+
+Example: 
+
+```yaml
+/topology:
+  get:
+    x-eventually-consistent: false
+    x-operation-kind:
+      - $ref: "#/components/schemas/OperationMetadata"
+        kind: "query"
+```
 Recommendation on x-operation-kind:
 
 Core enum (keep minimal, expressive):
