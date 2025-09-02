@@ -5,6 +5,7 @@
  */
 import { ZodError, ZodTypeAny } from 'zod';
 import { formatValidationError, logFormattedValidation } from './formatValidation';
+import type { Logger } from './logger';
 import { CamundaValidationError } from './errors';
 import type { ValidationMode } from './validationManager';
 
@@ -14,6 +15,7 @@ export interface ApplySchemaValidationOptions<T = any> {
   mode: ValidationMode;
   schema?: ZodTypeAny;
   value: T;
+  logger?: Logger;
 }
 
 /**
@@ -23,7 +25,7 @@ export interface ApplySchemaValidationOptions<T = any> {
  *  - strict: returns parsed value or throws CamundaValidationError
  */
 export async function applySchemaValidation<T = any>(opts: ApplySchemaValidationOptions<T>): Promise<T> {
-  const { side, operationId, mode, schema, value } = opts;
+  const { side, operationId, mode, schema, value, logger } = opts;
   if (mode === 'none' || !schema) return value;
   try {
   const parsed = (schema.parseAsync ? await schema.parseAsync(value) : schema.parse(value)) as T;
@@ -31,7 +33,8 @@ export async function applySchemaValidation<T = any>(opts: ApplySchemaValidation
   } catch (err: any) {
     if (err instanceof ZodError) {
   const formatted = formatValidationError({ side, operationId, schema, value, error: err });
-      if (mode === 'warn') { logFormattedValidation('warn', formatted); return value; }
+      if (mode === 'warn') { if (logger) logFormattedValidation('warn', formatted, logger); return value; }
+      if (logger) logFormattedValidation('throw', formatted, logger); // will throw
       throw new CamundaValidationError({ side, operationId, message: formatted.message, summary: formatted.summary, issues: formatted.issues });
     }
     throw err;

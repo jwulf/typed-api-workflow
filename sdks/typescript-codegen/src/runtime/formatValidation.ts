@@ -1,5 +1,5 @@
 import { ZodError, ZodIssue, ZodTypeAny, ZodUnion, ZodObject, ZodRawShape } from 'zod';
-import { getLogger } from './logger';
+import type { Logger } from './logger';
 
 export interface FormattedValidation {
   message: string;
@@ -149,13 +149,13 @@ function formatIssue(issue: ZodIssue): string {
   }
 }
 
-const vLogger = getLogger('validation');
-
-export function logFormattedValidation(kind: 'warn' | 'throw', formatted: FormattedValidation) {
+export function logFormattedValidation(kind: 'warn' | 'throw', formatted: FormattedValidation, logger: Logger) {
+  const vLogger = logger.scope('validation');
   if (kind === 'warn') {
-  vLogger.warn(`${formatted.message}\n  ${formatted.summary}\n  Issues:\n   - ${formatted.issues.join('\n   - ')}`);
+    vLogger.warn(() => `${formatted.message}\n  ${formatted.summary}\n  Issues:\n   - ${formatted.issues.join('\n   - ')}`);
     return;
   }
+  vLogger.error(() => `${formatted.message}\n  ${formatted.summary}`);
   const err = new Error(formatted.message);
   (err as any).issues = formatted.issues;
   throw err;

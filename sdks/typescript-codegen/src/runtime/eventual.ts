@@ -3,10 +3,9 @@
 // and instead provides a lightweight CancelablePromise wrapper locally so it can be used
 // by codegen without circular deps.
 import { EventualConsistencyTimeoutError } from './errors';
-import { getLogger } from './logger';
 import { hydrateConfig } from './unifiedConfiguration';
 
-const log = () => getLogger('eventual');
+import type { Logger } from './logger';
 
 export interface CancelablePromise<T> extends Promise<T> { cancel(): void }
 
@@ -43,8 +42,9 @@ type PollInvokeResult<T> = { kind: 'success'; value: T; status?: number } | { ki
 
 function now() { return Date.now(); }
 
-export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () => CancelablePromise<T>, options: ConsistencyOptions<T>): CancelablePromise<T> {
+export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () => CancelablePromise<T>, options: ConsistencyOptions<T> & { logger?: Logger }): CancelablePromise<T> {
   const { waitUpToMs, predicate, onAttempt, onComplete, abortSignal } = options;
+  const elog = options.logger?.scope('eventual');
   const pollDefaultMs = hydrateConfig().config.eventual?.pollDefaultMs || 500;
   const userInterval = options.pollIntervalMs;
   const baseInterval = userInterval != null ? userInterval : pollDefaultMs;
@@ -91,7 +91,7 @@ export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () 
         }
         const delay = Math.min(pollInterval, remaining);
         onAttempt?.({ attempt: attempts, elapsedMs: elapsed, remainingMs: Math.max(0, remaining), status: 200, predicateResult: ok, nextDelayMs: delay });
-        log().debug?.(`[eventual] op=${operationId} attempt=${attempts} status=200 predicate=false nextDelay=${delay}ms remaining=${remaining}`);
+  elog?.debug?.(() => [`op=${operationId} attempt=${attempts} status=200 predicate=false nextDelay=${delay}ms remaining=${remaining}`]);
         setTimeout(() => loop(resolve, reject), delay);
       }).catch((err: any) => {
         if (cancelled || outerSignal.aborted) return settleErr(new Error('Cancelled'));

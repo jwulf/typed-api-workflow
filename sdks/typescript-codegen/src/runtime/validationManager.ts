@@ -1,5 +1,6 @@
 import { ZodTypeAny } from 'zod';
 import { applySchemaValidation } from './validationCore';
+import type { Logger } from './logger';
 
 export type ValidationMode = 'strict' | 'warn' | 'none';
 
@@ -10,8 +11,9 @@ export interface ValidationSettings {
 
 export class ValidationManager {
   private _settings: ValidationSettings;
-  constructor(settings: ValidationSettings) { this._settings = { ...settings }; }
+  constructor(settings: ValidationSettings, private _logger?: Logger) { this._settings = { ...settings }; }
   update(settings: ValidationSettings) { this._settings = { ...settings }; }
+  attachLogger(logger: Logger) { this._logger = logger; }
   get settings() { return this._settings; }
   requestMode() { return this._settings.req; }
   responseMode() { return this._settings.res; }
@@ -24,6 +26,6 @@ export class ValidationManager {
   }
 
   private async _gate(side: 'request'|'response', opId: string, mode: ValidationMode, schema: ZodTypeAny | undefined, value: any) {
-    return applySchemaValidation({ side, operationId: opId, mode, schema, value });
+  return applySchemaValidation({ side, operationId: opId, mode, schema, value, logger: this._logger });
   }
 }

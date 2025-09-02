@@ -1,72 +1,69 @@
-// Shared SDK logger
-import { hydrateConfig } from './unifiedConfiguration';
+// Per-client logger (no global singleton). Construct via createLogger.
 
 export type LogLevel = 'silent'|'error'|'warn'|'info'|'debug'|'trace';
-export interface LogEvent { level: LogLevel; scope?: string; args: any[]; ts: number; }
+export interface LogEvent { level: LogLevel; scope: string; ts: number; args: any[]; code?: string; data?: any }
 export type LogTransport = (e: LogEvent) => void;
-
 const ORDER: Record<LogLevel, number> = { silent:0, error:1, warn:2, info:3, debug:4, trace:5 };
-let currentLevel: LogLevel | null = null;
-let lastConfiguredLevel: string | null = null; // raw string from hydration for change detection
-let transport: LogTransport | null = null;
-let initialized = false;
 
-export function initLogger(level?: LogLevel, t?: LogTransport) {
-  if (!initialized) initialized = true;
-  if (level) currentLevel = level;
-  if (t) transport = t;
-  if (!currentLevel) {
-    const cfg = hydrateConfig().config;
-    currentLevel = cfg.logLevel || 'error';
-    lastConfiguredLevel = currentLevel;
-  }
+export interface Logger {
+  level(): LogLevel;
+  setLevel(level: LogLevel): void;            // internal use
+  setTransport(t?: LogTransport): void;       // internal use
+  error(...a:any[]):void;
+  warn(...a:any[]):void;
+  info(...a:any[]):void;
+  debug(...a:any[]):void;
+  trace(...a:any[]):void;
+  scope(child: string): Logger;
+  code(level: LogLevel, code: string, msg: string, data?: any): void;
 }
 
-export function setLevel(level: LogLevel) { currentLevel = level; }
-export function setTransport(t?: LogTransport) { transport = t || null; }
+export interface CreateLoggerOptions { level?: LogLevel; transport?: LogTransport; scope?: string; }
 
-function refreshLevelIfChanged() {
-  try {
-    const cfg = hydrateConfig().config; // fresh hydration reflects env changes
-    if (cfg.logLevel !== lastConfiguredLevel) {
-      currentLevel = cfg.logLevel;
-      lastConfiguredLevel = cfg.logLevel;
+export function createLogger(opts: CreateLoggerOptions = {}): Logger {
+  let currentLevel: LogLevel = opts.level || 'error';
+  let transport: LogTransport | undefined = opts.transport;
+  const baseScope = opts.scope || '';
+
+  function isEnabled(need: LogLevel) { return ORDER[currentLevel] >= ORDER[need]; }
+  function evalArgs(args: any[]): any[] {
+    // Support lazy function args: if an arg is a function with zero arity, call it.
+    return args.map(a => (typeof a === 'function' && a.length === 0 ? a() : a)).flat();
+  }
+  function emit(level: LogLevel, scope: string, rawArgs: any[]) {
+    if (!isEnabled(level)) return;
+    const args = evalArgs(rawArgs);
+    const evt: LogEvent = { level, scope, ts: Date.now(), args };
+    if (transport) { try { transport(evt); } catch {/* ignore transport errors */} }
+    else {
+      const tag = `[camunda-sdk][${level}]${scope?`[${scope}]`:''}`;
+      const method = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log';
+      // eslint-disable-next-line no-console
+      (console as any)[method](tag, ...args);
     }
-  } catch {/* ignore hydration errors here */}
-}
-
-function enabled(need: LogLevel): boolean {
-  if (!currentLevel) initLogger();
-  refreshLevelIfChanged();
-  return ORDER[currentLevel!] >= ORDER[need];
-}
-
-function emit(level: LogLevel, scope: string|undefined, args: any[]) {
-  if (!enabled(level)) return;
-  const evt: LogEvent = { level, scope, args, ts: Date.now() };
-  if (transport) { try { transport(evt); } catch {/* swallow */} }
-  else {
-    const tag = `[camunda-sdk][${level}]${scope?`[${scope}]`:''}`;
-    const method = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log';
-    // eslint-disable-next-line no-console
-    (console as any)[method](tag, ...args);
   }
-}
-
-export interface Logger { error(...a:any[]):void; warn(...a:any[]):void; info(...a:any[]):void; debug(...a:any[]):void; trace(...a:any[]):void; scope(child: string): Logger; }
-
-export function getLogger(scope?: string): Logger {
-  const sc = scope;
-  const make = (s?: string): Logger => ({
-    error: (...a:any[]) => emit('error', s, a),
-    warn:  (...a:any[]) => emit('warn', s, a),
-    info:  (...a:any[]) => emit('info', s, a),
-    debug: (...a:any[]) => emit('debug', s, a),
-    trace: (...a:any[]) => emit('trace', s, a),
-    scope(child: string) { return make(s ? `${s}:${child}` : child); }
+  function emitCode(level: LogLevel, scope: string, code: string, msg: string, data?: any) {
+    if (!isEnabled(level)) return;
+    const evt: LogEvent = { level, scope, ts: Date.now(), args: [msg], code, data };
+    if (transport) { try { transport(evt); } catch {} }
+    else {
+      const tag = `[camunda-sdk][${level}]${scope?`[${scope}]`:''}`;
+      const method = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log';
+      // eslint-disable-next-line no-console
+      (console as any)[method](tag, code + ':', msg, data ?? '');
+    }
+  }
+  const make = (scope: string): Logger => ({
+    level: () => currentLevel,
+    setLevel(l: LogLevel) { currentLevel = l; },
+    setTransport(t?: LogTransport) { transport = t; },
+    error: (...a:any[]) => emit('error', scope, a),
+    warn:  (...a:any[]) => emit('warn', scope, a),
+    info:  (...a:any[]) => emit('info', scope, a),
+    debug: (...a:any[]) => emit('debug', scope, a),
+    trace: (...a:any[]) => emit('trace', scope, a),
+    scope(child: string) { return make(scope ? `${scope}:${child}` : child); },
+    code(l: LogLevel, code: string, msg: string, data?: any) { emitCode(l, scope, code, msg, data); }
   });
-  return make(sc);
+  return make(baseScope);
 }
-
-// Initialize at module load with current config (idempotent).
-initLogger();

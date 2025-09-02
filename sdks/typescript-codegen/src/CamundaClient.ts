@@ -12,6 +12,7 @@ import * as Sdk from './gen/sdk.gen';
 import { ConsistencyOptions, eventualPoll } from './runtime/eventual'
 import * as Schemas from './gen/zod.gen';
 import { ValidationManager } from './runtime/validationManager';
+import { createLogger, Logger, LogLevel, LogTransport } from './runtime/logger';
 
 // Internal deep-freeze to make exposed config immutable for consumers.
 function deepFreeze<T>(obj: T): T {
@@ -25,7 +26,7 @@ function deepFreeze<T>(obj: T): T {
 }
 
 // === AUTO-GENERATED CAMUNDA SUPPORT TYPES START ===
-// Generated 2025-09-02T02:43:06.207Z
+// Generated 2025-09-02T04:15:29.980Z
 // Operations: 144
 type _RawReturn<F> = F extends (...a:any)=>Promise<infer R> ? R : never;
 type _DataOf<F> = Exclude<_RawReturn<F> extends { data: infer D } ? D : _RawReturn<F>, undefined>;
@@ -665,6 +666,8 @@ export interface CamundaOptions {
   fetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
   // Provide a custom env map (mainly for tests). Defaults to process.env.
   env?: Record<string, string | undefined>;
+  // Per-client logging options
+  log?: { level?: LogLevel; transport?: LogTransport };
 }
 
 export function createCamundaClient(options?: CamundaOptions) { return new CamundaClient(options); }
@@ -681,17 +684,21 @@ export class CamundaClient {
   } as any);
   private _fetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
   private _validation: ValidationManager = new ValidationManager({ req: 'none', res: 'none' });
+  private _log: Logger = createLogger();
 
   private _overrides: EnvOverrides = {};
 
   constructor(opts: CamundaOptions = {}) {
     if (opts.config) this._overrides = { ...opts.config };
     const { config } = hydrateConfig({ overrides: this._overrides, env: opts.env });
-    this._config = deepFreeze(config) as Readonly<CamundaConfig>;
+  this._config = deepFreeze(config) as Readonly<CamundaConfig>;
+  // Initialize per-client logger
+  this._log = createLogger({ level: opts.log?.level || this._config.logLevel, transport: opts.log?.transport });
     this._fetch = opts.fetch;
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
-    this._auth = createAuthFacade(this._config, { fetch: this._fetch });
-    this._validation.update(this._config.validation);
+  this._auth = createAuthFacade(this._config, { fetch: this._fetch, logger: this._log });
+  this._validation.update(this._config.validation);
+  this._validation.attachLogger(this._log);
   }
 
   get config(): Readonly<CamundaConfig> { return this._config; }
@@ -708,8 +715,12 @@ export class CamundaClient {
     const { config } = hydrateConfig({ overrides: this._overrides, env: next.env });
     this._config = deepFreeze(config) as Readonly<CamundaConfig>;
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
-    this._auth = createAuthFacade(this._config, { fetch: this._fetch });
-    this._validation.update(this._config.validation);
+  // Update logger level / transport if provided, else apply config log level
+  if (next.log?.level) this._log.setLevel(next.log.level); else this._log.setLevel(this._config.logLevel);
+  if (next.log?.transport !== undefined) this._log.setTransport(next.log.transport);
+  this._auth = createAuthFacade(this._config, { fetch: this._fetch, logger: this._log });
+  this._validation.update(this._config.validation);
+  this._validation.attachLogger(this._log);
   }
 
   // Auth helpers
@@ -719,9 +730,11 @@ export class CamundaClient {
   onAuthHeaders(h: (headers: Record<string, string>) => Record<string, string> | Promise<Record<string, string>>) { this._auth.registerHeadersHook(h); }
 
   /** @internal ValidationManager is internal; tests may reach via (client as any)._validation */
+  /** Access a scoped logger (internal & future user emission). */
+  logger(scope?: string) { return scope ? this._log.scope(scope) : this._log; }
 
   // === AUTO-GENERATED CAMUNDA METHODS START ===
-  // Generated methods (2025-09-02T02:43:06.208Z)
+  // Generated methods (2025-09-02T04:15:29.981Z)
   /**
    * Activate activities within an ad-hoc sub-process
    * Activates selected activities within an ad-hoc sub-process identified by element ID.
@@ -1350,7 +1363,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('cancelBatchOperation', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('cancelBatchOperation', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -1373,7 +1386,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('cancelBatchOperation', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('cancelBatchOperation', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -1473,7 +1486,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('cancelProcessInstancesBatchOperation', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('cancelProcessInstancesBatchOperation', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -1496,7 +1509,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('cancelProcessInstancesBatchOperation', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('cancelProcessInstancesBatchOperation', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -1709,7 +1722,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('createAdminUser', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('createAdminUser', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -1732,7 +1745,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('createAdminUser', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('createAdminUser', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -2432,7 +2445,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('createUser', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('createUser', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -2455,7 +2468,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('createUser', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('createUser', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -2750,7 +2763,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('deleteUser', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('deleteUser', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -2934,7 +2947,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getAuthorization', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getAuthorization', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -2971,7 +2984,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getBatchOperation', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getBatchOperation', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3009,7 +3022,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getDecisionDefinition', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getDecisionDefinition', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3047,7 +3060,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getDecisionDefinitionXML', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getDecisionDefinitionXML', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3085,7 +3098,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getDecisionInstance', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getDecisionInstance', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3123,7 +3136,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getDecisionRequirements', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getDecisionRequirements', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3161,7 +3174,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getDecisionRequirementsXML', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getDecisionRequirementsXML', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3234,7 +3247,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getElementInstance', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getElementInstance', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3272,7 +3285,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getGroup', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getGroup', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3310,7 +3323,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getIncident', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getIncident', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3378,7 +3391,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getMappingRule', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getMappingRule', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3416,7 +3429,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getProcessDefinition', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getProcessDefinition', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3457,7 +3470,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('getProcessDefinitionStatistics', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('getProcessDefinitionStatistics', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -3480,7 +3493,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getProcessDefinitionStatistics', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getProcessDefinitionStatistics', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3518,7 +3531,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getProcessDefinitionXML', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getProcessDefinitionXML', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3556,7 +3569,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getProcessInstance', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getProcessInstance', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3594,7 +3607,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getProcessInstanceCallHierarchy', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getProcessInstanceCallHierarchy', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3632,7 +3645,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getProcessInstanceSequenceFlows', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getProcessInstanceSequenceFlows', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3670,7 +3683,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getProcessInstanceStatistics', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getProcessInstanceStatistics', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3780,7 +3793,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getRole', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getRole', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3820,7 +3833,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getStartProcessForm', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getStartProcessForm', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3857,7 +3870,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getTenant', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getTenant', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3922,7 +3935,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getUsageMetrics', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getUsageMetrics', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3960,7 +3973,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getUser', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getUser', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -3998,7 +4011,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getUserTask', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getUserTask', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -4038,7 +4051,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getUserTaskForm', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getUserTaskForm', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -4076,7 +4089,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('getVariable', true, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('getVariable', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -4183,7 +4196,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('migrateProcessInstancesBatchOperation', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('migrateProcessInstancesBatchOperation', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -4206,7 +4219,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('migrateProcessInstancesBatchOperation', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('migrateProcessInstancesBatchOperation', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -4314,7 +4327,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('modifyProcessInstancesBatchOperation', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('modifyProcessInstancesBatchOperation', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -4337,7 +4350,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('modifyProcessInstancesBatchOperation', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('modifyProcessInstancesBatchOperation', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -4597,7 +4610,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('resolveIncidentsBatchOperation', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('resolveIncidentsBatchOperation', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -4620,7 +4633,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('resolveIncidentsBatchOperation', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('resolveIncidentsBatchOperation', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -4662,7 +4675,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('resumeBatchOperation', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('resumeBatchOperation', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -4685,7 +4698,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('resumeBatchOperation', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('resumeBatchOperation', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -4726,7 +4739,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchAuthorizations', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchAuthorizations', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -4749,7 +4762,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchAuthorizations', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchAuthorizations', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -4789,7 +4802,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchBatchOperationItems', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchBatchOperationItems', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -4812,7 +4825,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchBatchOperationItems', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchBatchOperationItems', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -4852,7 +4865,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchBatchOperations', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchBatchOperations', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -4875,7 +4888,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchBatchOperations', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchBatchOperations', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -4916,7 +4929,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchClientsForGroup', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchClientsForGroup', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -4939,7 +4952,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchClientsForGroup', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchClientsForGroup', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -4980,7 +4993,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchClientsForRole', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchClientsForRole', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5003,7 +5016,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchClientsForRole', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchClientsForRole', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5043,7 +5056,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchClientsForTenant', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchClientsForTenant', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5066,7 +5079,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchClientsForTenant', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchClientsForTenant', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5107,7 +5120,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchDecisionDefinitions', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchDecisionDefinitions', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5130,7 +5143,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchDecisionDefinitions', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchDecisionDefinitions', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5171,7 +5184,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchDecisionInstances', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchDecisionInstances', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5194,7 +5207,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchDecisionInstances', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchDecisionInstances', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5235,7 +5248,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchDecisionRequirements', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchDecisionRequirements', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5258,7 +5271,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchDecisionRequirements', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchDecisionRequirements', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5299,7 +5312,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchElementInstances', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchElementInstances', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5322,7 +5335,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchElementInstances', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchElementInstances', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5362,7 +5375,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchGroupIdsForTenant', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchGroupIdsForTenant', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5385,7 +5398,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchGroupIdsForTenant', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchGroupIdsForTenant', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5426,7 +5439,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchGroups', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchGroups', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5449,7 +5462,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchGroups', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchGroups', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5490,7 +5503,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchGroupsForRole', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchGroupsForRole', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5513,7 +5526,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchGroupsForRole', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchGroupsForRole', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5554,7 +5567,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchIncidents', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchIncidents', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5577,7 +5590,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchIncidents', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchIncidents', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5617,7 +5630,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchJobs', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchJobs', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5640,7 +5653,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchJobs', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchJobs', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5681,7 +5694,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchMappingRule', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchMappingRule', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5704,7 +5717,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchMappingRule', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchMappingRule', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5745,7 +5758,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchMappingRulesForGroup', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchMappingRulesForGroup', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5768,7 +5781,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchMappingRulesForGroup', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchMappingRulesForGroup', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5809,7 +5822,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchMappingRulesForRole', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchMappingRulesForRole', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5832,7 +5845,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchMappingRulesForRole', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchMappingRulesForRole', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5872,7 +5885,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchMappingsForTenant', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchMappingsForTenant', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5895,7 +5908,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchMappingsForTenant', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchMappingsForTenant', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -5936,7 +5949,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchMessageSubscriptions', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchMessageSubscriptions', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -5959,7 +5972,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchMessageSubscriptions', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchMessageSubscriptions', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6000,7 +6013,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchProcessDefinitions', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchProcessDefinitions', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6023,7 +6036,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchProcessDefinitions', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchProcessDefinitions', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6064,7 +6077,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchProcessInstanceIncidents', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchProcessInstanceIncidents', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6087,7 +6100,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchProcessInstanceIncidents', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchProcessInstanceIncidents', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6128,7 +6141,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchProcessInstances', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchProcessInstances', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6151,7 +6164,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchProcessInstances', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchProcessInstances', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6192,7 +6205,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchRoles', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchRoles', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6215,7 +6228,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchRoles', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchRoles', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6256,7 +6269,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchRolesForGroup', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchRolesForGroup', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6279,7 +6292,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchRolesForGroup', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchRolesForGroup', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6319,7 +6332,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchRolesForTenant', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchRolesForTenant', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6342,7 +6355,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchRolesForTenant', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchRolesForTenant', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6382,7 +6395,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchTenants', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchTenants', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6405,7 +6418,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchTenants', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchTenants', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6446,7 +6459,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchUsers', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchUsers', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6469,7 +6482,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchUsers', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchUsers', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6510,7 +6523,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchUsersForGroup', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchUsersForGroup', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6533,7 +6546,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchUsersForGroup', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchUsersForGroup', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6574,7 +6587,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchUsersForRole', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchUsersForRole', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6597,7 +6610,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchUsersForRole', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchUsersForRole', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6637,7 +6650,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchUsersForTenant', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchUsersForTenant', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6660,7 +6673,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchUsersForTenant', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchUsersForTenant', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6701,7 +6714,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchUserTasks', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchUserTasks', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6724,7 +6737,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchUserTasks', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchUserTasks', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6765,7 +6778,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchUserTaskVariables', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchUserTaskVariables', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6788,7 +6801,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchUserTaskVariables', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchUserTaskVariables', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6829,7 +6842,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('searchVariables', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('searchVariables', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6852,7 +6865,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('searchVariables', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('searchVariables', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -6894,7 +6907,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('suspendBatchOperation', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('suspendBatchOperation', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -6917,7 +6930,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('suspendBatchOperation', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('suspendBatchOperation', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }
@@ -7751,7 +7764,7 @@ export class CamundaClient {
           return data;
         };
         const invoke = () => toCancelable(()=>call());
-        if (useConsistency) return eventualPoll('updateUser', false, invoke, useConsistency);
+        if (useConsistency) return eventualPoll('updateUser', false, invoke, { ...useConsistency, logger: (this as any)._log });
         return invoke();
       }
       const call = async () => {
@@ -7774,7 +7787,7 @@ export class CamundaClient {
         return data;
       };
       const invoke = () => toCancelable(()=>call());
-      if (useConsistency) return eventualPoll('updateUser', false, invoke, useConsistency);
+      if (useConsistency) return eventualPoll('updateUser', false, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
     });
   }

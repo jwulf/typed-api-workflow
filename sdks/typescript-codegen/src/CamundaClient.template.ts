@@ -11,6 +11,7 @@ import * as Sdk from './gen/sdk.gen';
 import { ConsistencyOptions, eventualPoll } from './runtime/eventual'
 import * as Schemas from './gen/zod.gen';
 import { ValidationManager } from './runtime/validationManager';
+import { createLogger, Logger, LogLevel, LogTransport } from './runtime/logger';
 
 // Internal deep-freeze to make exposed config immutable for consumers.
 function deepFreeze<T>(obj: T): T {
@@ -47,6 +48,8 @@ export interface CamundaOptions {
   fetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
   // Provide a custom env map (mainly for tests). Defaults to process.env.
   env?: Record<string, string | undefined>;
+  // Per-client logging options
+  log?: { level?: LogLevel; transport?: LogTransport };
 }
 
 export function createCamundaClient(options?: CamundaOptions) { return new CamundaClient(options); }
@@ -63,17 +66,21 @@ export class CamundaClient {
   } as any);
   private _fetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
   private _validation: ValidationManager = new ValidationManager({ req: 'none', res: 'none' });
+  private _log: Logger = createLogger();
 
   private _overrides: EnvOverrides = {};
 
   constructor(opts: CamundaOptions = {}) {
     if (opts.config) this._overrides = { ...opts.config };
     const { config } = hydrateConfig({ overrides: this._overrides, env: opts.env });
-    this._config = deepFreeze(config) as Readonly<CamundaConfig>;
+  this._config = deepFreeze(config) as Readonly<CamundaConfig>;
+  // Initialize per-client logger
+  this._log = createLogger({ level: opts.log?.level || this._config.logLevel, transport: opts.log?.transport });
     this._fetch = opts.fetch;
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
-    this._auth = createAuthFacade(this._config, { fetch: this._fetch });
-    this._validation.update(this._config.validation);
+  this._auth = createAuthFacade(this._config, { fetch: this._fetch, logger: this._log });
+  this._validation.update(this._config.validation);
+  this._validation.attachLogger(this._log);
   }
 
   get config(): Readonly<CamundaConfig> { return this._config; }
@@ -90,8 +97,12 @@ export class CamundaClient {
     const { config } = hydrateConfig({ overrides: this._overrides, env: next.env });
     this._config = deepFreeze(config) as Readonly<CamundaConfig>;
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
-    this._auth = createAuthFacade(this._config, { fetch: this._fetch });
-    this._validation.update(this._config.validation);
+  // Update logger level / transport if provided, else apply config log level
+  if (next.log?.level) this._log.setLevel(next.log.level); else this._log.setLevel(this._config.logLevel);
+  if (next.log?.transport !== undefined) this._log.setTransport(next.log.transport);
+  this._auth = createAuthFacade(this._config, { fetch: this._fetch, logger: this._log });
+  this._validation.update(this._config.validation);
+  this._validation.attachLogger(this._log);
   }
 
   // Auth helpers
@@ -101,6 +112,8 @@ export class CamundaClient {
   onAuthHeaders(h: (headers: Record<string, string>) => Record<string, string> | Promise<Record<string, string>>) { this._auth.registerHeadersHook(h); }
 
   /** @internal ValidationManager is internal; tests may reach via (client as any)._validation */
+  /** Access a scoped logger (internal & future user emission). */
+  logger(scope?: string) { return scope ? this._log.scope(scope) : this._log; }
 
   // === AUTO-GENERATED CAMUNDA METHODS START ===
   // === AUTO-GENERATED CAMUNDA METHODS END ===

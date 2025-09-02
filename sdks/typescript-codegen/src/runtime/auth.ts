@@ -1,5 +1,5 @@
 import type { CamundaConfig } from './unifiedConfiguration';
-import { getLogger } from './logger';
+import type { Logger } from './logger';
 
 
 /** Auth error codes */
@@ -41,7 +41,7 @@ class OAuthManager {
 	private readonly storageKey: string;
 	private readonly isBrowser = typeof window !== 'undefined';
 	private readonly session: Storage | null;
-	constructor(private cfg: CamundaConfig, private logger: ReturnType<typeof getLogger>) {
+	constructor(private cfg: CamundaConfig, private logger: Logger) {
 		const hashBase = `${cfg.oauth.oauthUrl}|${cfg.oauth.clientId||''}|${cfg.tokenAudience}|${cfg.oauth.scope||''}`;
 		this.storageKey = 'camunda_oauth_token_cache_' + this.simpleHash(hashBase);
 		this.session = this.isBrowser && typeof window.sessionStorage !== 'undefined' ? window.sessionStorage : null;
@@ -169,9 +169,14 @@ export interface AuthFacade {
 	debug__setTokenExpiry?(epochMs: number): void;
 }
 
-export function createAuthFacade(config: CamundaConfig, opts?: { fetch?: (input: RequestInfo, init?: RequestInit) => Promise<Response> }): AuthFacade {
+export function createAuthFacade(config: CamundaConfig, opts?: { fetch?: (input: RequestInfo, init?: RequestInit) => Promise<Response>; logger?: Logger }): AuthFacade {
 	const cfg = config;
-	const authLogger = getLogger('auth');
+	const noop: Logger = {
+		level: () => 'silent', setLevel: ()=>{}, setTransport: ()=>{},
+		error: ()=>{}, warn: ()=>{}, info: ()=>{}, debug: ()=>{}, trace: ()=>{}, code: ()=>{},
+		scope: () => noop
+	} as any;
+	const authLogger = (opts?.logger || noop).scope('auth');
 	const hooks: HeadersHook[] = [];
 	let oauth: OAuthManager | null = null;
 	let basic: BasicAuthManager | null = null;
