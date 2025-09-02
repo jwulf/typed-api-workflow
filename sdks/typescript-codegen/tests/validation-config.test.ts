@@ -10,24 +10,24 @@ describe('CAMUNDA_SDK_VALIDATION parsing', () => {
   it('defaults to none/none when unset', () => {
     set(undefined);
   const client = new CamundaClient({config: {CAMUNDA_SDK_VALIDATION: undefined}});
-  expect(client.requestValidationMode()).toBe('none');
-  expect(client.responseValidationMode()).toBe('none');
+  expect(client.getConfig().validation.req).toBe('none');
+  expect(client.getConfig().validation.res).toBe('none');
   });
   it('strict', () => {
   const client = new CamundaClient({config: {CAMUNDA_SDK_VALIDATION: 'strict'}});
-  expect(client.validationConfig()).toEqual({ req: 'strict', res: 'strict' });
+  expect(client.getConfig().validation).toMatchObject({ req: 'strict', res: 'strict' });
   });
   it('req only', () => {
   const client = new CamundaClient({config: {CAMUNDA_SDK_VALIDATION: 'req:warn'}});
-  expect(client.validationConfig()).toEqual({ req: 'warn', res: 'none' });
+  expect(client.getConfig().validation).toMatchObject({ req: 'warn', res: 'none' });
   });
   it('res only', () => {
   const client = new CamundaClient({config: {CAMUNDA_SDK_VALIDATION: 'res:strict'}});
-  expect(client.validationConfig()).toEqual({ req: 'none', res: 'strict' });
+  expect(client.getConfig().validation).toMatchObject({ req: 'none', res: 'strict' });
   });
   it('both sides pair list', () => {
   const client = new CamundaClient({config: {CAMUNDA_SDK_VALIDATION: 'req:warn,res:strict'}});
-  expect(client.validationConfig()).toEqual({ req: 'warn', res: 'strict' });
+  expect(client.getConfig().validation).toMatchObject({ req: 'warn', res: 'strict' });
   });
   it('invalid tokens cause error', () => {
   // Construction should throw because hydration would error

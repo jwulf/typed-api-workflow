@@ -13,8 +13,19 @@ import { ConsistencyOptions, eventualPoll } from './runtime/eventual'
 import * as Schemas from './gen/zod.gen';
 import { ValidationManager } from './runtime/validationManager';
 
+// Internal deep-freeze to make exposed config immutable for consumers.
+function deepFreeze<T>(obj: T): T {
+  if (obj && typeof obj === 'object' && !Object.isFrozen(obj)) {
+    Object.freeze(obj as any);
+    for (const v of Object.values(obj as any)) {
+      if (v && typeof v === 'object') deepFreeze(v as any);
+    }
+  }
+  return obj;
+}
+
 // === AUTO-GENERATED CAMUNDA SUPPORT TYPES START ===
-// Generated 2025-09-02T01:55:59.303Z
+// Generated 2025-09-02T02:20:38.067Z
 // Operations: 144
 type _RawReturn<F> = F extends (...a:any)=>Promise<infer R> ? R : never;
 type _DataOf<F> = Exclude<_RawReturn<F> extends { data: infer D } ? D : _RawReturn<F>, undefined>;
@@ -660,7 +671,7 @@ export function createCamunda(options?: CamundaOptions) { return new CamundaClie
 
 export class CamundaClient {
   private _client: Client;
-  private _config: CamundaConfig;
+  private _config: Readonly<CamundaConfig>;
   private _auth: ReturnType<typeof createAuthFacade> = createAuthFacade({
     restAddress: '',
     auth: { strategy: 'NONE', basic: { username: '', password: '' } } as any,
@@ -676,21 +687,26 @@ export class CamundaClient {
   constructor(opts: CamundaOptions = {}) {
     if (opts.config) this._overrides = { ...opts.config };
     const { config } = hydrateConfig({ overrides: this._overrides, env: opts.env });
-    this._config = config;
+  this._config = deepFreeze(config) as Readonly<CamundaConfig>;
     this._fetch = opts.fetch;
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
     this._auth = createAuthFacade(this._config, { fetch: this._fetch });
   this._validation.update(this._config.validation);
   }
 
-  get config() { return this._config; }
+  get config(): Readonly<CamundaConfig> { return this._config; }
+  /**
+   * Read-only snapshot of current hydrated configuration (do not mutate directly).
+   * Use configure(...) to apply changes.
+   */
+  getConfig(): Readonly<CamundaConfig> { return this._config; }
 
   // Merge new overrides and re-hydrate.
   configure(next: CamundaOptions) {
     if (next.config) this._overrides = { ...this._overrides, ...next.config };
     if (next.fetch) this._fetch = next.fetch;
     const { config } = hydrateConfig({ overrides: this._overrides, env: next.env });
-    this._config = config;
+  this._config = deepFreeze(config) as Readonly<CamundaConfig>;
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
     this._auth = createAuthFacade(this._config, { fetch: this._fetch });
   this._validation.update(this._config.validation);
@@ -702,15 +718,10 @@ export class CamundaClient {
   clearAuthCache(opts?: { disk?: boolean; memory?: boolean }) { this._auth.clearCache(opts); }
   onAuthHeaders(h: (headers: Record<string,string>) => Record<string,string>|Promise<Record<string,string>>) { this._auth.registerHeadersHook(h); }
 
-  // Instance-scoped validation state (methods added by hand so template provides baseline)
-  requestValidationMode() { return this._validation.settings.req; }
-  responseValidationMode() { return this._validation.settings.res; }
-  // Back-compat helper used in older tests expecting validationConfig()
-  validationConfig() { return { req: this._validation.settings.req, res: this._validation.settings.res }; }
-  /** @internal Direct validation helpers removed from public surface; generated methods call _validation.* */
+  /** @internal ValidationManager is internal; tests may reach via (client as any)._validation */
 
   // === AUTO-GENERATED CAMUNDA METHODS START ===
-  // Generated methods (2025-09-02T01:55:59.304Z)
+  // Generated methods (2025-09-02T02:20:38.067Z)
   /**
    * Activate activities within an ad-hoc sub-process
    * Activates selected activities within an ad-hoc sub-process identified by element ID.
@@ -728,19 +739,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('activateAdHocSubProcessActivities', (Schemas as any).zActivateAdHocSubProcessActivitiesData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.activateAdHocSubProcessActivities(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zActivateAdHocSubProcessActivitiesResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('activateAdHocSubProcessActivities', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -749,19 +760,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('activateAdHocSubProcessActivities', (Schemas as any).zActivateAdHocSubProcessActivitiesData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.activateAdHocSubProcessActivities({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zActivateAdHocSubProcessActivitiesResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('activateAdHocSubProcessActivities', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -785,19 +796,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('activateJobs', (Schemas as any).zActivateJobsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.activateJobs(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zActivateJobsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('activateJobs', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -806,19 +817,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('activateJobs', (Schemas as any).zActivateJobsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.activateJobs({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zActivateJobsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('activateJobs', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -843,12 +854,12 @@ export class CamundaClient {
         const r = await Sdk.assignClientToGroup(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zAssignClientToGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('assignClientToGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -873,12 +884,12 @@ export class CamundaClient {
         const r = await Sdk.assignClientToTenant(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zAssignClientToTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('assignClientToTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -903,12 +914,12 @@ export class CamundaClient {
         const r = await Sdk.assignGroupToTenant(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zAssignGroupToTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('assignGroupToTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -934,12 +945,12 @@ export class CamundaClient {
         const r = await Sdk.assignMappingRuleToGroup(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zAssignMappingRuleToGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('assignMappingRuleToGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -964,12 +975,12 @@ export class CamundaClient {
         const r = await Sdk.assignMappingRuleToTenant(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zAssignMappingRuleToTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('assignMappingRuleToTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -995,12 +1006,12 @@ export class CamundaClient {
         const r = await Sdk.assignRoleToClient(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zAssignRoleToClientResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('assignRoleToClient', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1025,12 +1036,12 @@ export class CamundaClient {
         const r = await Sdk.assignRoleToGroup(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zAssignRoleToGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('assignRoleToGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1056,12 +1067,12 @@ export class CamundaClient {
         const r = await Sdk.assignRoleToMappingRule(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zAssignRoleToMappingRuleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('assignRoleToMappingRule', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1086,12 +1097,12 @@ export class CamundaClient {
         const r = await Sdk.assignRoleToTenant(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zAssignRoleToTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('assignRoleToTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1116,12 +1127,12 @@ export class CamundaClient {
         const r = await Sdk.assignRoleToUser(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zAssignRoleToUserResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('assignRoleToUser', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1144,19 +1155,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('assignUserTask', (Schemas as any).zAssignUserTaskData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.assignUserTask(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zAssignUserTaskResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('assignUserTask', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -1165,19 +1176,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('assignUserTask', (Schemas as any).zAssignUserTaskData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.assignUserTask({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zAssignUserTaskResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('assignUserTask', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1202,12 +1213,12 @@ export class CamundaClient {
         const r = await Sdk.assignUserToGroup(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zAssignUserToGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('assignUserToGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1232,12 +1243,12 @@ export class CamundaClient {
         const r = await Sdk.assignUserToTenant(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zAssignUserToTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('assignUserToTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1260,19 +1271,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('broadcastSignal', (Schemas as any).zBroadcastSignalData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.broadcastSignal(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zBroadcastSignalResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('broadcastSignal', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -1281,19 +1292,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('broadcastSignal', (Schemas as any).zBroadcastSignalData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.broadcastSignal({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zBroadcastSignalResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('broadcastSignal', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1321,19 +1332,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('cancelBatchOperation', (Schemas as any).zCancelBatchOperationData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.cancelBatchOperation(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCancelBatchOperationResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('cancelBatchOperation', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -1344,19 +1355,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('cancelBatchOperation', (Schemas as any).zCancelBatchOperationData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.cancelBatchOperation({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCancelBatchOperationResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('cancelBatchOperation', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1381,19 +1392,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('cancelProcessInstance', (Schemas as any).zCancelProcessInstanceData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.cancelProcessInstance(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCancelProcessInstanceResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('cancelProcessInstance', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -1402,19 +1413,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('cancelProcessInstance', (Schemas as any).zCancelProcessInstanceData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.cancelProcessInstance({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCancelProcessInstanceResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('cancelProcessInstance', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1444,19 +1455,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('cancelProcessInstancesBatchOperation', (Schemas as any).zCancelProcessInstancesBatchOperationData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.cancelProcessInstancesBatchOperation(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCancelProcessInstancesBatchOperationResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('cancelProcessInstancesBatchOperation', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -1467,19 +1478,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('cancelProcessInstancesBatchOperation', (Schemas as any).zCancelProcessInstancesBatchOperationData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.cancelProcessInstancesBatchOperation({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCancelProcessInstancesBatchOperationResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('cancelProcessInstancesBatchOperation', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1505,19 +1516,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('completeJob', (Schemas as any).zCompleteJobData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.completeJob(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCompleteJobResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('completeJob', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -1526,19 +1537,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('completeJob', (Schemas as any).zCompleteJobData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.completeJob({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCompleteJobResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('completeJob', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1561,19 +1572,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('completeUserTask', (Schemas as any).zCompleteUserTaskData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.completeUserTask(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCompleteUserTaskResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('completeUserTask', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -1582,19 +1593,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('completeUserTask', (Schemas as any).zCompleteUserTaskData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.completeUserTask({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCompleteUserTaskResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('completeUserTask', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1621,19 +1632,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('correlateMessage', (Schemas as any).zCorrelateMessageData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.correlateMessage(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCorrelateMessageResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('correlateMessage', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -1642,19 +1653,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('correlateMessage', (Schemas as any).zCorrelateMessageData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.correlateMessage({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCorrelateMessageResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('correlateMessage', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1680,19 +1691,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('createAdminUser', (Schemas as any).zCreateAdminUserData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.createAdminUser(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCreateAdminUserResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('createAdminUser', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -1703,19 +1714,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('createAdminUser', (Schemas as any).zCreateAdminUserData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.createAdminUser({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCreateAdminUserResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('createAdminUser', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1740,19 +1751,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('createAuthorization', (Schemas as any).zCreateAuthorizationData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.createAuthorization(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCreateAuthorizationResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('createAuthorization', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -1761,19 +1772,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('createAuthorization', (Schemas as any).zCreateAuthorizationData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.createAuthorization({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCreateAuthorizationResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('createAuthorization', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1798,19 +1809,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('createDeployment', (Schemas as any).zCreateDeploymentData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.createDeployment(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCreateDeploymentResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('createDeployment', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -1819,19 +1830,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('createDeployment', (Schemas as any).zCreateDeploymentData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.createDeployment({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCreateDeploymentResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('createDeployment', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1857,19 +1868,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('createDocument', (Schemas as any).zCreateDocumentData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.createDocument(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCreateDocumentResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('createDocument', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -1878,19 +1889,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('createDocument', (Schemas as any).zCreateDocumentData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.createDocument({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCreateDocumentResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('createDocument', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1916,19 +1927,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('createDocumentLink', (Schemas as any).zCreateDocumentLinkData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.createDocumentLink(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCreateDocumentLinkResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('createDocumentLink', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -1937,19 +1948,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('createDocumentLink', (Schemas as any).zCreateDocumentLinkData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.createDocumentLink({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCreateDocumentLinkResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('createDocumentLink', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -1997,19 +2008,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('createDocuments', (Schemas as any).zCreateDocumentsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.createDocuments(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCreateDocumentsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('createDocuments', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -2018,19 +2029,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('createDocuments', (Schemas as any).zCreateDocumentsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.createDocuments({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCreateDocumentsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('createDocuments', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2055,19 +2066,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('createElementInstanceVariables', (Schemas as any).zCreateElementInstanceVariablesData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.createElementInstanceVariables(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCreateElementInstanceVariablesResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('createElementInstanceVariables', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -2076,19 +2087,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('createElementInstanceVariables', (Schemas as any).zCreateElementInstanceVariablesData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.createElementInstanceVariables({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCreateElementInstanceVariablesResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('createElementInstanceVariables', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2112,19 +2123,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('createGroup', (Schemas as any).zCreateGroupData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.createGroup(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCreateGroupResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('createGroup', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -2133,19 +2144,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('createGroup', (Schemas as any).zCreateGroupData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.createGroup({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCreateGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('createGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2169,19 +2180,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('createMappingRule', (Schemas as any).zCreateMappingRuleData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.createMappingRule(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCreateMappingRuleResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('createMappingRule', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -2190,19 +2201,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('createMappingRule', (Schemas as any).zCreateMappingRuleData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.createMappingRule({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCreateMappingRuleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('createMappingRule', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2231,19 +2242,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('createProcessInstance', (Schemas as any).zCreateProcessInstanceData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.createProcessInstance(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCreateProcessInstanceResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('createProcessInstance', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -2252,19 +2263,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('createProcessInstance', (Schemas as any).zCreateProcessInstanceData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.createProcessInstance({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCreateProcessInstanceResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('createProcessInstance', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2288,19 +2299,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('createRole', (Schemas as any).zCreateRoleData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.createRole(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCreateRoleResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('createRole', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -2309,19 +2320,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('createRole', (Schemas as any).zCreateRoleData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.createRole({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCreateRoleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('createRole', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2344,19 +2355,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('createTenant', (Schemas as any).zCreateTenantData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.createTenant(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCreateTenantResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('createTenant', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -2365,19 +2376,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('createTenant', (Schemas as any).zCreateTenantData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.createTenant({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCreateTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('createTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2403,19 +2414,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('createUser', (Schemas as any).zCreateUserData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.createUser(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zCreateUserResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('createUser', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -2426,19 +2437,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('createUser', (Schemas as any).zCreateUserData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.createUser({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zCreateUserResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('createUser', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2467,12 +2478,12 @@ export class CamundaClient {
         const r = await Sdk.deleteAuthorization(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zDeleteAuthorizationResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('deleteAuthorization', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2502,12 +2513,12 @@ export class CamundaClient {
         const r = await Sdk.deleteDocument(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zDeleteDocumentResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('deleteDocument', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2535,12 +2546,12 @@ export class CamundaClient {
         const r = await Sdk.deleteGroup(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zDeleteGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('deleteGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2568,12 +2579,12 @@ export class CamundaClient {
         const r = await Sdk.deleteMappingRule(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zDeleteMappingRuleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('deleteMappingRule', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2599,19 +2610,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('deleteResource', (Schemas as any).zDeleteResourceData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.deleteResource(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zDeleteResourceResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('deleteResource', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -2620,19 +2631,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('deleteResource', (Schemas as any).zDeleteResourceData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.deleteResource({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zDeleteResourceResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('deleteResource', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2660,12 +2671,12 @@ export class CamundaClient {
         const r = await Sdk.deleteRole(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zDeleteRoleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('deleteRole', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2692,12 +2703,12 @@ export class CamundaClient {
         const r = await Sdk.deleteTenant(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zDeleteTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('deleteTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2728,12 +2739,12 @@ export class CamundaClient {
         const r = await Sdk.deleteUser(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zDeleteUserResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('deleteUser', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2762,19 +2773,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('evaluateDecision', (Schemas as any).zEvaluateDecisionData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.evaluateDecision(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zEvaluateDecisionResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('evaluateDecision', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -2783,19 +2794,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('evaluateDecision', (Schemas as any).zEvaluateDecisionData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.evaluateDecision({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zEvaluateDecisionResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('evaluateDecision', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2819,19 +2830,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('failJob', (Schemas as any).zFailJobData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.failJob(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zFailJobResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('failJob', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -2840,19 +2851,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('failJob', (Schemas as any).zFailJobData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.failJob({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zFailJobResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('failJob', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2877,12 +2888,12 @@ export class CamundaClient {
         const r = await Sdk.getAuthentication(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetAuthenticationResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getAuthentication', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2912,12 +2923,12 @@ export class CamundaClient {
         const r = await Sdk.getAuthorization(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetAuthorizationResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getAuthorization', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2949,12 +2960,12 @@ export class CamundaClient {
         const r = await Sdk.getBatchOperation(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetBatchOperationResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getBatchOperation', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -2987,12 +2998,12 @@ export class CamundaClient {
         const r = await Sdk.getDecisionDefinition(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetDecisionDefinitionResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getDecisionDefinition', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3025,12 +3036,12 @@ export class CamundaClient {
         const r = await Sdk.getDecisionDefinitionXml(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetDecisionDefinitionXmlResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getDecisionDefinitionXML', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3063,12 +3074,12 @@ export class CamundaClient {
         const r = await Sdk.getDecisionInstance(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetDecisionInstanceResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getDecisionInstance', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3101,12 +3112,12 @@ export class CamundaClient {
         const r = await Sdk.getDecisionRequirements(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetDecisionRequirementsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getDecisionRequirements', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3139,12 +3150,12 @@ export class CamundaClient {
         const r = await Sdk.getDecisionRequirementsXml(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetDecisionRequirementsXmlResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getDecisionRequirementsXML', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3176,12 +3187,12 @@ export class CamundaClient {
         const r = await Sdk.getDocument(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetDocumentResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getDocument', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3212,12 +3223,12 @@ export class CamundaClient {
         const r = await Sdk.getElementInstance(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetElementInstanceResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getElementInstance', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3250,12 +3261,12 @@ export class CamundaClient {
         const r = await Sdk.getGroup(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3288,12 +3299,12 @@ export class CamundaClient {
         const r = await Sdk.getIncident(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetIncidentResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getIncident', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3320,12 +3331,12 @@ export class CamundaClient {
         const r = await Sdk.getLicense(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetLicenseResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getLicense', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3356,12 +3367,12 @@ export class CamundaClient {
         const r = await Sdk.getMappingRule(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetMappingRuleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getMappingRule', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3394,12 +3405,12 @@ export class CamundaClient {
         const r = await Sdk.getProcessDefinition(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetProcessDefinitionResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getProcessDefinition', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3428,19 +3439,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('getProcessDefinitionStatistics', (Schemas as any).zGetProcessDefinitionStatisticsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.getProcessDefinitionStatistics(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zGetProcessDefinitionStatisticsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('getProcessDefinitionStatistics', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -3451,19 +3462,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('getProcessDefinitionStatistics', (Schemas as any).zGetProcessDefinitionStatisticsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.getProcessDefinitionStatistics({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetProcessDefinitionStatisticsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getProcessDefinitionStatistics', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3496,12 +3507,12 @@ export class CamundaClient {
         const r = await Sdk.getProcessDefinitionXml(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetProcessDefinitionXmlResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getProcessDefinitionXML', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3534,12 +3545,12 @@ export class CamundaClient {
         const r = await Sdk.getProcessInstance(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetProcessInstanceResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getProcessInstance', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3572,12 +3583,12 @@ export class CamundaClient {
         const r = await Sdk.getProcessInstanceCallHierarchy(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetProcessInstanceCallHierarchyResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getProcessInstanceCallHierarchy', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3610,12 +3621,12 @@ export class CamundaClient {
         const r = await Sdk.getProcessInstanceSequenceFlows(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetProcessInstanceSequenceFlowsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getProcessInstanceSequenceFlows', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3648,12 +3659,12 @@ export class CamundaClient {
         const r = await Sdk.getProcessInstanceStatistics(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetProcessInstanceStatisticsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getProcessInstanceStatistics', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3686,12 +3697,12 @@ export class CamundaClient {
         const r = await Sdk.getResource(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetResourceResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getResource', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3722,12 +3733,12 @@ export class CamundaClient {
         const r = await Sdk.getResourceContent(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetResourceContentResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getResourceContent', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3758,12 +3769,12 @@ export class CamundaClient {
         const r = await Sdk.getRole(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetRoleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getRole', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3798,12 +3809,12 @@ export class CamundaClient {
         const r = await Sdk.getStartProcessForm(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetStartProcessFormResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getStartProcessForm', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3835,12 +3846,12 @@ export class CamundaClient {
         const r = await Sdk.getTenant(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3867,12 +3878,12 @@ export class CamundaClient {
         const r = await Sdk.getTopology(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetTopologyResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getTopology', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3900,12 +3911,12 @@ export class CamundaClient {
         const r = await Sdk.getUsageMetrics(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetUsageMetricsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getUsageMetrics', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3938,12 +3949,12 @@ export class CamundaClient {
         const r = await Sdk.getUser(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetUserResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getUser', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -3976,12 +3987,12 @@ export class CamundaClient {
         const r = await Sdk.getUserTask(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetUserTaskResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getUserTask', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4016,12 +4027,12 @@ export class CamundaClient {
         const r = await Sdk.getUserTaskForm(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetUserTaskFormResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getUserTaskForm', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4054,12 +4065,12 @@ export class CamundaClient {
         const r = await Sdk.getVariable(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zGetVariableResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('getVariable', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4091,19 +4102,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('migrateProcessInstance', (Schemas as any).zMigrateProcessInstanceData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.migrateProcessInstance(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zMigrateProcessInstanceResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('migrateProcessInstance', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -4112,19 +4123,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('migrateProcessInstance', (Schemas as any).zMigrateProcessInstanceData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.migrateProcessInstance({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zMigrateProcessInstanceResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('migrateProcessInstance', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4154,19 +4165,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('migrateProcessInstancesBatchOperation', (Schemas as any).zMigrateProcessInstancesBatchOperationData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.migrateProcessInstancesBatchOperation(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zMigrateProcessInstancesBatchOperationResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('migrateProcessInstancesBatchOperation', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -4177,19 +4188,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('migrateProcessInstancesBatchOperation', (Schemas as any).zMigrateProcessInstancesBatchOperationData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.migrateProcessInstancesBatchOperation({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zMigrateProcessInstancesBatchOperationResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('migrateProcessInstancesBatchOperation', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4220,19 +4231,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('modifyProcessInstance', (Schemas as any).zModifyProcessInstanceData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.modifyProcessInstance(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zModifyProcessInstanceResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('modifyProcessInstance', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -4241,19 +4252,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('modifyProcessInstance', (Schemas as any).zModifyProcessInstanceData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.modifyProcessInstance({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zModifyProcessInstanceResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('modifyProcessInstance', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4285,19 +4296,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('modifyProcessInstancesBatchOperation', (Schemas as any).zModifyProcessInstancesBatchOperationData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.modifyProcessInstancesBatchOperation(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zModifyProcessInstancesBatchOperationResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('modifyProcessInstancesBatchOperation', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -4308,19 +4319,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('modifyProcessInstancesBatchOperation', (Schemas as any).zModifyProcessInstancesBatchOperationData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.modifyProcessInstancesBatchOperation({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zModifyProcessInstancesBatchOperationResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('modifyProcessInstancesBatchOperation', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4351,19 +4362,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('pinClock', (Schemas as any).zPinClockData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.pinClock(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zPinClockResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('pinClock', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -4372,19 +4383,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('pinClock', (Schemas as any).zPinClockData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.pinClock({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zPinClockResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('pinClock', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4412,19 +4423,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('publishMessage', (Schemas as any).zPublishMessageData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.publishMessage(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zPublishMessageResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('publishMessage', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -4433,19 +4444,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('publishMessage', (Schemas as any).zPublishMessageData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.publishMessage({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zPublishMessageResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('publishMessage', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4476,12 +4487,12 @@ export class CamundaClient {
         const r = await Sdk.resetClock(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zResetClockResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('resetClock', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4505,19 +4516,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('resolveIncident', (Schemas as any).zResolveIncidentData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.resolveIncident(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zResolveIncidentResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('resolveIncident', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -4526,19 +4537,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('resolveIncident', (Schemas as any).zResolveIncidentData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.resolveIncident({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zResolveIncidentResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('resolveIncident', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4568,19 +4579,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('resolveIncidentsBatchOperation', (Schemas as any).zResolveIncidentsBatchOperationData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.resolveIncidentsBatchOperation(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zResolveIncidentsBatchOperationResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('resolveIncidentsBatchOperation', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -4591,19 +4602,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('resolveIncidentsBatchOperation', (Schemas as any).zResolveIncidentsBatchOperationData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.resolveIncidentsBatchOperation({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zResolveIncidentsBatchOperationResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('resolveIncidentsBatchOperation', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4633,19 +4644,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('resumeBatchOperation', (Schemas as any).zResumeBatchOperationData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.resumeBatchOperation(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zResumeBatchOperationResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('resumeBatchOperation', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -4656,19 +4667,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('resumeBatchOperation', (Schemas as any).zResumeBatchOperationData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.resumeBatchOperation({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zResumeBatchOperationResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('resumeBatchOperation', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4697,19 +4708,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchAuthorizations', (Schemas as any).zSearchAuthorizationsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchAuthorizations(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchAuthorizationsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchAuthorizations', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -4720,19 +4731,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchAuthorizations', (Schemas as any).zSearchAuthorizationsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchAuthorizations({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchAuthorizationsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchAuthorizations', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4760,19 +4771,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchBatchOperationItems', (Schemas as any).zSearchBatchOperationItemsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchBatchOperationItems(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchBatchOperationItemsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchBatchOperationItems', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -4783,19 +4794,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchBatchOperationItems', (Schemas as any).zSearchBatchOperationItemsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchBatchOperationItems({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchBatchOperationItemsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchBatchOperationItems', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4823,19 +4834,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchBatchOperations', (Schemas as any).zSearchBatchOperationsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchBatchOperations(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchBatchOperationsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchBatchOperations', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -4846,19 +4857,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchBatchOperations', (Schemas as any).zSearchBatchOperationsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchBatchOperations({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchBatchOperationsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchBatchOperations', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4887,19 +4898,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchClientsForGroup', (Schemas as any).zSearchClientsForGroupData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchClientsForGroup(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchClientsForGroupResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchClientsForGroup', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -4910,19 +4921,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchClientsForGroup', (Schemas as any).zSearchClientsForGroupData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchClientsForGroup({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchClientsForGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchClientsForGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -4951,19 +4962,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchClientsForRole', (Schemas as any).zSearchClientsForRoleData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchClientsForRole(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchClientsForRoleResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchClientsForRole', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -4974,19 +4985,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchClientsForRole', (Schemas as any).zSearchClientsForRoleData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchClientsForRole({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchClientsForRoleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchClientsForRole', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5014,19 +5025,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchClientsForTenant', (Schemas as any).zSearchClientsForTenantData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchClientsForTenant(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchClientsForTenantResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchClientsForTenant', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5037,19 +5048,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchClientsForTenant', (Schemas as any).zSearchClientsForTenantData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchClientsForTenant({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchClientsForTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchClientsForTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5078,19 +5089,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchDecisionDefinitions', (Schemas as any).zSearchDecisionDefinitionsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchDecisionDefinitions(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchDecisionDefinitionsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchDecisionDefinitions', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5101,19 +5112,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchDecisionDefinitions', (Schemas as any).zSearchDecisionDefinitionsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchDecisionDefinitions({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchDecisionDefinitionsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchDecisionDefinitions', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5142,19 +5153,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchDecisionInstances', (Schemas as any).zSearchDecisionInstancesData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchDecisionInstances(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchDecisionInstancesResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchDecisionInstances', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5165,19 +5176,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchDecisionInstances', (Schemas as any).zSearchDecisionInstancesData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchDecisionInstances({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchDecisionInstancesResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchDecisionInstances', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5206,19 +5217,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchDecisionRequirements', (Schemas as any).zSearchDecisionRequirementsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchDecisionRequirements(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchDecisionRequirementsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchDecisionRequirements', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5229,19 +5240,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchDecisionRequirements', (Schemas as any).zSearchDecisionRequirementsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchDecisionRequirements({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchDecisionRequirementsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchDecisionRequirements', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5270,19 +5281,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchElementInstances', (Schemas as any).zSearchElementInstancesData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchElementInstances(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchElementInstancesResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchElementInstances', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5293,19 +5304,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchElementInstances', (Schemas as any).zSearchElementInstancesData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchElementInstances({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchElementInstancesResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchElementInstances', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5333,19 +5344,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchGroupIdsForTenant', (Schemas as any).zSearchGroupIdsForTenantData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchGroupIdsForTenant(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchGroupIdsForTenantResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchGroupIdsForTenant', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5356,19 +5367,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchGroupIdsForTenant', (Schemas as any).zSearchGroupIdsForTenantData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchGroupIdsForTenant({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchGroupIdsForTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchGroupIdsForTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5397,19 +5408,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchGroups', (Schemas as any).zSearchGroupsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchGroups(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchGroupsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchGroups', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5420,19 +5431,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchGroups', (Schemas as any).zSearchGroupsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchGroups({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchGroupsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchGroups', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5461,19 +5472,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchGroupsForRole', (Schemas as any).zSearchGroupsForRoleData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchGroupsForRole(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchGroupsForRoleResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchGroupsForRole', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5484,19 +5495,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchGroupsForRole', (Schemas as any).zSearchGroupsForRoleData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchGroupsForRole({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchGroupsForRoleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchGroupsForRole', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5525,19 +5536,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchIncidents', (Schemas as any).zSearchIncidentsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchIncidents(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchIncidentsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchIncidents', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5548,19 +5559,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchIncidents', (Schemas as any).zSearchIncidentsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchIncidents({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchIncidentsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchIncidents', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5588,19 +5599,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchJobs', (Schemas as any).zSearchJobsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchJobs(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchJobsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchJobs', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5611,19 +5622,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchJobs', (Schemas as any).zSearchJobsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchJobs({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchJobsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchJobs', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5652,19 +5663,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchMappingRule', (Schemas as any).zSearchMappingRuleData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchMappingRule(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchMappingRuleResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchMappingRule', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5675,19 +5686,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchMappingRule', (Schemas as any).zSearchMappingRuleData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchMappingRule({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchMappingRuleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchMappingRule', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5716,19 +5727,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchMappingRulesForGroup', (Schemas as any).zSearchMappingRulesForGroupData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchMappingRulesForGroup(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchMappingRulesForGroupResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchMappingRulesForGroup', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5739,19 +5750,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchMappingRulesForGroup', (Schemas as any).zSearchMappingRulesForGroupData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchMappingRulesForGroup({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchMappingRulesForGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchMappingRulesForGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5780,19 +5791,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchMappingRulesForRole', (Schemas as any).zSearchMappingRulesForRoleData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchMappingRulesForRole(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchMappingRulesForRoleResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchMappingRulesForRole', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5803,19 +5814,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchMappingRulesForRole', (Schemas as any).zSearchMappingRulesForRoleData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchMappingRulesForRole({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchMappingRulesForRoleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchMappingRulesForRole', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5843,19 +5854,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchMappingsForTenant', (Schemas as any).zSearchMappingsForTenantData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchMappingsForTenant(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchMappingsForTenantResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchMappingsForTenant', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5866,19 +5877,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchMappingsForTenant', (Schemas as any).zSearchMappingsForTenantData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchMappingsForTenant({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchMappingsForTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchMappingsForTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5907,19 +5918,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchMessageSubscriptions', (Schemas as any).zSearchMessageSubscriptionsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchMessageSubscriptions(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchMessageSubscriptionsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchMessageSubscriptions', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5930,19 +5941,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchMessageSubscriptions', (Schemas as any).zSearchMessageSubscriptionsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchMessageSubscriptions({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchMessageSubscriptionsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchMessageSubscriptions', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -5971,19 +5982,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchProcessDefinitions', (Schemas as any).zSearchProcessDefinitionsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchProcessDefinitions(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchProcessDefinitionsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchProcessDefinitions', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -5994,19 +6005,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchProcessDefinitions', (Schemas as any).zSearchProcessDefinitionsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchProcessDefinitions({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchProcessDefinitionsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchProcessDefinitions', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6035,19 +6046,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchProcessInstanceIncidents', (Schemas as any).zSearchProcessInstanceIncidentsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchProcessInstanceIncidents(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchProcessInstanceIncidentsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchProcessInstanceIncidents', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6058,19 +6069,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchProcessInstanceIncidents', (Schemas as any).zSearchProcessInstanceIncidentsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchProcessInstanceIncidents({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchProcessInstanceIncidentsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchProcessInstanceIncidents', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6099,19 +6110,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchProcessInstances', (Schemas as any).zSearchProcessInstancesData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchProcessInstances(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchProcessInstancesResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchProcessInstances', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6122,19 +6133,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchProcessInstances', (Schemas as any).zSearchProcessInstancesData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchProcessInstances({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchProcessInstancesResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchProcessInstances', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6163,19 +6174,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchRoles', (Schemas as any).zSearchRolesData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchRoles(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchRolesResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchRoles', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6186,19 +6197,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchRoles', (Schemas as any).zSearchRolesData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchRoles({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchRolesResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchRoles', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6227,19 +6238,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchRolesForGroup', (Schemas as any).zSearchRolesForGroupData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchRolesForGroup(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchRolesForGroupResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchRolesForGroup', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6250,19 +6261,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchRolesForGroup', (Schemas as any).zSearchRolesForGroupData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchRolesForGroup({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchRolesForGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchRolesForGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6290,19 +6301,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchRolesForTenant', (Schemas as any).zSearchRolesForTenantData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchRolesForTenant(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchRolesForTenantResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchRolesForTenant', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6313,19 +6324,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchRolesForTenant', (Schemas as any).zSearchRolesForTenantData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchRolesForTenant({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchRolesForTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchRolesForTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6353,19 +6364,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchTenants', (Schemas as any).zSearchTenantsData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchTenants(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchTenantsResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchTenants', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6376,19 +6387,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchTenants', (Schemas as any).zSearchTenantsData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchTenants({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchTenantsResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchTenants', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6417,19 +6428,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchUsers', (Schemas as any).zSearchUsersData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchUsers(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchUsersResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchUsers', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6440,19 +6451,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchUsers', (Schemas as any).zSearchUsersData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchUsers({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchUsersResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchUsers', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6481,19 +6492,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchUsersForGroup', (Schemas as any).zSearchUsersForGroupData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchUsersForGroup(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchUsersForGroupResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchUsersForGroup', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6504,19 +6515,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchUsersForGroup', (Schemas as any).zSearchUsersForGroupData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchUsersForGroup({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchUsersForGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchUsersForGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6545,19 +6556,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchUsersForRole', (Schemas as any).zSearchUsersForRoleData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchUsersForRole(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchUsersForRoleResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchUsersForRole', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6568,19 +6579,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchUsersForRole', (Schemas as any).zSearchUsersForRoleData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchUsersForRole({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchUsersForRoleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchUsersForRole', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6608,19 +6619,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchUsersForTenant', (Schemas as any).zSearchUsersForTenantData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchUsersForTenant(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchUsersForTenantResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchUsersForTenant', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6631,19 +6642,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchUsersForTenant', (Schemas as any).zSearchUsersForTenantData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchUsersForTenant({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchUsersForTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchUsersForTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6672,19 +6683,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchUserTasks', (Schemas as any).zSearchUserTasksData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchUserTasks(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchUserTasksResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchUserTasks', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6695,19 +6706,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchUserTasks', (Schemas as any).zSearchUserTasksData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchUserTasks({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchUserTasksResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchUserTasks', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6736,19 +6747,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchUserTaskVariables', (Schemas as any).zSearchUserTaskVariablesData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchUserTaskVariables(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchUserTaskVariablesResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchUserTaskVariables', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6759,19 +6770,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchUserTaskVariables', (Schemas as any).zSearchUserTaskVariablesData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchUserTaskVariables({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchUserTaskVariablesResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchUserTaskVariables', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6800,19 +6811,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('searchVariables', (Schemas as any).zSearchVariablesData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.searchVariables(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSearchVariablesResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('searchVariables', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6823,19 +6834,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('searchVariables', (Schemas as any).zSearchVariablesData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.searchVariables({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSearchVariablesResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('searchVariables', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6865,19 +6876,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('suspendBatchOperation', (Schemas as any).zSuspendBatchOperationData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.suspendBatchOperation(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zSuspendBatchOperationResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('suspendBatchOperation', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6888,19 +6899,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('suspendBatchOperation', (Schemas as any).zSuspendBatchOperationData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.suspendBatchOperation({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zSuspendBatchOperationResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('suspendBatchOperation', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6926,19 +6937,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('throwJobError', (Schemas as any).zThrowJobErrorData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.throwJobError(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zThrowJobErrorResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('throwJobError', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -6947,19 +6958,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('throwJobError', (Schemas as any).zThrowJobErrorData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.throwJobError({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zThrowJobErrorResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('throwJobError', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -6985,12 +6996,12 @@ export class CamundaClient {
         const r = await Sdk.unassignClientFromGroup(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUnassignClientFromGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('unassignClientFromGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7015,12 +7026,12 @@ export class CamundaClient {
         const r = await Sdk.unassignClientFromTenant(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUnassignClientFromTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('unassignClientFromTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7045,12 +7056,12 @@ export class CamundaClient {
         const r = await Sdk.unassignGroupFromTenant(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUnassignGroupFromTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('unassignGroupFromTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7076,12 +7087,12 @@ export class CamundaClient {
         const r = await Sdk.unassignMappingRuleFromGroup(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUnassignMappingRuleFromGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('unassignMappingRuleFromGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7106,12 +7117,12 @@ export class CamundaClient {
         const r = await Sdk.unassignMappingRuleFromTenant(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUnassignMappingRuleFromTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('unassignMappingRuleFromTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7136,12 +7147,12 @@ export class CamundaClient {
         const r = await Sdk.unassignRoleFromClient(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUnassignRoleFromClientResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('unassignRoleFromClient', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7166,12 +7177,12 @@ export class CamundaClient {
         const r = await Sdk.unassignRoleFromGroup(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUnassignRoleFromGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('unassignRoleFromGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7197,12 +7208,12 @@ export class CamundaClient {
         const r = await Sdk.unassignRoleFromMappingRule(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUnassignRoleFromMappingRuleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('unassignRoleFromMappingRule', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7227,12 +7238,12 @@ export class CamundaClient {
         const r = await Sdk.unassignRoleFromTenant(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUnassignRoleFromTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('unassignRoleFromTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7258,12 +7269,12 @@ export class CamundaClient {
         const r = await Sdk.unassignRoleFromUser(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUnassignRoleFromUserResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('unassignRoleFromUser', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7289,12 +7300,12 @@ export class CamundaClient {
         const r = await Sdk.unassignUserFromGroup(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUnassignUserFromGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('unassignUserFromGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7319,12 +7330,12 @@ export class CamundaClient {
         const r = await Sdk.unassignUserFromTenant(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUnassignUserFromTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('unassignUserFromTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7351,12 +7362,12 @@ export class CamundaClient {
         const r = await Sdk.unassignUserTask(full);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUnassignUserTaskResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('unassignUserTask', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7379,19 +7390,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('updateAuthorization', (Schemas as any).zUpdateAuthorizationData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.updateAuthorization(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zUpdateAuthorizationResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('updateAuthorization', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -7400,19 +7411,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('updateAuthorization', (Schemas as any).zUpdateAuthorizationData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.updateAuthorization({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUpdateAuthorizationResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('updateAuthorization', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7436,19 +7447,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('updateGroup', (Schemas as any).zUpdateGroupData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.updateGroup(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zUpdateGroupResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('updateGroup', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -7457,19 +7468,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('updateGroup', (Schemas as any).zUpdateGroupData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.updateGroup({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUpdateGroupResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('updateGroup', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7492,19 +7503,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('updateJob', (Schemas as any).zUpdateJobData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.updateJob(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zUpdateJobResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('updateJob', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -7513,19 +7524,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('updateJob', (Schemas as any).zUpdateJobData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.updateJob({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUpdateJobResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('updateJob', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7549,19 +7560,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('updateMappingRule', (Schemas as any).zUpdateMappingRuleData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.updateMappingRule(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zUpdateMappingRuleResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('updateMappingRule', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -7570,19 +7581,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('updateMappingRule', (Schemas as any).zUpdateMappingRuleData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.updateMappingRule({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUpdateMappingRuleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('updateMappingRule', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7606,19 +7617,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('updateRole', (Schemas as any).zUpdateRoleData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.updateRole(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zUpdateRoleResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('updateRole', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -7627,19 +7638,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('updateRole', (Schemas as any).zUpdateRoleData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.updateRole({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUpdateRoleResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('updateRole', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7662,19 +7673,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('updateTenant', (Schemas as any).zUpdateTenantData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.updateTenant(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zUpdateTenantResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('updateTenant', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -7683,19 +7694,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('updateTenant', (Schemas as any).zUpdateTenantData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.updateTenant({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUpdateTenantResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('updateTenant', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7722,19 +7733,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('updateUser', (Schemas as any).zUpdateUserData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.updateUser(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zUpdateUserResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('updateUser', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -7745,19 +7756,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('updateUser', (Schemas as any).zUpdateUserData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.updateUser({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUpdateUserResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('updateUser', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
@@ -7782,19 +7793,19 @@ export class CamundaClient {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
         const call = async () => {
           const opts: any = { ...arg, client: this._client, signal };
-          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+          if (opts.body !== undefined && this._validation.settings.req !== 'none') {
             const maybe = await this._validation.gateRequest('updateUserTask', (Schemas as any).zUpdateUserTaskData, opts.body);
-            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+            if (this._validation.settings.req === 'strict') opts.body = maybe;
           }
           const r = await Sdk.updateUserTask(opts);
           let data = (r as any)?.data;
           if (data === undefined) data = r;
-          if (this.responseValidationMode() !== 'none') {
+          if (this._validation.settings.res !== 'none') {
             const _respKey = 'zUpdateUserTaskResponse';
             const _schema = (Schemas as any)[_respKey];
             if (_schema) {
               const maybeR = await this._validation.gateResponse('updateUserTask', _schema, data);
-              if (this.responseValidationMode() === 'strict') data = maybeR;
+              if (this._validation.settings.res === 'strict') data = maybeR;
             }
           }
           return data;
@@ -7803,19 +7814,19 @@ export class CamundaClient {
       }
       const call = async () => {
         let bodyVal: any = arg;
-        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {
           const maybe = await this._validation.gateRequest('updateUserTask', (Schemas as any).zUpdateUserTaskData, bodyVal);
-          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+          if (this._validation.settings.req === 'strict') bodyVal = maybe;
         }
         const r = await Sdk.updateUserTask({ body: bodyVal, client: this._client, signal } as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
-        if (this.responseValidationMode() !== 'none') {
+        if (this._validation.settings.res !== 'none') {
           const _respKey = 'zUpdateUserTaskResponse';
           const _schema = (Schemas as any)[_respKey];
           if (_schema) {
             const maybeR = await this._validation.gateResponse('updateUserTask', _schema, data);
-            if (this.responseValidationMode() === 'strict') data = maybeR;
+            if (this._validation.settings.res === 'strict') data = maybeR;
           }
         }
         return data;
