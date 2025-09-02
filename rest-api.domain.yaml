@@ -5408,9 +5408,9 @@ components:
       minLength: 1
       maxLength: 20
     StartCursor:
+      description: "The start cursor in a search query result set."
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
-        - description: "The start cursor in a search query result set."
           format: "base64"
           x-semantic-type: "StartCursor"
           pattern: '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=)?$'
@@ -5418,9 +5418,9 @@ components:
           maxLength: 300
           example: "WzIyNTE3OTk4MTM2ODcxMDJd"
     EndCursor:
+      description: "The end cursor in a search query result set."
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
-        - description: "The end cursor in a search query result set."
           format: "base64"
           x-semantic-type: "EndCursor"
           pattern: '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=)?$'
@@ -5428,69 +5428,69 @@ components:
           maxLength: 300
           example: "WzIyNTE3OTk4MTM2ODcxMDJd"
     ProcessInstanceKey:
+      description: "System-generated key for a process instance."
+      format: "ProcessInstanceKey"
+      x-semantic-type: "ProcessInstanceKey"
+      example: "2251799813690746"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a process instance."
-          format: "ProcessInstanceKey"
-          x-semantic-type: "ProcessInstanceKey"
-          example: "2251799813690746"
     DeploymentKey:
+      description: "Key for a deployment."
+      format: "DeploymentKey"
+      x-semantic-type: "DeploymentKey"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "Key for a deployment."
-          format: "DeploymentKey"
-          x-semantic-type: "DeploymentKey"
     UserTaskKey:
+      description: "System-generated key for a user task."
+      format: "UserTaskKey"
+      x-semantic-type: "UserTaskKey"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a user task."
-          format: "UserTaskKey"
-          x-semantic-type: "UserTaskKey"
     ProcessDefinitionKey:
+      description: "System-generated key for a deployed process definition."
+      format: "ProcessDefinitionKey"
+      x-semantic-type: "ProcessDefinitionKey"
+      example: "2251799813686749"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a deployed process definition."
-          format: "ProcessDefinitionKey"
-          x-semantic-type: "ProcessDefinitionKey"
-          example: "2251799813686749"
     ProcessDefinitionId: 
+      description: "Id of a process definition, from the model. Only ids of process definitions that are deployed\
+          \ are useful."
+      format: "ProcessDefinitionId"
+      x-semantic-type: "ProcessDefinitionId"
+      minLength: 1
+      pattern: ^[a-zA-Z_][a-zA-Z0-9_\-\.]*$
+      example: "new-hire-onboarding-workflow"
       allOf:  
         - $ref: "#/components/schemas/CamundaKey"
-        - description: "Id of a process definition, from the model. Only ids of process definitions that are deployed\
-            \ are useful."
-        - format: "ProcessDefinitionId"
-        - x-semantic-type: "ProcessDefinitionId"
-          minLength: 1
-          pattern: ^[a-zA-Z_][a-zA-Z0-9_\-\.]*$
-          example: "new-hire-onboarding-workflow"
     ElementInstanceKey:
+      description: "System-generated key for a element instance."
+      format: "ElementInstanceKey"
+      x-semantic-type: "ElementInstanceKey"
+      example: "2251799813686789"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a element instance."
-          format: "ElementInstanceKey"
-          x-semantic-type: "ElementInstanceKey"
-          example: "2251799813686789"
     FormKey:
+      description: "System-generated key for a deployed form."
+      format: "FormKey"
+      x-semantic-type: "FormKey"
+      example: "2251799813684365"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a deployed form."
-          format: "FormKey"
-          x-semantic-type: "FormKey"
-          example: "2251799813684365"
     VariableKey:
+      description: "System-generated key for a variable."
+      format: "VariableKey"
+      x-semantic-type: "VariableKey"
+      example: "2251799813683287"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a variable."
-          format: "VariableKey"
-          x-semantic-type: "VariableKey"
-          example: "2251799813683287"
     ResourceKey:
       oneOf:
         - $ref: "#/components/schemas/ProcessDefinitionKey"
@@ -5508,122 +5508,119 @@ components:
       description: "The system-assigned key for this resource."
       format: "ResourceKey"
     ScopeKey:
+      description: "System-generated key for a scope."
+      format: "ScopeKey"
+      x-semantic-type: "ScopeKey"
+      example: "2251799813683890"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a scope."
-          format: "ScopeKey"
-          x-semantic-type: "ScopeKey"
-          example: "2251799813683890"
     IncidentKey:
+      description: "System-generated key for a incident."
+      format: "IncidentKey"
+      x-semantic-type: "IncidentKey"
+      example: "2251799813689432"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a incident."
-          format: "IncidentKey"
-          x-semantic-type: "IncidentKey"
-          example: "2251799813689432"
     JobKey:
+      description: "System-generated key for a job."
+      format: "JobKey"
+      x-semantic-type: "JobKey"
+      example: "2251799813653498"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a job."
-          format: "JobKey"
-          x-semantic-type: "JobKey"
-          example: "2251799813653498"
     MessageSubscriptionKey:
+      description: "System-generated key for a message subscription."
+      format: "MessageSubscriptionKey"
+      x-semantic-type: "MessageSubscriptionKey"
+      example: "2251799813632456"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a message subscription."
-          format: "MessageSubscriptionKey"
-          x-semantic-type: "MessageSubscriptionKey"
-          example: "2251799813632456"
     MessageCorrelationKey:
+      description: "System-generated key for a message correlation."
+      format: "MessageCorrelationKey"
+      x-semantic-type: "MessageCorrelationKey"
+      example: "2251799813634265"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a message correlation."
-          format: "MessageCorrelationKey"
-          x-semantic-type: "MessageCorrelationKey"
-          example: "2251799813634265"
     DecisionDefinitionKey:
+      description: "System-generated key for a decision definition."
+      format: "DecisionDefinitionKey"
+      x-semantic-type: "DecisionDefinitionKey"
+      example: "2251799813326547"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"       
-        - description: "System-generated key for a decision definition."
-          format: "DecisionDefinitionKey"
-          x-semantic-type: "DecisionDefinitionKey"
-          example: "2251799813326547"
     DecisionDefinitionId:
+      description: "Id of a decision definition, from the model. Only ids of decision definitions that are deployed\
+          \ are useful."
+      format: "DecisionDefinitionId"
+      x-semantic-type: "DecisionDefinitionId"
+      minLength: 1
+      maxLength: 256
+      pattern: "^[A-Za-z0-9_@.+-]+$"
+      example: "new-hire-onboarding-workflow"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
-        - description: "Id of a decision definition, from the model. Only ids of decision definitions that are deployed\
-            \ are useful."
-        - format: "DecisionDefinitionId"
-        - x-semantic-type: "DecisionDefinitionId"
-          minLength: 1
-          maxLength: 256
-          pattern: "^[A-Za-z0-9_@.+-]+$"
-          example: "new-hire-onboarding-workflow"
     DecisionEvaluationInstanceKey:
+      description: "System-generated key for a decision evaluation instance."
+      format: "DecisionEvaluationInstanceKey"
+      x-semantic-type: "DecisionEvaluationInstanceKey"
+      example: "2251799813684367"
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a decision evaluation instance."
-          format: "DecisionEvaluationInstanceKey"
-          x-semantic-type: "DecisionEvaluationInstanceKey"
-          example: "2251799813684367"
     DecisionEvaluationKey:
       allOf: 
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a decision evaluation."
-          pattern: "^-?[0-9]+-[0-9]{3}$"  
-          minLength: 1
-          maxLength: 25
-          format: "DecisionEvaluationKey"
-          x-semantic-type: "DecisionEvaluationKey"
-      example: "2251799813623453"
+      description: "System-generated key for a decision evaluation."
+      format: "DecisionEvaluationKey"
+      x-semantic-type: "DecisionEvaluationKey"
+      example: "2251792362345323"
     DecisionRequirementsKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a deployed decision requirements definition."
-          format: "DecisionRequirementsKey"
-          x-semantic-type: "DecisionRequirementsKey"
+      description: "System-generated key for a deployed decision requirements definition."
+      format: "DecisionRequirementsKey"
+      x-semantic-type: "DecisionRequirementsKey"
       example: "2251799813683346"
     AuthorizationKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for an authorization."
-          format: "AuthorizationKey"
-          x-semantic-type: "AuthorizationKey"
+      description: "System-generated key for an authorization."
+      format: "AuthorizationKey"
+      x-semantic-type: "AuthorizationKey"
       example: "2251799813684332"
     MessageKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for an message."
-          format: "MessageKey"
-          x-semantic-type: "MessageKey"
+      description: "System-generated key for an message."
+      format: "MessageKey"
+      x-semantic-type: "MessageKey"
       example: "2251799813683467"
     DecisionInstanceKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for a deployed decision instance."
-          format: "DecisionInstanceKey"
-          x-semantic-type: "DecisionInstanceKey"
+      description: "System-generated key for a deployed decision instance."
+      format: "DecisionInstanceKey"
+      x-semantic-type: "DecisionInstanceKey"
       example: "22517998136843567"
     SignalKey:
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
-        - description: "System-generated key for an signal."
-          format: "SignalKey"
-          x-semantic-type: "SignalKey"
+      description: "System-generated key for an signal."
+      format: "SignalKey"
+      x-semantic-type: "SignalKey"
       example: "22517998136987467"
     BatchOperationKey:
       oneOf:
@@ -5632,7 +5629,7 @@ components:
           - $ref: "#/components/schemas/LongKey"
         - type: "string"
           format: "uuid"
-          description: "System-generated key for an batch operation."
+      description: "System-generated key for an batch operation."
       example: "2251799813684321"
     TenantCreateRequest:
       type: "object"
@@ -5896,19 +5893,19 @@ components:
         userTaskKey:
           allOf:
             - $ref: "#/components/schemas/UserTaskKey"
-            - description: "The key for this user task."
+          description: "The key for this user task."
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The key of the process definition."
+          description: "The key of the process definition."
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The key of the process instance."
+          description: "The key of the process instance."
         elementInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
-            - description: "The key of the element instance."
+          description: "The key of the element instance."
     UserTaskStateFilterProperty:
       description: "UserTaskStateEnum property with full advanced search capabilities."
       type: "object"
@@ -6031,23 +6028,23 @@ components:
         userTaskKey:
           allOf:
             - $ref: "#/components/schemas/UserTaskKey"
-            - description: "The key of the user task."
+          description: "The key of the user task."
         elementInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
-            - description: "The key of the element instance."
+          description: "The key of the element instance."
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The key of the process definition."
+          description: "The key of the process definition."
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The key of the process instance."
+          description: "The key of the process instance."
         formKey:
           allOf:
             - $ref: "#/components/schemas/FormKey"
-            - description: "The key of the form."
+          description: "The key of the form."
     UserTaskStateEnum:
       description: "The state of the user task."
       type: "string"
@@ -6171,15 +6168,15 @@ components:
         variableKey:
           allOf:
             - $ref: "#/components/schemas/VariableKey"
-            - description: "The key for this variable."
+          description: "The key for this variable."
         scopeKey:
           allOf:
             - $ref: "#/components/schemas/ScopeKey"
-            - description: "The key of the scope of this variable."
+          description: "The key of the scope of this variable."
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The key of the process instance of this variable."
+          description: "The key of the process instance of this variable."
     ProcessDefinitionSearchQuerySortRequest:
       type: "object"
       properties:
@@ -6247,7 +6244,7 @@ components:
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The key for this process definition."
+          description: "The key for this process definition."
         hasStartForm:
           description: "Indicates whether the start event of the process has an associated\
             \ Form Key."
@@ -6288,7 +6285,7 @@ components:
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The key for this process definition."
+          description: "The key for this process definition."
         hasStartForm:
           description: "Indicates whether the start event of the process has an associated\
             \ Form Key."
@@ -6948,19 +6945,19 @@ components:
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The key of this process instance."
+          description: "The key of this process instance."
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The process definition key."
+          description: "The process definition key."
         parentProcessInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The parent process instance key."
+          description: "The parent process instance key."
         parentElementInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
-            - description: "The parent element instance key."
+          description: "The parent element instance key."
         tags:
           $ref: '#/components/schemas/TagSet'
     ProcessInstanceStateEnum:
@@ -6985,11 +6982,11 @@ components:
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The key of the process instance."
+          description: "The key of the process instance."
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The key of the process definition."
+          description: "The key of the process definition."
         processDefinitionName:
           type: "string"
           description: "The name of the process definition (fall backs to the process\
@@ -7013,11 +7010,11 @@ components:
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The key of this process instance."
+          description: "The key of this process instance."
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The process definition key."
+          description: "The process definition key."
         processDefinitionId:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionId"
@@ -7177,21 +7174,21 @@ components:
         elementInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
-            - description: "The assigned key, which acts as a unique identifier for\
+          description: "The assigned key, which acts as a unique identifier for\
                 \ this element instance."
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The process instance key associated to this element instance."
+          description: "The process instance key associated to this element instance."
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The process definition key associated to this element\
+          description: "The process definition key associated to this element\
                 \ instance."
         incidentKey:
           allOf:
             - $ref: "#/components/schemas/IncidentKey"
-            - description: "The key of incident if field incident is true."
+          description: "The key of incident if field incident is true."
         startDate:
           description: "The start date of this element instance."
           allOf:
@@ -7296,21 +7293,21 @@ components:
         elementInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
-            - description: "The assigned key, which acts as a unique identifier for\
+          description: "The assigned key, which acts as a unique identifier for\
                 \ this element instance."
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The process instance key associated to this element instance."
+          description: "The process instance key associated to this element instance."
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The process definition key associated to this element\
+          description: "The process definition key associated to this element\
                 \ instance."
         incidentKey:
           allOf:
             - $ref: "#/components/schemas/IncidentKey"
-            - description: "Incident key associated with this element instance."
+          description: "Incident key associated with this element instance."
     AdHocSubProcessActivateActivitiesInstruction:
       type: "object"
       properties:
@@ -7394,12 +7391,12 @@ components:
         decisionDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/DecisionDefinitionKey"
-            - description: "The assigned key, which acts as a unique identifier for\
+          description: "The assigned key, which acts as a unique identifier for\
                 \ this decision definition."
         decisionRequirementsKey:
           allOf:
             - $ref: "#/components/schemas/DecisionRequirementsKey"
-            - description: "The assigned key of the decision requirements graph that\
+          description: "The assigned key of the decision requirements graph that\
                 \ the decision definition is part of."
     IncidentSearchQuerySortRequest:
       type: "object"
@@ -7490,24 +7487,24 @@ components:
         incidentKey:
           allOf:
             - $ref: "#/components/schemas/IncidentKey"
-            - description: "The assigned key, which acts as a unique identifier for\
+          description: "The assigned key, which acts as a unique identifier for\
                 \ this incident."
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The process definition key associated to this incident."
+          description: "The process definition key associated to this incident."
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The process instance key associated to this incident."
+          description: "The process instance key associated to this incident."
         elementInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
-            - description: "The element instance key associated to this incident."
+          description: "The element instance key associated to this incident."
         jobKey:
           allOf:
             - $ref: "#/components/schemas/JobKey"
-            - description: "The job key, if exists, associated with this incident."
+          description: "The job key, if exists, associated with this incident."
     IncidentSearchQueryResult:
       type: "object"
       allOf:
@@ -7534,7 +7531,7 @@ components:
         messageSubscriptionKey:
           allOf:
             - $ref: "#/components/schemas/MessageSubscriptionKey"
-            - description: "The message subscription key associated with this message\
+          description: "The message subscription key associated with this message\
                 \ subscription."
         processDefinitionId:
           description: "The process definition ID associated with this message subscription."
@@ -7543,12 +7540,12 @@ components:
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The process definition key associated with this message\
+          description: "The process definition key associated with this message\
                 \ subscription."
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The process instance key associated with this message\
+          description: "The process instance key associated with this message\
                 \ subscription."
         elementId:
           description: "The element ID associated with this message subscription."
@@ -7556,7 +7553,7 @@ components:
         elementInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
-            - description: "The element instance key associated with this message\
+          description: "The element instance key associated with this message\
                 \ subscription."
         messageSubscriptionType:
           $ref: "#/components/schemas/MessageSubscriptionTypeEnum"
@@ -7570,7 +7567,7 @@ components:
         correlationKey:
           allOf:
             - $ref: "#/components/schemas/MessageCorrelationKey"
-            - description: "The correlation key of the message subscription."
+          description: "The correlation key of the message subscription."
         tenantId:
           $ref: "#/components/schemas/TenantId"
     MessageSubscriptionSearchQuerySortRequest:
@@ -7744,24 +7741,24 @@ components:
         incidentKey:
           allOf:
             - $ref: "#/components/schemas/IncidentKey"
-            - description: "The assigned key, which acts as a unique identifier for\
+          description: "The assigned key, which acts as a unique identifier for\
                 \ this incident."
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The process definition key associated to this incident."
+          description: "The process definition key associated to this incident."
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The process instance key associated to this incident."
+          description: "The process instance key associated to this incident."
         elementInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
-            - description: "The element instance key associated to this incident."
+          description: "The element instance key associated to this incident."
         jobKey:
           allOf:
             - $ref: "#/components/schemas/JobKey"
-            - description: "The job key, if exists, associated with this incident."
+          description: "The job key, if exists, associated with this incident."
     DecisionDefinitionSearchQueryResult:
       type: "object"
       allOf:
@@ -7796,12 +7793,12 @@ components:
         decisionDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/DecisionDefinitionKey"
-            - description: "The assigned key, which acts as a unique identifier for\
+          description: "The assigned key, which acts as a unique identifier for\
                 \ this decision definition."
         decisionRequirementsKey:
           allOf:
             - $ref: "#/components/schemas/DecisionRequirementsKey"
-            - description: "The assigned key of the decision requirements graph that\
+          description: "The assigned key of the decision requirements graph that\
                 \ the decision definition is part of."
     UsageMetricsResponse:
       type: "object"
@@ -7930,7 +7927,7 @@ components:
         authorizationKey:
           allOf:
             - $ref: "#/components/schemas/AuthorizationKey"
-            - description: "The key of the created authorization."
+          description: "The key of the created authorization."
     AuthorizationSearchQuerySortRequest:
       type: "object"
       properties:
@@ -8009,7 +8006,7 @@ components:
         authorizationKey:
           allOf:
             - $ref: "#/components/schemas/AuthorizationKey"
-            - description: "The key of the authorization."
+          description: "The key of the authorization."
     AuthorizationSearchResult:
       type: "object"
       allOf:
@@ -9193,20 +9190,20 @@ components:
           x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/JobKey"
-            - description: "The key, a unique identifier for the job."
+          description: "The key, a unique identifier for the job."
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The job's process instance key."
+          description: "The job's process instance key."
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The key of the job's process definition."
+          description: "The key of the job's process definition."
         elementInstanceKey:
           x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
-            - description: "The unique key identifying the associated task, unique\
+          description: "The unique key identifying the associated task, unique\
                 \ within the scope of the process instance."
         kind:
           $ref: "#/components/schemas/JobKindEnum"
@@ -9255,8 +9252,7 @@ components:
         formKey:
           allOf:
             - $ref: "#/components/schemas/FormKey"
-            - description: "The key of the form associated with the user task."
-            - nullable: true
+          description: "The key of the form associated with the user task."
         priority:
           description: "The priority of the user task."
           type: "integer"
@@ -9267,8 +9263,8 @@ components:
         userTaskKey:
           allOf:
             - $ref: "#/components/schemas/UserTaskKey"
-            - description: "The unique key identifying the user task."
-            - nullable: true
+          description: "The unique key identifying the user task."
+          nullable: true
     JobFailRequest:
       type: "object"
       properties:
@@ -9660,7 +9656,7 @@ components:
         elementInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
-            - description: "The element instance key associated with the job."
+          description: "The element instance key associated with the job."
         endTime:
           description: "When the job ended."
           type: "string"
@@ -9684,7 +9680,7 @@ components:
         jobKey:
           allOf:
             - $ref: "#/components/schemas/JobKey"
-            - description: "The key, a unique identifier for the job."
+          description: "The key, a unique identifier for the job."
         kind:
           $ref: "#/components/schemas/JobKindEnum"
         listenerEventType:
@@ -9696,11 +9692,11 @@ components:
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The process definition key associated with the job."
+          description: "The process definition key associated with the job."
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The process instance key associated with the job."
+          description: "The process instance key associated with the job."
         retries:
           description: "The amount of retries left to this job."
           type: "integer"
@@ -10017,7 +10013,7 @@ components:
         decisionRequirementsKey:
           allOf:
             - $ref: "#/components/schemas/DecisionRequirementsKey"
-            - description: "The assigned key, which acts as a unique identifier for\
+          description: "The assigned key, which acts as a unique identifier for\
                 \ this decision requirements."
         resourceName:
           type: "string"
@@ -10056,7 +10052,7 @@ components:
         decisionRequirementsKey:
           allOf:
             - $ref: "#/components/schemas/DecisionRequirementsKey"
-            - description: "The assigned key, which acts as a unique identifier for\
+          description: "The assigned key, which acts as a unique identifier for\
                 \ this decision requirements."
     DecisionEvaluationInstruction:
       x-polymorphic-schema: true
@@ -10131,16 +10127,16 @@ components:
         decisionDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/DecisionDefinitionKey"
-            - description: "The unique key identifying the decision which was evaluated."
+          description: "The unique key identifying the decision which was evaluated."
         decisionRequirementsKey:
           allOf:
             - $ref: "#/components/schemas/DecisionRequirementsKey"
-            - description: "The unique key identifying the decision requirements graph\
+          description: "The unique key identifying the decision requirements graph\
                 \ that the decision which was evaluated is part of."
         decisionInstanceKey:
           allOf:
             - $ref: "#/components/schemas/DecisionInstanceKey"
-            - description: "Deprecated, please refer to `decisionEvaluationKey`."
+          description: "Deprecated, please refer to `decisionEvaluationKey`."
           deprecated: true
         decisionEvaluationKey:
           x-semantic-provider: true
@@ -10192,12 +10188,12 @@ components:
         decisionDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/DecisionDefinitionKey"
-            - description: "The unique key identifying the decision which was evaluate."
+          description: "The unique key identifying the decision which was evaluate."
         decisionEvaluationInstanceKey:
           x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/DecisionEvaluationInstanceKey"
-            - description: The unique key identifying this decision evaluation instance.
+          description: The unique key identifying this decision evaluation instance.
 
     MatchedDecisionRuleItem:
       type: "object"
@@ -10314,17 +10310,17 @@ components:
         decisionEvaluationKey:
           allOf:
             - $ref: "#/components/schemas/DecisionEvaluationKey"
-            - description: "The key of the parent decision evaluation. Note that this is not\
+          description: "The key of the parent decision evaluation. Note that this is not\
                 \ the identifier of an individual decision instance; the `decisionEvaluationInstanceKey`\
                 \ is the identifier for a decision instance.\n"
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The key of the process definition."
+          description: "The key of the process definition."
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The key of the process instance."
+          description: "The key of the process instance."
         decisionDefinitionKey:
           description: "The key of the decision."
           oneOf:
@@ -10382,24 +10378,24 @@ components:
         decisionEvaluationKey:
           allOf:
             - $ref: "#/components/schemas/DecisionEvaluationKey"
-            - description: "The key of the decision evaluation where this instance was created."
+          description: "The key of the decision evaluation where this instance was created."
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The key of the process definition."
+          description: "The key of the process definition."
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The key of the process instance."
+          description: "The key of the process instance."
         decisionDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/DecisionDefinitionKey"
-            - description: "The key of the decision."
+          description: "The key of the decision."
         elementInstanceKey:
+          description: "The key of the element instance this decision instance\
+                \ is linked to."
           allOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
-            - description: "The key of the element instance this decision instance\
-                \ is linked to."
     DecisionInstanceGetQueryResult:
       allOf:
         - $ref: "#/components/schemas/DecisionInstanceResult"
@@ -10468,16 +10464,17 @@ components:
       properties:
         tenantId:
           description: "The tenant ID of the correlated message"
-          type: "string"
+          allOf: 
+            - $ref: "#/components/schemas/TenantId"
         messageKey:
           allOf:
             - $ref: "#/components/schemas/MessageCorrelationKey"
-            - description: "The key of the correlated message"
+          description: "The key of the correlated message"
         processInstanceKey:
+          description: "The key of the first process instance the message correlated\
+                \ with"
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The key of the first process instance the message correlated\
-                \ with"
     MessagePublicationRequest:
       type: "object"
       properties:
@@ -10516,7 +10513,7 @@ components:
         messageKey:
           allOf:
             - $ref: "#/components/schemas/MessageKey"
-            - description: "The key of the message"
+          description: "The key of the message"
     DocumentReference:
       type: "object"
       properties:
@@ -10561,9 +10558,9 @@ components:
               items:
                 $ref: "#/components/schemas/DocumentCreationFailureDetail"
     DocumentId:
+      description: "Document Id that uniquely identifies a document."
       allOf:
         - $ref: "#/components/schemas/CamundaKey"
-        - description: "Document Id that uniquely identifies a document."
           format: "DocumentId"
           x-semantic-type: "DocumentId"
     DocumentMetadata:
@@ -10590,7 +10587,7 @@ components:
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The key of the process instance that created the document."
+          description: "The key of the process instance that created the document."
         customProperties:
           type: "object"
           description: "Custom properties of the document."
@@ -10625,7 +10622,7 @@ components:
         deploymentKey:
           allOf:
             - $ref: "#/components/schemas/DeploymentKey"
-            - description: "The unique key identifying the deployment."
+          description: "The unique key identifying the deployment."
         deployments:
           description: "Items deployed by the request."
           type: "array"
@@ -10673,7 +10670,7 @@ components:
           x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The assigned key, which acts as a unique identifier for\
+          description: "The assigned key, which acts as a unique identifier for\
                 \ this process."
     DeploymentDecisionResult:
       description: "A deployed decision."
@@ -10702,13 +10699,13 @@ components:
           x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/DecisionDefinitionKey"
-            - description: "The assigned decision key, which acts as a unique identifier\
+          description: "The assigned decision key, which acts as a unique identifier\
                 \ for this decision.\n"
         decisionRequirementsKey:
           x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/DecisionRequirementsKey"
-            - description: "The assigned key of the decision requirements graph that\
+          description: "The assigned key of the decision requirements graph that\
                 \ this decision is part of.\n"
     DeploymentDecisionRequirementsResult:
       description: "Deployed decision requirements."
@@ -10738,7 +10735,7 @@ components:
           x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/DecisionRequirementsKey"
-            - description: "The assigned decision requirements key, which acts as\
+          description: "The assigned decision requirements key, which acts as\
                 \ a unique identifier for this decision requirements.\n"
     DeploymentFormResult:
       description: "A deployed form."
@@ -10762,7 +10759,7 @@ components:
           x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/FormKey"
-            - description: "The assigned key, which acts as a unique identifier for\
+          description: "The assigned key, which acts as a unique identifier for\
                 \ this form."
     DeploymentResourceResult:
       description: "A deployed Resource."
@@ -10786,7 +10783,7 @@ components:
           x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/ResourceKey"
-            - description: "The assigned key, which acts as a unique identifier for\
+          description: "The assigned key, which acts as a unique identifier for\
                 \ this Resource."
     IncidentResolutionRequest:
       type: "object"
@@ -10874,7 +10871,7 @@ components:
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The unique key identifying the process definition,\
+          description: "The unique key identifying the process definition,\
                 \ for example, returned for a process in the\ndeploy resources\
                 \ endpoint.\n"
         variables:
@@ -10996,13 +10993,13 @@ components:
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The key of the process definition which was used to create\
+          description: "The key of the process definition which was used to create\
                 \ the process instance.\n"
         processInstanceKey:
           x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "The unique identifier of the created process instance;\
+          description: "The unique identifier of the created process instance;\
                 \ to be used wherever a request\nneeds a process instance key (e.g.\
                 \ CancelProcessInstanceRequest).\n"
         tags:
@@ -11031,7 +11028,7 @@ components:
         targetProcessDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The key of process definition to migrate the process instance\
+          description: "The key of process definition to migrate the process instance\
                 \ to."
       required:
         - "targetProcessDefinitionKey"
@@ -11052,7 +11049,7 @@ components:
         targetProcessDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
-            - description: "The key of process definition to migrate the process instance\
+          description: "The key of process definition to migrate the process instance\
                 \ to."
       required:
         - "targetProcessDefinitionKey"
@@ -11134,7 +11131,7 @@ components:
         elementInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
-            - description: "The ID of the element that should be terminated."
+          description: "The ID of the element that should be terminated."
       required:
         - "elementInstanceKey"
     SetVariableRequest:
@@ -11196,7 +11193,7 @@ components:
         signalKey:
           allOf:
             - $ref: "#/components/schemas/SignalKey"
-            - description: "The unique ID of the signal that was broadcast."
+          description: "The unique ID of the signal that was broadcast."
     FormResult:
       type: "object"
       properties:
@@ -11215,7 +11212,7 @@ components:
         formKey:
           allOf:
             - $ref: "#/components/schemas/FormKey"
-            - description: "The assigned key, which acts as a unique identifier for\
+          description: "The assigned key, which acts as a unique identifier for\
                 \ this form."
     ResourceResult:
       type: "object"
@@ -11239,7 +11236,7 @@ components:
         resourceKey:
           allOf:
             - $ref: "#/components/schemas/ResourceKey"
-            - description: "The unique key of this resource."
+          description: "The unique key of this resource."
     BatchOperationTypeEnum:
       description: "The type of the batch operation."
       type: "string"
@@ -11260,7 +11257,7 @@ components:
         batchOperationKey:
           allOf:
             - $ref: "#/components/schemas/BatchOperationKey"
-            - description: "Key of the batch operation."
+          description: "Key of the batch operation."
         batchOperationType:
           $ref: "#/components/schemas/BatchOperationTypeEnum"
     BatchOperationSearchQuerySortRequest:
@@ -11495,7 +11492,7 @@ components:
         batchOperationKey:
           allOf:
             - $ref: "#/components/schemas/BatchOperationKey"
-            - description: "Key or (Operate Legacy ID = UUID) of the batch operation."
+          description: "Key or (Operate Legacy ID = UUID) of the batch operation."
         state:
           description: "The state of the batch operation."
           type: "string"
@@ -11569,14 +11566,14 @@ components:
         batchOperationKey:
           allOf:
             - $ref: "#/components/schemas/BatchOperationKey"
-            - description: "The key (or operate legacy ID) of the batch operation."
+          description: "The key (or operate legacy ID) of the batch operation."
         itemKey:
           description: "Key of the item, e.g. a process instance key."
           type: "string"
         processInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ProcessInstanceKey"
-            - description: "the process instance key of the processed item."
+          description: "the process instance key of the processed item."
         state:
           description: "State of the item."
           type: "string"

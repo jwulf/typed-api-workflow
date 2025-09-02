@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-09-02 16:27:39
+# File generated at: 2025-09-03 07:05:22
 
 ---
 openapi: "3.0.3"
@@ -5712,17 +5712,17 @@ components:
           items:
             $ref: "#/components/schemas/VariableValueFilterProperty"
         userTaskKey:
+          description: "System-generated key for a user task."
           type: "string"
-          description: "The key for this user task."
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The key of the process definition."
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The key of the process instance."
         elementInstanceKey:
+          description: "System-generated key for a element instance."
           type: "string"
-          description: "The key of the element instance."
     UserTaskStateFilterProperty:
       description: "UserTaskStateEnum property with full advanced search capabilities."
       type: "object"
@@ -5844,20 +5844,20 @@ components:
           maximum: 100
           default: 50
         userTaskKey:
+          description: "System-generated key for a user task."
           type: "string"
-          description: "The key of the user task."
         elementInstanceKey:
+          description: "System-generated key for a element instance."
           type: "string"
-          description: "The key of the element instance."
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The key of the process definition."
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The key of the process instance."
         formKey:
+          description: "System-generated key for a deployed form."
           type: "string"
-          description: "The key of the form."
     UserTaskStateEnum:
       description: "The state of the user task."
       type: "string"
@@ -5976,14 +5976,14 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         variableKey:
+          description: "System-generated key for a variable."
           type: "string"
-          description: "The key for this variable."
         scopeKey:
+          description: "System-generated key for a scope."
           type: "string"
-          description: "The key of the scope of this variable."
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The key of the process instance of this variable."
     ProcessDefinitionSearchQuerySortRequest:
       type: "object"
       properties:
@@ -6049,8 +6049,8 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The key for this process definition."
         hasStartForm:
           description: "Indicates whether the start event of the process has an associated\
             \ Form Key."
@@ -6089,8 +6089,8 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The key for this process definition."
         hasStartForm:
           description: "Indicates whether the start event of the process has an associated\
             \ Form Key."
@@ -6777,17 +6777,17 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The key of this process instance."
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The process definition key."
         parentProcessInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The parent process instance key."
         parentElementInstanceKey:
+          description: "System-generated key for a element instance."
           type: "string"
-          description: "The parent element instance key."
         tags:
           $ref: "#/components/schemas/TagSet"
     ProcessInstanceStateEnum:
@@ -6810,11 +6810,11 @@ components:
       - "processDefinitionName"
       properties:
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The key of the process instance."
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The key of the process definition."
         processDefinitionName:
           type: "string"
           description: "The name of the process definition (fall backs to the process\
@@ -6836,11 +6836,11 @@ components:
           type: "string"
           description: "The sequence flow ID."
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The key of this process instance."
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The process definition key."
         processDefinitionId:
           description: "Id of a process definition, from the model. Only ids of process\
             \ definitions that are deployed are useful."
@@ -7004,18 +7004,17 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         elementInstanceKey:
+          description: "System-generated key for a element instance."
           type: "string"
-          description: "The assigned key, which acts as a unique identifier for this\
-            \ element instance."
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The process instance key associated to this element instance."
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The process definition key associated to this element instance."
         incidentKey:
+          description: "System-generated key for a incident."
           type: "string"
-          description: "The key of incident if field incident is true."
         startDate:
           description: "The start date of this element instance."
           allOf:
@@ -7117,18 +7116,17 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         elementInstanceKey:
+          description: "System-generated key for a element instance."
           type: "string"
-          description: "The assigned key, which acts as a unique identifier for this\
-            \ element instance."
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The process instance key associated to this element instance."
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The process definition key associated to this element instance."
         incidentKey:
+          description: "System-generated key for a incident."
           type: "string"
-          description: "Incident key associated with this element instance."
     AdHocSubProcessActivateActivitiesInstruction:
       type: "object"
       properties:
@@ -7210,13 +7208,12 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         decisionDefinitionKey:
+          description: "System-generated key for a decision definition."
           type: "string"
-          description: "The assigned key, which acts as a unique identifier for this\
-            \ decision definition."
         decisionRequirementsKey:
+          description: "System-generated key for a deployed decision requirements\
+            \ definition."
           type: "string"
-          description: "The assigned key of the decision requirements graph that the\
-            \ decision definition is part of."
     IncidentSearchQuerySortRequest:
       type: "object"
       properties:
@@ -7304,21 +7301,20 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         incidentKey:
+          description: "System-generated key for a incident."
           type: "string"
-          description: "The assigned key, which acts as a unique identifier for this\
-            \ incident."
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The process definition key associated to this incident."
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The process instance key associated to this incident."
         elementInstanceKey:
+          description: "System-generated key for a element instance."
           type: "string"
-          description: "The element instance key associated to this incident."
         jobKey:
+          description: "System-generated key for a job."
           type: "string"
-          description: "The job key, if exists, associated with this incident."
     IncidentSearchQueryResult:
       type: "object"
       allOf:
@@ -7343,25 +7339,24 @@ components:
       type: "object"
       properties:
         messageSubscriptionKey:
+          description: "System-generated key for a message subscription."
           type: "string"
-          description: "The message subscription key associated with this message\
-            \ subscription."
         processDefinitionId:
           description: "Id of a process definition, from the model. Only ids of process\
             \ definitions that are deployed are useful."
           type: "string"
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The process definition key associated with this message subscription."
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The process instance key associated with this message subscription."
         elementId:
           description: "The element ID associated with this message subscription."
           type: "string"
         elementInstanceKey:
+          description: "System-generated key for a element instance."
           type: "string"
-          description: "The element instance key associated with this message subscription."
         messageSubscriptionType:
           $ref: "#/components/schemas/MessageSubscriptionTypeEnum"
         lastUpdatedDate:
@@ -7372,8 +7367,8 @@ components:
           description: "The name of the message associated with the message subscription."
           type: "string"
         correlationKey:
+          description: "System-generated key for a message correlation."
           type: "string"
-          description: "The correlation key of the message subscription."
         tenantId:
           type: "string"
           description: "The unique identifier of the tenant."
@@ -7546,21 +7541,20 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         incidentKey:
+          description: "System-generated key for a incident."
           type: "string"
-          description: "The assigned key, which acts as a unique identifier for this\
-            \ incident."
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The process definition key associated to this incident."
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The process instance key associated to this incident."
         elementInstanceKey:
+          description: "System-generated key for a element instance."
           type: "string"
-          description: "The element instance key associated to this incident."
         jobKey:
+          description: "System-generated key for a job."
           type: "string"
-          description: "The job key, if exists, associated with this incident."
     DecisionDefinitionSearchQueryResult:
       type: "object"
       allOf:
@@ -7593,13 +7587,12 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         decisionDefinitionKey:
+          description: "System-generated key for a decision definition."
           type: "string"
-          description: "The assigned key, which acts as a unique identifier for this\
-            \ decision definition."
         decisionRequirementsKey:
+          description: "System-generated key for a deployed decision requirements\
+            \ definition."
           type: "string"
-          description: "The assigned key of the decision requirements graph that the\
-            \ decision definition is part of."
     UsageMetricsResponse:
       type: "object"
       allOf:
@@ -7729,8 +7722,8 @@ components:
       type: "object"
       properties:
         authorizationKey:
+          description: "System-generated key for an authorization."
           type: "string"
-          description: "The key of the created authorization."
     AuthorizationSearchQuerySortRequest:
       type: "object"
       properties:
@@ -7807,8 +7800,8 @@ components:
           items:
             $ref: "#/components/schemas/PermissionTypeEnum"
         authorizationKey:
+          description: "System-generated key for an authorization."
           type: "string"
-          description: "The key of the authorization."
     AuthorizationSearchResult:
       type: "object"
       allOf:
@@ -8994,19 +8987,18 @@ components:
           description: "The unique identifier of the tenant."
         jobKey:
           x-semantic-provider: true
+          description: "System-generated key for a job."
           type: "string"
-          description: "The key, a unique identifier for the job."
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The job's process instance key."
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The key of the job's process definition."
         elementInstanceKey:
           x-semantic-provider: true
+          description: "System-generated key for a element instance."
           type: "string"
-          description: "The unique key identifying the associated task, unique within\
-            \ the scope of the process instance."
         kind:
           $ref: "#/components/schemas/JobKindEnum"
         listenerEventType:
@@ -9052,8 +9044,8 @@ components:
           format: "date-time"
           nullable: true
         formKey:
+          description: "System-generated key for a deployed form."
           type: "string"
-          description: "The key of the form associated with the user task."
         priority:
           description: "The priority of the user task."
           type: "integer"
@@ -9062,8 +9054,9 @@ components:
           maximum: 100
           nullable: true
         userTaskKey:
+          description: "System-generated key for a user task."
+          nullable: true
           type: "string"
-          description: "The unique key identifying the user task."
     JobFailRequest:
       type: "object"
       properties:
@@ -9452,8 +9445,8 @@ components:
           description: "The element ID associated with the job."
           type: "string"
         elementInstanceKey:
+          description: "System-generated key for a element instance."
           type: "string"
-          description: "The element instance key associated with the job."
         endTime:
           description: "When the job ended."
           type: "string"
@@ -9475,8 +9468,8 @@ components:
           type: "boolean"
           nullable: true
         jobKey:
+          description: "System-generated key for a job."
           type: "string"
-          description: "The key, a unique identifier for the job."
         kind:
           $ref: "#/components/schemas/JobKindEnum"
         listenerEventType:
@@ -9486,11 +9479,11 @@ components:
             \ definitions that are deployed are useful."
           type: "string"
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The process definition key associated with the job."
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The process instance key associated with the job."
         retries:
           description: "The amount of retries left to this job."
           type: "integer"
@@ -9811,9 +9804,9 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         decisionRequirementsKey:
+          description: "System-generated key for a deployed decision requirements\
+            \ definition."
           type: "string"
-          description: "The assigned key, which acts as a unique identifier for this\
-            \ decision requirements."
         resourceName:
           type: "string"
           description: "The name of the resource from which the decision requirements\
@@ -9849,9 +9842,9 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         decisionRequirementsKey:
+          description: "System-generated key for a deployed decision requirements\
+            \ definition."
           type: "string"
-          description: "The assigned key, which acts as a unique identifier for this\
-            \ decision requirements."
     DecisionEvaluationInstruction:
       type: "object"
       properties:
@@ -9935,16 +9928,16 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         decisionDefinitionKey:
+          description: "System-generated key for a decision definition."
           type: "string"
-          description: "The unique key identifying the decision which was evaluated."
         decisionRequirementsKey:
+          description: "System-generated key for a deployed decision requirements\
+            \ definition."
           type: "string"
-          description: "The unique key identifying the decision requirements graph\
-            \ that the decision which was evaluated is part of."
         decisionInstanceKey:
+          description: "System-generated key for a deployed decision instance."
           deprecated: true
           type: "string"
-          description: "Deprecated, please refer to `decisionEvaluationKey`."
         decisionEvaluationKey:
           x-semantic-provider: true
           description: "System-generated key for a decision evaluation."
@@ -9992,12 +9985,12 @@ components:
           items:
             $ref: "#/components/schemas/EvaluatedDecisionInputItem"
         decisionDefinitionKey:
+          description: "System-generated key for a decision definition."
           type: "string"
-          description: "The unique key identifying the decision which was evaluate."
         decisionEvaluationInstanceKey:
           x-semantic-provider: true
+          description: "System-generated key for a decision evaluation instance."
           type: "string"
-          description: "The unique key identifying this decision evaluation instance."
     MatchedDecisionRuleItem:
       type: "object"
       description: "A decision rule that matched within this decision evaluation."
@@ -10112,16 +10105,14 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         decisionEvaluationKey:
+          description: "System-generated key for a decision evaluation."
           type: "string"
-          description: "The key of the parent decision evaluation. Note that this\
-            \ is not the identifier of an individual decision instance; the `decisionEvaluationInstanceKey`\
-            \ is the identifier for a decision instance.\n"
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The key of the process definition."
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The key of the process instance."
         decisionDefinitionKey:
           description: "The key of the decision."
           allOf:
@@ -10176,22 +10167,20 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         decisionEvaluationKey:
+          description: "System-generated key for a decision evaluation."
           type: "string"
-          description: "The key of the decision evaluation where this instance was\
-            \ created."
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The key of the process definition."
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The key of the process instance."
         decisionDefinitionKey:
+          description: "System-generated key for a decision definition."
           type: "string"
-          description: "The key of the decision."
         elementInstanceKey:
+          description: "System-generated key for a element instance."
           type: "string"
-          description: "The key of the element instance this decision instance is\
-            \ linked to."
     DecisionInstanceGetQueryResult:
       allOf:
       - $ref: "#/components/schemas/DecisionInstanceResult"
@@ -10260,15 +10249,14 @@ components:
       type: "object"
       properties:
         tenantId:
-          description: "The tenant ID of the correlated message"
+          description: "The unique identifier of the tenant."
           type: "string"
         messageKey:
+          description: "System-generated key for a message correlation."
           type: "string"
-          description: "The key of the correlated message"
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The key of the first process instance the message correlated\
-            \ with"
     MessagePublicationRequest:
       type: "object"
       properties:
@@ -10306,8 +10294,8 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         messageKey:
+          description: "System-generated key for an message."
           type: "string"
-          description: "The key of the message"
     DocumentReference:
       type: "object"
       properties:
@@ -10373,8 +10361,8 @@ components:
             \ definitions that are deployed are useful."
           type: "string"
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The key of the process instance that created the document."
         customProperties:
           type: "object"
           description: "Custom properties of the document."
@@ -10408,8 +10396,8 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         deploymentKey:
+          description: "Key for a deployment."
           type: "string"
-          description: "The unique key identifying the deployment."
         deployments:
           description: "Items deployed by the request."
           type: "array"
@@ -10454,9 +10442,8 @@ components:
           description: "The unique identifier of the tenant."
         processDefinitionKey:
           x-semantic-provider: true
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The assigned key, which acts as a unique identifier for this\
-            \ process."
     DeploymentDecisionResult:
       description: "A deployed decision."
       type: "object"
@@ -10481,14 +10468,13 @@ components:
             \ is part of, as parsed during deployment.\n"
         decisionDefinitionKey:
           x-semantic-provider: true
+          description: "System-generated key for a decision definition."
           type: "string"
-          description: "The assigned decision key, which acts as a unique identifier\
-            \ for this decision.\n"
         decisionRequirementsKey:
           x-semantic-provider: true
+          description: "System-generated key for a deployed decision requirements\
+            \ definition."
           type: "string"
-          description: "The assigned key of the decision requirements graph that this\
-            \ decision is part of.\n"
     DeploymentDecisionRequirementsResult:
       description: "Deployed decision requirements."
       type: "object"
@@ -10515,9 +10501,9 @@ components:
             \ parsed."
         decisionRequirementsKey:
           x-semantic-provider: true
+          description: "System-generated key for a deployed decision requirements\
+            \ definition."
           type: "string"
-          description: "The assigned decision requirements key, which acts as a unique\
-            \ identifier for this decision requirements.\n"
     DeploymentFormResult:
       description: "A deployed form."
       type: "object"
@@ -10538,9 +10524,8 @@ components:
           description: "The unique identifier of the tenant."
         formKey:
           x-semantic-provider: true
+          description: "System-generated key for a deployed form."
           type: "string"
-          description: "The assigned key, which acts as a unique identifier for this\
-            \ form."
     DeploymentResourceResult:
       description: "A deployed Resource."
       type: "object"
@@ -10561,9 +10546,8 @@ components:
           description: "The unique identifier of the tenant."
         resourceKey:
           x-semantic-provider: true
+          description: "The system-assigned key for this resource."
           type: "string"
-          description: "The assigned key, which acts as a unique identifier for this\
-            \ Resource."
     IncidentResolutionRequest:
       type: "object"
       properties:
@@ -10632,9 +10616,8 @@ components:
         tags:
           $ref: "#/components/schemas/TagSet"
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The unique key identifying the process definition, for example,\
-            \ returned for a process in the\ndeploy resources endpoint.\n"
     ProcessInstanceCreationInstructionById:
       type: "object"
       title: "Process creation by ID"
@@ -10706,9 +10689,8 @@ components:
       additionalProperties: false
       properties:
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The unique key identifying the process definition, for example,\
-            \ returned for a process in the\ndeploy resources endpoint.\n"
         variables:
           description: "JSON object that will instantiate the variables for the root\
             \ variable scope\nof the process instance.\n"
@@ -10825,14 +10807,12 @@ components:
           description: "All the variables visible in the root scope."
           type: "object"
         processDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The key of the process definition which was used to create\
-            \ the process instance.\n"
         processInstanceKey:
           x-semantic-provider: true
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "The unique identifier of the created process instance; to\
-            \ be used wherever a request\nneeds a process instance key (e.g. CancelProcessInstanceRequest).\n"
         tags:
           $ref: "#/components/schemas/TagSet"
     ProcessInstanceMigrationBatchOperationRequest:
@@ -10857,9 +10837,8 @@ components:
           items:
             $ref: "#/components/schemas/MigrateProcessInstanceMappingInstruction"
         targetProcessDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The key of process definition to migrate the process instance\
-            \ to."
       required:
       - "targetProcessDefinitionKey"
       - "mappingInstructions"
@@ -10877,9 +10856,8 @@ components:
         operationReference:
           $ref: "#/components/schemas/OperationReference"
         targetProcessDefinitionKey:
+          description: "System-generated key for a deployed process definition."
           type: "string"
-          description: "The key of process definition to migrate the process instance\
-            \ to."
       required:
       - "targetProcessDefinitionKey"
       - "mappingInstructions"
@@ -10956,8 +10934,8 @@ components:
       description: "Instructions describing which elements should be terminated."
       properties:
         elementInstanceKey:
+          description: "System-generated key for a element instance."
           type: "string"
-          description: "The ID of the element that should be terminated."
       required:
       - "elementInstanceKey"
     SetVariableRequest:
@@ -11017,8 +10995,8 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         signalKey:
+          description: "System-generated key for an signal."
           type: "string"
-          description: "The unique ID of the signal that was broadcast."
     FormResult:
       type: "object"
       properties:
@@ -11036,9 +11014,8 @@ components:
           type: "integer"
           format: "int64"
         formKey:
+          description: "System-generated key for a deployed form."
           type: "string"
-          description: "The assigned key, which acts as a unique identifier for this\
-            \ form."
     ResourceResult:
       type: "object"
       properties:
@@ -11059,8 +11036,8 @@ components:
           type: "string"
           description: "The unique identifier of the tenant."
         resourceKey:
+          description: "The system-assigned key for this resource."
           type: "string"
-          description: "The unique key of this resource."
     BatchOperationTypeEnum:
       description: "The type of the batch operation."
       type: "string"
@@ -11079,8 +11056,8 @@ components:
       type: "object"
       properties:
         batchOperationKey:
+          description: "System-generated key for an batch operation."
           type: "string"
-          description: "Key of the batch operation."
         batchOperationType:
           $ref: "#/components/schemas/BatchOperationTypeEnum"
     BatchOperationSearchQuerySortRequest:
@@ -11312,8 +11289,8 @@ components:
       type: "object"
       properties:
         batchOperationKey:
+          description: "System-generated key for an batch operation."
           type: "string"
-          description: "Key or (Operate Legacy ID = UUID) of the batch operation."
         state:
           description: "The state of the batch operation."
           type: "string"
@@ -11385,14 +11362,14 @@ components:
         operationType:
           $ref: "#/components/schemas/BatchOperationTypeEnum"
         batchOperationKey:
+          description: "System-generated key for an batch operation."
           type: "string"
-          description: "The key (or operate legacy ID) of the batch operation."
         itemKey:
           description: "Key of the item, e.g. a process instance key."
           type: "string"
         processInstanceKey:
+          description: "System-generated key for a process instance."
           type: "string"
-          description: "the process instance key of the processed item."
         state:
           description: "State of the item."
           type: "string"
