@@ -79,10 +79,6 @@ export const SCHEMA = {
     default: 'req:none,res:none',
     doc: 'Validation mini-language controlling req/res modes.'
   },
-  CAMUNDA_SDK_VALIDATION_VERBOSE: {
-    type: 'boolean',
-    doc: 'Verbose validation output flag.'
-  },
   CAMUNDA_SDK_LOG_LEVEL: {
     type: 'string',
     default: 'error',

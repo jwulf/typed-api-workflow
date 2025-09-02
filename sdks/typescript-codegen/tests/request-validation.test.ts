@@ -9,18 +9,18 @@ describe('request-side validation', () => {
     process.env.CAMUNDA_REST_ADDRESS = 'http://local';
     const client = new Camunda({ config: { CAMUNDA_SDK_VALIDATION: 'req:strict', CAMUNDA_REST_ADDRESS: 'http://local' } });
     const schema = z.object({ expected: z.string() });
-    await expect(client.gateRequest('createProcessInstance', schema, { expected: 123 } as any)).rejects.toBeTruthy();
+  await expect((client as any)._validation.gateRequest('createProcessInstance', schema, { expected: 123 } as any)).rejects.toBeTruthy();
   });
   it('warns and proceeds in req:warn mode', async () => {
     const client = new Camunda({ config: { CAMUNDA_SDK_VALIDATION: 'req:warn', CAMUNDA_REST_ADDRESS: 'http://local' } });
     const schema = z.object({ expected: z.string() });
-    const res = await client.gateRequest('createProcessInstance', schema, { expected: 123 } as any);
+  const res = await (client as any)._validation.gateRequest('createProcessInstance', schema, { expected: 123 } as any);
     expect(res).toEqual({ expected: 123 });
   });
   it('skips in req:none mode', async () => {
     const client = new Camunda({ config: { CAMUNDA_SDK_VALIDATION: 'req:none', CAMUNDA_REST_ADDRESS: 'http://local' } });
     const schema = z.object({ expected: z.string() });
-    const res = await client.gateRequest('createProcessInstance', schema, { expected: 123 } as any);
+  const res = await (client as any)._validation.gateRequest('createProcessInstance', schema, { expected: 123 } as any);
     expect(res).toEqual({ expected: 123 });
   });
 });

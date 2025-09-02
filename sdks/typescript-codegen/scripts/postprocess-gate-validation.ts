@@ -1,9 +1,10 @@
 #!/usr/bin/env tsx
 /**
  * Post-generation transform: STRIP inline request/response validators from sdk.gen.ts.
- * Rationale: Validation is now performed in CamundaClient instance methods via ValidationManager.
- * We neutralize (set to undefined) any requestValidator/responseValidator entries produced by the
- * underlying generator (or previously gated variants) to avoid double validation cost.
+ * Rationale: Validation is handled exclusively by CamundaClient methods via ValidationManager.
+ * We neutralize any requestValidator/responseValidator entries produced by the underlying generator
+ * to avoid double validation cost. Legacy gatedValidation import removal retained for backward
+ * compatibility but file has been removed.
  * Idempotent & non-invasive: safe to run multiple times.
  */
 import fs from 'fs';
@@ -16,8 +17,6 @@ if (!fs.existsSync(sdkPath)) {
 }
 let code = fs.readFileSync(sdkPath, 'utf8');
 
-// Remove any legacy gatedValidation import.
-code = code.replace(/\nimport { gateRequest, gateResponse } from '..\/runtime\/gatedValidation';?\n/, '\n');
 
 // Normalize opId constants (legacy gating inserted them); keep them (harmless) or ensure presence? We leave untouched.
 

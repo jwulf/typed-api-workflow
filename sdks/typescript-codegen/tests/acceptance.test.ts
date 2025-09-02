@@ -1,6 +1,7 @@
 import { describe, it } from 'vitest';
 import { Camunda } from '../src'
 
+// Intentionally skipped. This is a type-assertion only.
 describe('acceptance', () => {
     it.skip('createProcessInstance', () => {
         new Camunda().createProcessInstance({

@@ -6,15 +6,6 @@ describe('configuration parsing', () => {
     expect(() => hydrateConfig({ env: { CAMUNDA_AUTH_STRATEGY: 'invalid' } })).toThrow(CamundaConfigurationError);
   });
 
-  it('rejects invalid boolean synonym', () => {
-    expect(() => hydrateConfig({ env: { CAMUNDA_SDK_VALIDATION_VERBOSE: 'truue' } })).toThrow(CamundaConfigurationError);
-  });
-
-  it('accepts valid boolean synonyms', () => {
-    expect(() => hydrateConfig({ env: { CAMUNDA_SDK_VALIDATION_VERBOSE: 'yes' } })).not.toThrow();
-    expect(hydrateConfig({ env: { CAMUNDA_SDK_VALIDATION_VERBOSE: 'no' } }).config.validation.verbose).toBe(false);
-  });
-
   it('rejects invalid integer', () => {
     expect(() => hydrateConfig({ env: { CAMUNDA_OAUTH_TIMEOUT_MS: '5.0' } })).toThrow(CamundaConfigurationError);
     expect(() => hydrateConfig({ env: { CAMUNDA_OAUTH_TIMEOUT_MS: '+5' } })).toThrow(CamundaConfigurationError);

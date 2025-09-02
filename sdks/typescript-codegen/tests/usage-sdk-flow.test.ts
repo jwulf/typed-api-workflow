@@ -4,8 +4,8 @@ import CamundaClient, { ProcessInstanceKey } from '../src';
 describe('End-to-end usage (mocked) - create instance -> search', () => {
   it('starts and searches using class instance operations', async () => {
     const BASE = 'https://mock.local';
-  const fetchMock = vi.fn();
-  const camunda = new CamundaClient({ config: { CAMUNDA_REST_ADDRESS: BASE }, fetch: fetchMock as any });
+    const fetchMock = vi.fn();
+    const camunda = new CamundaClient({ config: { CAMUNDA_REST_ADDRESS: BASE }, fetch: fetchMock as any });
 
     // Mock responses:
     // 0. createDeployment
@@ -24,7 +24,7 @@ describe('End-to-end usage (mocked) - create instance -> search', () => {
       return new Response(JSON.stringify({ items: [{ processInstanceKey: '5001', processDefinitionKey: '1001' }], total: 1 }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     });
 
-    const deployment = await camunda.createDeployment({ resources: [new Blob()]});
+    const deployment = await camunda.createDeployment({ resources: [new Blob()] });
     const { processDefinitionKey } = deployment.deployments[0].processDefinition!;
     const createResult = await camunda.createProcessInstance({ processDefinitionKey });
     const instanceKey: ProcessInstanceKey = ProcessInstanceKey.assumeExists(String(createResult.processInstanceKey));
@@ -34,7 +34,7 @@ describe('End-to-end usage (mocked) - create instance -> search', () => {
     expect(searchRes.items[0].processInstanceKey).toBe(String(instanceKey));
     expect(fetchMock).toHaveBeenCalledTimes(3);
 
-  // No global cleanup required (instance-scoped fetch)
+    // No global cleanup required (instance-scoped fetch)
   });
 });
 

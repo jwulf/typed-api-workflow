@@ -71,7 +71,6 @@ export interface CamundaConfig {
   validation: {
     req: ValidationMode;
     res: ValidationMode;
-    verbose: boolean;
     raw: string; // normalized raw spec for reproducibility
   };
   logLevel: 'silent' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
@@ -320,7 +319,6 @@ export function hydrateConfig(options: HydrateOptions = {}): HydratedConfigurati
   // Parse validation config after potential errors so we gather full set
   const validationRaw = rawMap['CAMUNDA_SDK_VALIDATION'] || 'req:none,res:none';
   const validation = parseValidation(validationRaw, errors);
-  const verbose = rawMap['CAMUNDA_SDK_VALIDATION_VERBOSE'] === 'true';
 
   // If any errors, throw aggregated (sorted by key then code for determinism)
   if (errors.length) {
@@ -359,7 +357,7 @@ export function hydrateConfig(options: HydrateOptions = {}): HydratedConfigurati
         password: rawMap['CAMUNDA_BASIC_AUTH_PASSWORD']?.trim()
       } : undefined
     },
-    validation: { req: validation.req, res: validation.res, verbose, raw: validation.raw },
+  validation: { req: validation.req, res: validation.res, raw: validation.raw },
     logLevel: (rawMap['CAMUNDA_SDK_LOG_LEVEL'] as any) as CamundaConfig['logLevel'] || 'error',
     eventual: { pollDefaultMs: parseInt(rawMap['CAMUNDA_SDK_EVENTUAL_POLL_DEFAULT_MS'] || '500', 10) },
     mtls: (rawMap['CAMUNDA_MTLS_CERT_PATH'] || rawMap['CAMUNDA_MTLS_KEY_PATH'] || rawMap['CAMUNDA_MTLS_CA_PATH'] || rawMap['CAMUNDA_MTLS_CERT'] || rawMap['CAMUNDA_MTLS_KEY'] || rawMap['CAMUNDA_MTLS_CA'] || rawMap['CAMUNDA_MTLS_KEY_PASSPHRASE']) ? {

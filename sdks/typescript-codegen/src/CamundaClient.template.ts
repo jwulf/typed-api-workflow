@@ -46,12 +46,12 @@ export class CamundaClient {
   private _auth: ReturnType<typeof createAuthFacade> = createAuthFacade({
     restAddress: '',
     auth: { strategy: 'NONE', basic: { username: '', password: '' } } as any,
-    validation: { req: 'none', res: 'none', verbose: false },
+  validation: { req: 'none', res: 'none', raw: 'req:none,res:none' } as any,
     oauth: { oauthUrl: '', timeoutMs: 0, retry: { max: 0, baseDelayMs: 0 } } as any,
     tokenAudience: ''
   } as any);
   private _fetch?: (input: RequestInfo | URL, init?: RequestInit)=>Promise<Response>;
-  private _validation: ValidationManager = new ValidationManager({ req: 'none', res: 'none', verbose: false });
+  private _validation: ValidationManager = new ValidationManager({ req: 'none', res: 'none' });
 
   private _overrides: EnvOverrides = {};
 
@@ -87,11 +87,9 @@ export class CamundaClient {
   // Instance-scoped validation state (methods added by hand so template provides baseline)
   requestValidationMode() { return this._validation.settings.req; }
   responseValidationMode() { return this._validation.settings.res; }
-  validationVerbose() { return this._validation.settings.verbose; }
   // Back-compat helper used in older tests expecting validationConfig()
   validationConfig() { return { req: this._validation.settings.req, res: this._validation.settings.res }; }
-  async gateRequest(opId: string, schema: any, data: any) { return this._validation.gateRequest(opId, schema, data); }
-  async gateResponse(opId: string, schema: any, data: any) { return this._validation.gateResponse(opId, schema, data); }
+  /** @internal Direct validation helpers removed from public surface; generated methods call _validation.* */
 
   // === AUTO-GENERATED CAMUNDA METHODS START ===
   // === AUTO-GENERATED CAMUNDA METHODS END ===

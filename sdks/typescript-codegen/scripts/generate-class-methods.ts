@@ -136,20 +136,26 @@ type ${o.opId}Consistency = {
         methods.push(`        const call = async () => {`);
         methods.push(`          const opts: any = { ...arg, client: this._client, signal };`);
         methods.push(`          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {`);
-        methods.push(`            const maybe = await this.gateRequest('${o.originalOpId}', (Schemas as any).z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Data || (Schemas as any).z${o.opId}Data, opts.body);`);
+  methods.push(`            const maybe = await this._validation.gateRequest('${o.originalOpId}', (Schemas as any).z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Data, opts.body);`);
         methods.push(`            if (this.requestValidationMode() === 'strict') opts.body = maybe;`);
         methods.push(`          }`);
-        methods.push(`          const r = await Sdk.${o.opId}(opts);`);
-        methods.push(`          let data = r?.data ?? r;`);
-        methods.push(`          if (this.responseValidationMode() !== 'none') {`);
-        methods.push(`            const maybeR = await this.gateResponse('${o.originalOpId}', (Schemas as any).z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Response || (Schemas as any).z${o.opId}Response, data);`);
-        methods.push(`            if (this.responseValidationMode() === 'strict') data = maybeR;`);
-        methods.push(`          }`);
+  methods.push(`          const r = await Sdk.${o.opId}(opts);`);
+  methods.push(`          let data = (r as any)?.data;`);
+  methods.push(`          if (data === undefined) data = r;`);
+  methods.push(`          if (this.responseValidationMode() !== 'none') {`);
+  methods.push(`            const _respKey = 'z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Response';`);
+  methods.push(`            const _schema = (Schemas as any)[_respKey];`);
+  methods.push(`            if (_schema) {`);
+  methods.push(`              const maybeR = await this._validation.gateResponse('${o.originalOpId}', _schema, data);`);
+  methods.push(`              if (this.responseValidationMode() === 'strict') data = maybeR;`);
+  methods.push(`            }`);
+  methods.push(`          }`);
         methods.push(`          return data;`);
         methods.push(`        };`);
         if (o.eventual) {
-          methods.push(`        if (useConsistency) return eventualPoll('${o.originalOpId}', ${o.verb === 'get'}, ()=>toCancelable(()=>call()), useConsistency);`);
-          methods.push('        return call();');
+          methods.push(`        const invoke = () => toCancelable(()=>call());`);
+          methods.push(`        if (useConsistency) return eventualPoll('${o.originalOpId}', ${o.verb === 'get'}, invoke, useConsistency);`);
+          methods.push('        return invoke();');
         } else {
           methods.push('        return call();');
         }
@@ -158,20 +164,26 @@ type ${o.opId}Consistency = {
         methods.push(`      const call = async () => {`);
         methods.push(`        let bodyVal: any = arg;`);
         methods.push(`        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {`);
-        methods.push(`          const maybe = await this.gateRequest('${o.originalOpId}', (Schemas as any).z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Data || (Schemas as any).z${o.opId}Data, bodyVal);`);
+  methods.push(`          const maybe = await this._validation.gateRequest('${o.originalOpId}', (Schemas as any).z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Data, bodyVal);`);
         methods.push(`          if (this.requestValidationMode() === 'strict') bodyVal = maybe;`);
         methods.push(`        }`);
-        methods.push(`        const r = await Sdk.${o.opId}({ body: bodyVal, client: this._client, signal } as any);`);
-        methods.push(`        let data = r?.data ?? r;`);
-        methods.push(`        if (this.responseValidationMode() !== 'none') {`);
-        methods.push(`          const maybeR = await this.gateResponse('${o.originalOpId}', (Schemas as any).z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Response || (Schemas as any).z${o.opId}Response, data);`);
-        methods.push(`          if (this.responseValidationMode() === 'strict') data = maybeR;`);
-        methods.push(`        }`);
+  methods.push(`        const r = await Sdk.${o.opId}({ body: bodyVal, client: this._client, signal } as any);`);
+  methods.push(`        let data = (r as any)?.data;`);
+  methods.push(`        if (data === undefined) data = r;`);
+  methods.push(`        if (this.responseValidationMode() !== 'none') {`);
+  methods.push(`          const _respKey = 'z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Response';`);
+  methods.push(`          const _schema = (Schemas as any)[_respKey];`);
+  methods.push(`          if (_schema) {`);
+  methods.push(`            const maybeR = await this._validation.gateResponse('${o.originalOpId}', _schema, data);`);
+  methods.push(`            if (this.responseValidationMode() === 'strict') data = maybeR;`);
+  methods.push(`          }`);
+  methods.push(`        }`);
         methods.push(`        return data;`);
         methods.push(`      };`);
         if (o.eventual) {
-          methods.push(`      if (useConsistency) return eventualPoll('${o.originalOpId}', ${o.verb === 'get'}, ()=>toCancelable(()=>call()), useConsistency);`);
-          methods.push('      return call();');
+          methods.push(`      const invoke = () => toCancelable(()=>call());`);
+          methods.push(`      if (useConsistency) return eventualPoll('${o.originalOpId}', ${o.verb === 'get'}, invoke, useConsistency);`);
+          methods.push('      return invoke();');
         } else {
           methods.push('      return call();');
         }
@@ -186,17 +198,23 @@ type ${o.opId}Consistency = {
         }
         methods.push(`      const call = async () => {`);
         methods.push(`        const full = { ...opts, client: this._client, signal } as any;`);
-        methods.push(`        const r = await Sdk.${o.opId}(full);`);
-        methods.push(`        let data = r?.data ?? r;`);
-        methods.push(`        if (this.responseValidationMode() !== 'none') {`);
-        methods.push(`          const maybeR = await this.gateResponse('${o.originalOpId}', (Schemas as any).z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Response || (Schemas as any).z${o.opId}Response, data);`);
-        methods.push(`          if (this.responseValidationMode() === 'strict') data = maybeR;`);
-        methods.push(`        }`);
+  methods.push(`        const r = await Sdk.${o.opId}(full);`);
+  methods.push(`        let data = (r as any)?.data;`);
+  methods.push(`        if (data === undefined) data = r;`);
+  methods.push(`        if (this.responseValidationMode() !== 'none') {`);
+  methods.push(`          const _respKey = 'z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Response';`);
+  methods.push(`          const _schema = (Schemas as any)[_respKey];`);
+  methods.push(`          if (_schema) {`);
+  methods.push(`            const maybeR = await this._validation.gateResponse('${o.originalOpId}', _schema, data);`);
+  methods.push(`            if (this.responseValidationMode() === 'strict') data = maybeR;`);
+  methods.push(`          }`);
+  methods.push(`        }`);
         methods.push(`        return data;`);
         methods.push(`      };`);
         if (o.eventual) {
-          methods.push(`      if (useConsistency) return eventualPoll('${o.originalOpId}', ${o.verb === 'get'}, ()=>toCancelable(()=>call()), useConsistency);`);
-          methods.push('      return call();');
+          methods.push(`      const invoke = () => toCancelable(()=>call());`);
+          methods.push(`      if (useConsistency) return eventualPoll('${o.originalOpId}', ${o.verb === 'get'}, invoke, useConsistency);`);
+          methods.push('      return invoke();');
         } else {
           methods.push('      return call();');
         }

@@ -1,6 +1,6 @@
 # Configuration Reference
 
-Generated: 2025-09-02T00:59:03.852Z
+Generated: 2025-09-02T01:56:09.082Z
 
 | Key | Type | Default | Requirement | Flags | Description |
 |-----|------|---------|-------------|-------|-------------|
@@ -19,7 +19,6 @@ Generated: 2025-09-02T00:59:03.852Z
 | `CAMUNDA_BASIC_AUTH_USERNAME` | string | — | When CAMUNDA_AUTH_STRATEGY=BASIC |  | Basic auth username (required when CAMUNDA_AUTH_STRATEGY=BASIC). |
 | `CAMUNDA_BASIC_AUTH_PASSWORD` | string | — | When CAMUNDA_AUTH_STRATEGY=BASIC | secret | Basic auth password (required when CAMUNDA_AUTH_STRATEGY=BASIC). |
 | `CAMUNDA_SDK_VALIDATION` | string | `req:none,res:none` | Optional |  | Validation mini-language controlling req/res modes. |
-| `CAMUNDA_SDK_VALIDATION_VERBOSE` | boolean | — | No default |  | Verbose validation output flag. |
 | `CAMUNDA_SDK_LOG_LEVEL` | string | `error` | Optional |  | SDK log level (silent|error|warn|info|debug|trace). |
 | `CAMUNDA_MTLS_CERT_PATH` | string | — | No default |  | Path to client certificate (PEM) for mTLS. |
 | `CAMUNDA_MTLS_KEY_PATH` | string | — | No default |  | Path to client private key (PEM) for mTLS. |

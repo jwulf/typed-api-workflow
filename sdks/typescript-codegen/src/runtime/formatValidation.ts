@@ -1,5 +1,4 @@
 import { ZodError, ZodIssue, ZodTypeAny, ZodUnion, ZodObject, ZodRawShape } from 'zod';
-import { validationVerbose } from './config';
 import { getLogger } from './logger';
 
 export interface FormattedValidation {
@@ -8,11 +7,8 @@ export interface FormattedValidation {
   issues: string[]; // trimmed issue lines
 }
 
-function truncate(list: string[], max = 5): string[] {
-  if (list.length <= max) return list;
-  const rest = list.length - max;
-  return [...list.slice(0, max), `(+${rest} more issues)`];
-}
+// All validation output is now verbose: full issue listing (no truncation heuristic)
+function identity<T>(v: T): T { return v; }
 
 function describeObjectShape(obj: ZodObject<ZodRawShape>): { required: string[]; optional: string[] } {
   const rawShapeFn = (obj as any)._def?.shape || (obj as any).shape;
@@ -85,11 +81,9 @@ function formatUnion(schema: any, value: any): FormattedUnion | undefined {
       const { required, optional } = describeObjectShape(resolved as any);
       requiredSets.push(required.slice());
       let line = `${label}: required { ${required.join(', ') || '(none)'} } optional { ${optional.slice(0,6).join(', ')}${optional.length>6?'…':''} }`;
-      if (validationVerbose()) {
-        const example: Record<string, any> = {};
-        required.forEach(k => example[k] = '<value>');
-        line += ` example ${JSON.stringify(example)}`;
-      }
+  const example: Record<string, any> = {};
+  required.forEach(k => example[k] = '<value>');
+  line += ` example ${JSON.stringify(example)}`;
       return line;
     }
     requiredSets.push([]);
@@ -122,7 +116,7 @@ export function formatValidationError(params: {
     union = formatUnion(schema, value);
   }
   const allIssueLines = error.issues.map(formatIssue);
-  const issueLines = validationVerbose() ? allIssueLines : truncate(allIssueLines);
+  const issueLines = identity(allIssueLines);
   const summaryParts = [
     union ? `${union.variantCount} variant(s) defined; none matched.` : undefined,
     providedKeys.length ? `provided keys: { ${providedKeys.join(', ')} }` : undefined,
@@ -134,23 +128,24 @@ export function formatValidationError(params: {
 }
 
 function formatIssue(issue: ZodIssue): string {
-  const p = issue.path.length ? issue.path.join('.') : '(root)';
-  switch (issue.code) {
+  const i: any = issue; // relax typing (Zod internal issue codes may expand across versions)
+  const p = i.path?.length ? i.path.join('.') : '(root)';
+  switch (i.code) {
     case 'invalid_type':
-      return `${p}: expected ${issue.expected} got ${issue.received}`;
+      return `${p}: expected ${i.expected} got ${i.received}`;
     case 'invalid_literal':
-      return `${p}: expected literal ${JSON.stringify(issue.expected)}`;
+      return `${p}: expected literal ${JSON.stringify(i.expected)}`;
     case 'invalid_union':
       return `${p}: union mismatch`;
     case 'too_small':
     case 'too_big':
-      return `${p}: ${issue.message}`;
+      return `${p}: ${i.message}`;
     case 'unrecognized_keys':
-      return `${p}: unrecognized keys ${issue.keys.join(', ')}`;
+      return `${p}: unrecognized keys ${i.keys.join(', ')}`;
     case 'invalid_enum_value':
-      return `${p}: expected one of ${issue.options.join(', ')}`;
+      return `${p}: expected one of ${i.options.join(', ')}`;
     default:
-      return `${p}: ${issue.message}`;
+      return `${p}: ${i.message}`;
   }
 }
 
