@@ -12,22 +12,22 @@ interface OA3Spec { paths?: Record<string, OA3PathItem> }
 
 const ROOT = process.cwd();
 const SPEC_PATH = path.resolve(ROOT, '../../rest-api.domain.yaml');
-const TEMPLATE_FILE = path.join(ROOT, 'src/Camunda8.template.ts');
-const CLASS_FILE = path.join(ROOT, 'src/Camunda8.ts');
+const TEMPLATE_FILE = path.join(ROOT, 'src/CamundaClient.template.ts');
+const CLASS_FILE = path.join(ROOT, 'src/CamundaClient.ts');
 const SDK_GEN_PATH = path.join(ROOT, 'src/gen/sdk.gen.ts');
 
-const MARK_TYPES_START = '// === AUTO-GENERATED CAMUNDA8 SUPPORT TYPES START ===';
-const MARK_TYPES_END = '// === AUTO-GENERATED CAMUNDA8 SUPPORT TYPES END ===';
-const MARK_METHODS_START = '// === AUTO-GENERATED CAMUNDA8 METHODS START ===';
-const MARK_METHODS_END = '// === AUTO-GENERATED CAMUNDA8 METHODS END ===';
+const MARK_TYPES_START = '// === AUTO-GENERATED CAMUNDA SUPPORT TYPES START ===';
+const MARK_TYPES_END = '// === AUTO-GENERATED CAMUNDA SUPPORT TYPES END ===';
+const MARK_METHODS_START = '// === AUTO-GENERATED CAMUNDA METHODS START ===';
+const MARK_METHODS_END = '// === AUTO-GENERATED CAMUNDA METHODS END ===';
 
 function main() {
-  if (!fs.existsSync(SPEC_PATH)) { console.warn('[class-gen] Spec missing, skipping'); return; }
-  if (!fs.existsSync(TEMPLATE_FILE)) { console.warn('[class-gen] Template missing, skipping'); return; }
+  if (!fs.existsSync(SPEC_PATH)) { throw new Error('[class-gen] Spec missing, skipping'); }
+  if (!fs.existsSync(TEMPLATE_FILE)) { throw new Error('[class-gen] Template missing, skipping'); }
   const spec: OA3Spec = parse(fs.readFileSync(SPEC_PATH, 'utf8'));
   const tpl = fs.readFileSync(TEMPLATE_FILE,'utf8');
   const tS = tpl.indexOf(MARK_TYPES_START), tE = tpl.indexOf(MARK_TYPES_END), mS = tpl.indexOf(MARK_METHODS_START), mE = tpl.indexOf(MARK_METHODS_END);
-  if ([tS,tE,mS,mE].some(i=>i===-1) || tE < tS || mE < mS) { console.error('[class-gen] Markers missing'); return; }
+  if ([tS,tE,mS,mE].some(i=>i===-1) || tE < tS || mE < mS) { throw new Error('[class-gen] Markers missing'); }
 
   // Underlying docs
   const docs: Record<string,string> = {};
@@ -169,12 +169,12 @@ type ${o.opId}Consistency = {
     methods.push('');
   }
 
-  const banner = '// @generated from Camunda8.template.ts – DO NOT EDIT DIRECTLY\n';
+  const banner = '// @generated from CamundaClient.template.ts – DO NOT EDIT DIRECTLY\n';
   const withTypes = tpl.slice(0, tS + MARK_TYPES_START.length) + '\n' + support.join('\n') + '\n' + tpl.slice(tE);
   const w2S = withTypes.indexOf(MARK_METHODS_START); const w2E = withTypes.indexOf(MARK_METHODS_END);
   const finalSrc = banner + withTypes.slice(0, w2S + MARK_METHODS_START.length) + '\n' + methods.join('\n') + '\n' + withTypes.slice(w2E);
   fs.writeFileSync(CLASS_FILE, finalSrc, 'utf8');
-  console.log(`[class-gen] Wrote Camunda8.ts with ${ops.length} methods`);
+  console.log(`[class-gen] Wrote Camunda.ts with ${ops.length} methods`);
 }
 
 function hasJsonLike(rb: OA3RequestBody): boolean { return !!rb?.content && Object.keys(rb.content).some(k => /json|octet|multipart|text\//i.test(k)); }

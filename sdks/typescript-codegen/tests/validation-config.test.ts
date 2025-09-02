@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Camunda8 } from '../src/Camunda8';
-import { expect as expectVitest } from 'vitest';
+import { CamundaClient } from '../src';
 
 function set(val?: string) {
   if (val === undefined) delete process.env.CAMUNDA_SDK_VALIDATION; else process.env.CAMUNDA_SDK_VALIDATION = val;
@@ -10,28 +9,28 @@ function set(val?: string) {
 describe('CAMUNDA_SDK_VALIDATION parsing', () => {
   it('defaults to none/none when unset', () => {
     set(undefined);
-  const client = new Camunda8({CAMUNDA_SDK_VALIDATION: undefined});
+  const client = new CamundaClient({config: {CAMUNDA_SDK_VALIDATION: undefined}});
   expect(client.requestValidationMode()).toBe('none');
   expect(client.responseValidationMode()).toBe('none');
   });
   it('strict', () => {
-  const client = new Camunda8({CAMUNDA_SDK_VALIDATION: 'strict'});
+  const client = new CamundaClient({config: {CAMUNDA_SDK_VALIDATION: 'strict'}});
   expect(client.validationConfig()).toEqual({ req: 'strict', res: 'strict' });
   });
   it('req only', () => {
-  const client = new Camunda8({CAMUNDA_SDK_VALIDATION: 'req:warn'});
+  const client = new CamundaClient({config: {CAMUNDA_SDK_VALIDATION: 'req:warn'}});
   expect(client.validationConfig()).toEqual({ req: 'warn', res: 'none' });
   });
   it('res only', () => {
-  const client = new Camunda8({CAMUNDA_SDK_VALIDATION: 'res:strict'});
+  const client = new CamundaClient({config: {CAMUNDA_SDK_VALIDATION: 'res:strict'}});
   expect(client.validationConfig()).toEqual({ req: 'none', res: 'strict' });
   });
   it('both sides pair list', () => {
-  const client = new Camunda8({CAMUNDA_SDK_VALIDATION: 'req:warn,res:strict'});
+  const client = new CamundaClient({config: {CAMUNDA_SDK_VALIDATION: 'req:warn,res:strict'}});
   expect(client.validationConfig()).toEqual({ req: 'warn', res: 'strict' });
   });
   it('invalid tokens cause error', () => {
   // Construction should throw because hydration would error
-  expect(() => new Camunda8({CAMUNDA_SDK_VALIDATION: 'foo:bar,res:warn'})).toThrow();
+  expect(() => new CamundaClient({config: {CAMUNDA_SDK_VALIDATION: 'foo:bar,res:warn'}})).toThrow();
   });
 });

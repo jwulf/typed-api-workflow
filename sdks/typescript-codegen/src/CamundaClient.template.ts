@@ -1,5 +1,5 @@
-// Canonical Camunda8 class template (manually maintained)
-// DO NOT add generated operation methods here; generator will produce Camunda8.ts from this template.
+// Canonical Camunda class template (manually maintained)
+// DO NOT add generated operation methods here; generator will produce CamundaClient.ts from this template.
 
 import { createClient } from './gen/client/client.gen';
 import type { Client } from './gen/client/types.gen';
@@ -10,9 +10,9 @@ import { hydrateConfig } from './runtime/unifiedConfiguration';
 import * as Sdk from './gen/sdk.gen';
 import { ConsistencyOptions, eventualPoll } from './runtime/eventual'
 
-// === AUTO-GENERATED CAMUNDA8 SUPPORT TYPES START ===
+// === AUTO-GENERATED CAMUNDA SUPPORT TYPES START ===
 // (generation inserts helper & per-operation option/body types here)
-// === AUTO-GENERATED CAMUNDA8 SUPPORT TYPES END ===
+// === AUTO-GENERATED CAMUNDA SUPPORT TYPES END ===
 
 // Cancelable primitive (kept lightweight & local)
 export class CancelError extends Error { constructor(){ super('Cancelled'); this.name='CancelError'; } }
@@ -27,7 +27,7 @@ function toCancelable<T>(factory:(signal:AbortSignal)=>Promise<T>): CancelablePr
 // New simplified input: we only accept an already hydrated CamundaConfig. Users wanting env
 // overrides or partials should call hydrateConfig first (single source of truth) and pass
 // the resulting config.
-export interface Camunda8Options {
+export interface CamundaOptions {
   // Strongly typed env-style overrides (CAMUNDA_* keys). Optional.
   config?: EnvOverrides;
   // Custom fetch implementation.
@@ -36,9 +36,9 @@ export interface Camunda8Options {
   env?: Record<string,string|undefined>;
 }
 
-export function createCamunda8(options?: Camunda8Options) { return new Camunda8(options); }
+export function createCamunda(options?: CamundaOptions) { return new Camunda(options); }
 
-export class Camunda8 {
+export class CamundaClient {
   private _client: Client;
   private _config: CamundaConfig;
   private _auth: ReturnType<typeof createAuthFacade> = createAuthFacade({
@@ -52,7 +52,7 @@ export class Camunda8 {
 
   private _overrides: EnvOverrides = {};
 
-  constructor(opts: Camunda8Options = {}) {
+  constructor(opts: CamundaOptions = {}) {
     if (opts.config) this._overrides = { ...opts.config };
     const { config } = hydrateConfig({ overrides: this._overrides, env: opts.env });
     this._config = config;
@@ -64,7 +64,7 @@ export class Camunda8 {
   get config() { return this._config; }
 
   // Merge new overrides and re-hydrate.
-  configure(next: Camunda8Options) {
+  configure(next: CamundaOptions) {
     if (next.config) this._overrides = { ...this._overrides, ...next.config };
     if (next.fetch) this._fetch = next.fetch;
     const { config } = hydrateConfig({ overrides: this._overrides, env: next.env });
@@ -79,6 +79,6 @@ export class Camunda8 {
   clearAuthCache(opts?: { disk?: boolean; memory?: boolean }) { this._auth.clearCache(opts); }
   onAuthHeaders(h: (headers: Record<string,string>) => Record<string,string>|Promise<Record<string,string>>) { this._auth.registerHeadersHook(h); }
 
-  // === AUTO-GENERATED CAMUNDA8 METHODS START ===
-  // === AUTO-GENERATED CAMUNDA8 METHODS END ===
+  // === AUTO-GENERATED CAMUNDA METHODS START ===
+  // === AUTO-GENERATED CAMUNDA METHODS END ===
 }

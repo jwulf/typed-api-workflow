@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { hydrateConfig } from '../src/runtime/unifiedConfiguration';
 import { createAuthFacade } from '../src/runtime/auth';
+import { CamundaClient } from '../src';
 import fs from 'fs';
 
 // Minimal fake PEMs
@@ -49,5 +50,24 @@ describe('mTLS config precedence', () => {
     const auth = createAuthFacade(config, { fetch: vi.fn().mockResolvedValue({ ok:true, json: async () => ({}) }) });
     await auth.getAuthHeaders();
     expect(true).toBe(true);
+  });
+
+  it('wraps fetch when agent present (paths precedence)', async () => {
+    const tmp = fs.mkdtempSync('/tmp/mtls-newgen-');
+    const certPath = tmp + '/c.pem'; const keyPath = tmp + '/k.pem'; const caPath = tmp + '/ca.pem';
+    fs.writeFileSync(certPath, CERT); fs.writeFileSync(keyPath, KEY); fs.writeFileSync(caPath, CA);
+    // Simulate facade creating an agent by stubbing global variable used in integration
+    (globalThis as any).__CAMUNDA_MTLS_AGENT = { dummy: true };
+    const spy = vi.fn(async () => new Response(JSON.stringify({ ok:true }), { status:200, headers:{'Content-Type':'application/json'} }));
+    const camunda = new CamundaClient({ config: {
+      CAMUNDA_AUTH_STRATEGY: 'NONE',
+      CAMUNDA_MTLS_CERT_PATH: certPath,
+      CAMUNDA_MTLS_KEY_PATH: keyPath,
+      CAMUNDA_MTLS_CA_PATH: caPath
+    }, fetch: spy });
+
+    await camunda.getLicense();
+    expect(spy).toHaveBeenCalledTimes(1);
+    delete (globalThis as any).__CAMUNDA_MTLS_AGENT;
   });
 });

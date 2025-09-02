@@ -218,5 +218,5 @@ export function createAuthFacade(config: CamundaConfig, opts?: { fetch?: (input:
 		debug__setTokenExpiry(epochMs: number) { if (oauth && oauth['token']) { (oauth as any).token.expires_at_epoch_ms = epochMs; } }
 	};
 }
-// (No default singleton export; auth is instance-scoped via Camunda8 constructor.)
+// (No default singleton export; auth is instance-scoped via Camunda constructor.)
 
