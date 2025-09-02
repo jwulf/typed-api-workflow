@@ -9,6 +9,8 @@ import type { EnvOverrides } from './runtime/configSchema';
 import { hydrateConfig } from './runtime/unifiedConfiguration';
 import * as Sdk from './gen/sdk.gen';
 import { ConsistencyOptions, eventualPoll } from './runtime/eventual'
+import * as Schemas from './gen/zod.gen';
+import { ValidationManager } from './runtime/validationManager';
 
 // === AUTO-GENERATED CAMUNDA SUPPORT TYPES START ===
 // (generation inserts helper & per-operation option/body types here)
@@ -36,7 +38,7 @@ export interface CamundaOptions {
   env?: Record<string,string|undefined>;
 }
 
-export function createCamunda(options?: CamundaOptions) { return new Camunda(options); }
+export function createCamunda(options?: CamundaOptions) { return new CamundaClient(options); }
 
 export class CamundaClient {
   private _client: Client;
@@ -49,6 +51,7 @@ export class CamundaClient {
     tokenAudience: ''
   } as any);
   private _fetch?: (input: RequestInfo | URL, init?: RequestInit)=>Promise<Response>;
+  private _validation: ValidationManager = new ValidationManager({ req: 'none', res: 'none', verbose: false });
 
   private _overrides: EnvOverrides = {};
 
@@ -59,6 +62,7 @@ export class CamundaClient {
     this._fetch = opts.fetch;
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
     this._auth = createAuthFacade(this._config, { fetch: this._fetch });
+  this._validation.update(this._config.validation);
   }
 
   get config() { return this._config; }
@@ -71,6 +75,7 @@ export class CamundaClient {
     this._config = config;
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
     this._auth = createAuthFacade(this._config, { fetch: this._fetch });
+  this._validation.update(this._config.validation);
   }
 
   // Auth helpers
@@ -78,6 +83,15 @@ export class CamundaClient {
   async forceAuthRefresh() { return this._auth.forceRefresh(); }
   clearAuthCache(opts?: { disk?: boolean; memory?: boolean }) { this._auth.clearCache(opts); }
   onAuthHeaders(h: (headers: Record<string,string>) => Record<string,string>|Promise<Record<string,string>>) { this._auth.registerHeadersHook(h); }
+
+  // Instance-scoped validation state (methods added by hand so template provides baseline)
+  requestValidationMode() { return this._validation.settings.req; }
+  responseValidationMode() { return this._validation.settings.res; }
+  validationVerbose() { return this._validation.settings.verbose; }
+  // Back-compat helper used in older tests expecting validationConfig()
+  validationConfig() { return { req: this._validation.settings.req, res: this._validation.settings.res }; }
+  async gateRequest(opId: string, schema: any, data: any) { return this._validation.gateRequest(opId, schema, data); }
+  async gateResponse(opId: string, schema: any, data: any) { return this._validation.gateResponse(opId, schema, data); }
 
   // === AUTO-GENERATED CAMUNDA METHODS START ===
   // === AUTO-GENERATED CAMUNDA METHODS END ===

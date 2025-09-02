@@ -15,7 +15,7 @@ function makeClient(capture: { url?: string; request?: Request; bodyText?: strin
     try { capture.bodyText = await req.clone().text(); } catch { /* ignore */ }
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   };
-  return new CamundaClient({ config: { CAMUNDA_SDK_VALIDATION: 'none' }, fetch });
+  return new CamundaClient({ config: { CAMUNDA_SDK_VALIDATION: 'none', CAMUNDA_REST_ADDRESS: 'http://localhost:8080' }, fetch });
 }
 
 describe('semantic key request unwrapping', () => {
@@ -27,12 +27,12 @@ describe('semantic key request unwrapping', () => {
     expect(capture.url).toContain('/process-instances/12345');
   });
 
-  it('unwrapped in query params (searchProcessInstances)', async () => {
+  it('unwrapped in request body (searchProcessInstances)', async () => {
     const capture: any = {};
     const client = makeClient(capture);
     const key = ProcessInstanceKey.assumeExists('67890');
-    await client.searchProcessInstances({ filter: { processInstanceKey: key } }, { consistency: { waitUpToMs: 0 } });
-    expect(capture.url).toMatch(/processInstanceKey=67890/);
+    await client.searchProcessInstances({ filter: { processInstanceKey: key } } as any, { consistency: { waitUpToMs: 0 } } as any);
+    expect(capture.bodyText).toMatch(/"processInstanceKey":"67890"/);
   });
 
   it('unwrapped in JSON body (cancelProcessInstance)', async () => {

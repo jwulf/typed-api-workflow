@@ -10,17 +10,17 @@
 | getAuthorization | GET | /authorizations/{authorizationKey} | AuthorizationService | Get authorization |
 | getBatchOperation | GET | /batch-operations/{batchOperationKey} | BatchOperationService | Get batch operation |
 | getDecisionDefinition | GET | /decision-definitions/{decisionDefinitionKey} | DecisionDefinitionService | Get decision definition |
-| getDecisionDefinitionXML | GET | /decision-definitions/{decisionDefinitionKey}/xml | DecisionDefinitionService | Get decision definition XML |
+| getDecisionDefinitionXml | GET | /decision-definitions/{decisionDefinitionKey}/xml | DecisionDefinitionService | Get decision definition XML |
 | getDecisionInstance | GET | /decision-instances/{decisionEvaluationInstanceKey} | DecisionInstanceService | Get decision instance |
 | getDecisionRequirements | GET | /decision-requirements/{decisionRequirementsKey} | DecisionRequirementsService | Get decision requirements |
-| getDecisionRequirementsXML | GET | /decision-requirements/{decisionRequirementsKey}/xml | DecisionRequirementsService | Get decision requirements XML |
+| getDecisionRequirementsXml | GET | /decision-requirements/{decisionRequirementsKey}/xml | DecisionRequirementsService | Get decision requirements XML |
 | getElementInstance | GET | /element-instances/{elementInstanceKey} | ElementInstanceService | Get element instance |
 | getGroup | GET | /groups/{groupId} | GroupService | Get group |
 | getIncident | GET | /incidents/{incidentKey} | IncidentService | Get incident |
 | getMappingRule | GET | /mapping-rules/{mappingRuleId} | MappingRuleService | Get a mapping rule |
 | getProcessDefinition | GET | /process-definitions/{processDefinitionKey} | ProcessDefinitionService | Get process definition |
 | getProcessDefinitionStatistics | POST | /process-definitions/{processDefinitionKey}/statistics/element-instances | ProcessDefinitionService | Get process definition statistics |
-| getProcessDefinitionXML | GET | /process-definitions/{processDefinitionKey}/xml | ProcessDefinitionService | Get process definition XML |
+| getProcessDefinitionXml | GET | /process-definitions/{processDefinitionKey}/xml | ProcessDefinitionService | Get process definition XML |
 | getProcessInstance | GET | /process-instances/{processInstanceKey} | ProcessInstanceService | Get process instance |
 | getProcessInstanceCallHierarchy | GET | /process-instances/{processInstanceKey}/call-hierarchy | ProcessInstanceService | Get call hierarchy for process instance |
 | getProcessInstanceSequenceFlows | GET | /process-instances/{processInstanceKey}/sequence-flows | ProcessInstanceService | Get process instance sequence flows |

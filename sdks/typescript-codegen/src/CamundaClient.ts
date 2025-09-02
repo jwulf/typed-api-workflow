@@ -10,9 +10,11 @@ import type { EnvOverrides } from './runtime/configSchema';
 import { hydrateConfig } from './runtime/unifiedConfiguration';
 import * as Sdk from './gen/sdk.gen';
 import { ConsistencyOptions, eventualPoll } from './runtime/eventual'
+import * as Schemas from './gen/zod.gen';
+import { ValidationManager } from './runtime/validationManager';
 
 // === AUTO-GENERATED CAMUNDA SUPPORT TYPES START ===
-// Generated 2025-09-01T23:23:12.009Z
+// Generated 2025-09-02T00:58:59.157Z
 // Operations: 144
 type _RawReturn<F> = F extends (...a:any)=>Promise<infer R> ? R : never;
 type _DataOf<F> = Exclude<_RawReturn<F> extends { data: infer D } ? D : _RawReturn<F>, undefined>;
@@ -654,7 +656,7 @@ export interface CamundaOptions {
   env?: Record<string,string|undefined>;
 }
 
-export function createCamunda(options?: CamundaOptions) { return new Camunda(options); }
+export function createCamunda(options?: CamundaOptions) { return new CamundaClient(options); }
 
 export class CamundaClient {
   private _client: Client;
@@ -667,6 +669,7 @@ export class CamundaClient {
     tokenAudience: ''
   } as any);
   private _fetch?: (input: RequestInfo | URL, init?: RequestInit)=>Promise<Response>;
+  private _validation: ValidationManager = new ValidationManager({ req: 'none', res: 'none', verbose: false });
 
   private _overrides: EnvOverrides = {};
 
@@ -677,6 +680,7 @@ export class CamundaClient {
     this._fetch = opts.fetch;
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
     this._auth = createAuthFacade(this._config, { fetch: this._fetch });
+  this._validation.update(this._config.validation);
   }
 
   get config() { return this._config; }
@@ -689,6 +693,7 @@ export class CamundaClient {
     this._config = config;
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
     this._auth = createAuthFacade(this._config, { fetch: this._fetch });
+  this._validation.update(this._config.validation);
   }
 
   // Auth helpers
@@ -697,8 +702,17 @@ export class CamundaClient {
   clearAuthCache(opts?: { disk?: boolean; memory?: boolean }) { this._auth.clearCache(opts); }
   onAuthHeaders(h: (headers: Record<string,string>) => Record<string,string>|Promise<Record<string,string>>) { this._auth.registerHeadersHook(h); }
 
+  // Instance-scoped validation state (methods added by hand so template provides baseline)
+  requestValidationMode() { return this._validation.settings.req; }
+  responseValidationMode() { return this._validation.settings.res; }
+  validationVerbose() { return this._validation.settings.verbose; }
+  // Back-compat helper used in older tests expecting validationConfig()
+  validationConfig() { return { req: this._validation.settings.req, res: this._validation.settings.res }; }
+  async gateRequest(opId: string, schema: any, data: any) { return this._validation.gateRequest(opId, schema, data); }
+  async gateResponse(opId: string, schema: any, data: any) { return this._validation.gateResponse(opId, schema, data); }
+
   // === AUTO-GENERATED CAMUNDA METHODS START ===
-  // Generated methods (2025-09-01T23:23:12.010Z)
+  // Generated methods (2025-09-02T00:58:59.158Z)
   /**
    * Activate activities within an ad-hoc sub-process
    * Activates selected activities within an ad-hoc sub-process identified by element ID.
@@ -714,10 +728,36 @@ export class CamundaClient {
   activateAdHocSubProcessActivities(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.activateAdHocSubProcessActivities({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('activateAdHocSubProcessActivities', (Schemas as any).zActivateAdHocSubProcessActivitiesData || (Schemas as any).zactivateAdHocSubProcessActivitiesData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.activateAdHocSubProcessActivities(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('activateAdHocSubProcessActivities', (Schemas as any).zActivateAdHocSubProcessActivitiesResponse || (Schemas as any).zactivateAdHocSubProcessActivitiesResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.activateAdHocSubProcessActivities({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('activateAdHocSubProcessActivities', (Schemas as any).zActivateAdHocSubProcessActivitiesData || (Schemas as any).zactivateAdHocSubProcessActivitiesData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.activateAdHocSubProcessActivities({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('activateAdHocSubProcessActivities', (Schemas as any).zActivateAdHocSubProcessActivitiesResponse || (Schemas as any).zactivateAdHocSubProcessActivitiesResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -735,10 +775,36 @@ export class CamundaClient {
   activateJobs(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.activateJobs({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('activateJobs', (Schemas as any).zActivateJobsData || (Schemas as any).zactivateJobsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.activateJobs(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('activateJobs', (Schemas as any).zActivateJobsResponse || (Schemas as any).zactivateJobsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.activateJobs({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('activateJobs', (Schemas as any).zActivateJobsData || (Schemas as any).zactivateJobsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.activateJobs({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('activateJobs', (Schemas as any).zActivateJobsResponse || (Schemas as any).zactivateJobsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -754,7 +820,16 @@ export class CamundaClient {
   assignClientToGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.assignClientToGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.assignClientToGroup(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('assignClientToGroup', (Schemas as any).zAssignClientToGroupResponse || (Schemas as any).zassignClientToGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -770,7 +845,16 @@ export class CamundaClient {
   assignClientToTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.assignClientToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.assignClientToTenant(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('assignClientToTenant', (Schemas as any).zAssignClientToTenantResponse || (Schemas as any).zassignClientToTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -786,7 +870,16 @@ export class CamundaClient {
   assignGroupToTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.assignGroupToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.assignGroupToTenant(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('assignGroupToTenant', (Schemas as any).zAssignGroupToTenantResponse || (Schemas as any).zassignGroupToTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -803,7 +896,16 @@ export class CamundaClient {
   assignMappingRuleToGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.assignMappingRuleToGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.assignMappingRuleToGroup(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('assignMappingRuleToGroup', (Schemas as any).zAssignMappingRuleToGroupResponse || (Schemas as any).zassignMappingRuleToGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -819,7 +921,16 @@ export class CamundaClient {
   assignMappingRuleToTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.assignMappingRuleToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.assignMappingRuleToTenant(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('assignMappingRuleToTenant', (Schemas as any).zAssignMappingRuleToTenantResponse || (Schemas as any).zassignMappingRuleToTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -836,7 +947,16 @@ export class CamundaClient {
   assignRoleToClient(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.assignRoleToClient({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.assignRoleToClient(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('assignRoleToClient', (Schemas as any).zAssignRoleToClientResponse || (Schemas as any).zassignRoleToClientResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -852,7 +972,16 @@ export class CamundaClient {
   assignRoleToGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.assignRoleToGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.assignRoleToGroup(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('assignRoleToGroup', (Schemas as any).zAssignRoleToGroupResponse || (Schemas as any).zassignRoleToGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -869,7 +998,16 @@ export class CamundaClient {
   assignRoleToMappingRule(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.assignRoleToMappingRule({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.assignRoleToMappingRule(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('assignRoleToMappingRule', (Schemas as any).zAssignRoleToMappingRuleResponse || (Schemas as any).zassignRoleToMappingRuleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -885,7 +1023,16 @@ export class CamundaClient {
   assignRoleToTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.assignRoleToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.assignRoleToTenant(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('assignRoleToTenant', (Schemas as any).zAssignRoleToTenantResponse || (Schemas as any).zassignRoleToTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -901,7 +1048,16 @@ export class CamundaClient {
   assignRoleToUser(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.assignRoleToUser({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.assignRoleToUser(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('assignRoleToUser', (Schemas as any).zAssignRoleToUserResponse || (Schemas as any).zassignRoleToUserResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -918,10 +1074,36 @@ export class CamundaClient {
   assignUserTask(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.assignUserTask({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('assignUserTask', (Schemas as any).zAssignUserTaskData || (Schemas as any).zassignUserTaskData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.assignUserTask(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('assignUserTask', (Schemas as any).zAssignUserTaskResponse || (Schemas as any).zassignUserTaskResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.assignUserTask({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('assignUserTask', (Schemas as any).zAssignUserTaskData || (Schemas as any).zassignUserTaskData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.assignUserTask({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('assignUserTask', (Schemas as any).zAssignUserTaskResponse || (Schemas as any).zassignUserTaskResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -937,7 +1119,16 @@ export class CamundaClient {
   assignUserToGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.assignUserToGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.assignUserToGroup(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('assignUserToGroup', (Schemas as any).zAssignUserToGroupResponse || (Schemas as any).zassignUserToGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -953,7 +1144,16 @@ export class CamundaClient {
   assignUserToTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.assignUserToTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.assignUserToTenant(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('assignUserToTenant', (Schemas as any).zAssignUserToTenantResponse || (Schemas as any).zassignUserToTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -970,10 +1170,36 @@ export class CamundaClient {
   broadcastSignal(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.broadcastSignal({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('broadcastSignal', (Schemas as any).zBroadcastSignalData || (Schemas as any).zbroadcastSignalData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.broadcastSignal(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('broadcastSignal', (Schemas as any).zBroadcastSignalResponse || (Schemas as any).zbroadcastSignalResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.broadcastSignal({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('broadcastSignal', (Schemas as any).zBroadcastSignalData || (Schemas as any).zbroadcastSignalData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.broadcastSignal({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('broadcastSignal', (Schemas as any).zBroadcastSignalResponse || (Schemas as any).zbroadcastSignalResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -995,11 +1221,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.cancelBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('cancelBatchOperation', (Schemas as any).zCancelBatchOperationData || (Schemas as any).zcancelBatchOperationData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.cancelBatchOperation(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('cancelBatchOperation', (Schemas as any).zCancelBatchOperationResponse || (Schemas as any).zcancelBatchOperationResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('cancelBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.cancelBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('cancelBatchOperation', (Schemas as any).zCancelBatchOperationData || (Schemas as any).zcancelBatchOperationData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.cancelBatchOperation({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('cancelBatchOperation', (Schemas as any).zCancelBatchOperationResponse || (Schemas as any).zcancelBatchOperationResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('cancelBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1017,10 +1269,36 @@ export class CamundaClient {
   cancelProcessInstance(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.cancelProcessInstance({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('cancelProcessInstance', (Schemas as any).zCancelProcessInstanceData || (Schemas as any).zcancelProcessInstanceData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.cancelProcessInstance(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('cancelProcessInstance', (Schemas as any).zCancelProcessInstanceResponse || (Schemas as any).zcancelProcessInstanceResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.cancelProcessInstance({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('cancelProcessInstance', (Schemas as any).zCancelProcessInstanceData || (Schemas as any).zcancelProcessInstanceData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.cancelProcessInstance({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('cancelProcessInstance', (Schemas as any).zCancelProcessInstanceResponse || (Schemas as any).zcancelProcessInstanceResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1044,11 +1322,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.cancelProcessInstancesBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('cancelProcessInstancesBatchOperation', (Schemas as any).zCancelProcessInstancesBatchOperationData || (Schemas as any).zcancelProcessInstancesBatchOperationData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.cancelProcessInstancesBatchOperation(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('cancelProcessInstancesBatchOperation', (Schemas as any).zCancelProcessInstancesBatchOperationResponse || (Schemas as any).zcancelProcessInstancesBatchOperationResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('cancelProcessInstancesBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.cancelProcessInstancesBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('cancelProcessInstancesBatchOperation', (Schemas as any).zCancelProcessInstancesBatchOperationData || (Schemas as any).zcancelProcessInstancesBatchOperationData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.cancelProcessInstancesBatchOperation({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('cancelProcessInstancesBatchOperation', (Schemas as any).zCancelProcessInstancesBatchOperationResponse || (Schemas as any).zcancelProcessInstancesBatchOperationResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('cancelProcessInstancesBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1067,10 +1371,36 @@ export class CamundaClient {
   completeJob(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.completeJob({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('completeJob', (Schemas as any).zCompleteJobData || (Schemas as any).zcompleteJobData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.completeJob(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('completeJob', (Schemas as any).zCompleteJobResponse || (Schemas as any).zcompleteJobResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.completeJob({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('completeJob', (Schemas as any).zCompleteJobData || (Schemas as any).zcompleteJobData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.completeJob({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('completeJob', (Schemas as any).zCompleteJobResponse || (Schemas as any).zcompleteJobResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1087,10 +1417,36 @@ export class CamundaClient {
   completeUserTask(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.completeUserTask({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('completeUserTask', (Schemas as any).zCompleteUserTaskData || (Schemas as any).zcompleteUserTaskData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.completeUserTask(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('completeUserTask', (Schemas as any).zCompleteUserTaskResponse || (Schemas as any).zcompleteUserTaskResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.completeUserTask({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('completeUserTask', (Schemas as any).zCompleteUserTaskData || (Schemas as any).zcompleteUserTaskData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.completeUserTask({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('completeUserTask', (Schemas as any).zCompleteUserTaskResponse || (Schemas as any).zcompleteUserTaskResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1111,10 +1467,36 @@ export class CamundaClient {
   correlateMessage(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.correlateMessage({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('correlateMessage', (Schemas as any).zCorrelateMessageData || (Schemas as any).zcorrelateMessageData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.correlateMessage(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('correlateMessage', (Schemas as any).zCorrelateMessageResponse || (Schemas as any).zcorrelateMessageResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.correlateMessage({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('correlateMessage', (Schemas as any).zCorrelateMessageData || (Schemas as any).zcorrelateMessageData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.correlateMessage({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('correlateMessage', (Schemas as any).zCorrelateMessageResponse || (Schemas as any).zcorrelateMessageResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1134,11 +1516,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.createAdminUser({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('createAdminUser', (Schemas as any).zCreateAdminUserData || (Schemas as any).zcreateAdminUserData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.createAdminUser(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('createAdminUser', (Schemas as any).zCreateAdminUserResponse || (Schemas as any).zcreateAdminUserResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('createAdminUser', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.createAdminUser({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('createAdminUser', (Schemas as any).zCreateAdminUserData || (Schemas as any).zcreateAdminUserData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.createAdminUser({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('createAdminUser', (Schemas as any).zCreateAdminUserResponse || (Schemas as any).zcreateAdminUserResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('createAdminUser', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1156,10 +1564,36 @@ export class CamundaClient {
   createAuthorization(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.createAuthorization({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('createAuthorization', (Schemas as any).zCreateAuthorizationData || (Schemas as any).zcreateAuthorizationData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.createAuthorization(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('createAuthorization', (Schemas as any).zCreateAuthorizationResponse || (Schemas as any).zcreateAuthorizationResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.createAuthorization({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('createAuthorization', (Schemas as any).zCreateAuthorizationData || (Schemas as any).zcreateAuthorizationData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.createAuthorization({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('createAuthorization', (Schemas as any).zCreateAuthorizationResponse || (Schemas as any).zcreateAuthorizationResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1178,10 +1612,36 @@ export class CamundaClient {
   createDeployment(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.createDeployment({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('createDeployment', (Schemas as any).zCreateDeploymentData || (Schemas as any).zcreateDeploymentData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.createDeployment(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('createDeployment', (Schemas as any).zCreateDeploymentResponse || (Schemas as any).zcreateDeploymentResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.createDeployment({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('createDeployment', (Schemas as any).zCreateDeploymentData || (Schemas as any).zcreateDeploymentData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.createDeployment({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('createDeployment', (Schemas as any).zCreateDeploymentResponse || (Schemas as any).zcreateDeploymentResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1201,10 +1661,36 @@ export class CamundaClient {
   createDocument(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.createDocument({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('createDocument', (Schemas as any).zCreateDocumentData || (Schemas as any).zcreateDocumentData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.createDocument(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('createDocument', (Schemas as any).zCreateDocumentResponse || (Schemas as any).zcreateDocumentResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.createDocument({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('createDocument', (Schemas as any).zCreateDocumentData || (Schemas as any).zcreateDocumentData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.createDocument({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('createDocument', (Schemas as any).zCreateDocumentResponse || (Schemas as any).zcreateDocumentResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1224,10 +1710,36 @@ export class CamundaClient {
   createDocumentLink(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.createDocumentLink({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('createDocumentLink', (Schemas as any).zCreateDocumentLinkData || (Schemas as any).zcreateDocumentLinkData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.createDocumentLink(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('createDocumentLink', (Schemas as any).zCreateDocumentLinkResponse || (Schemas as any).zcreateDocumentLinkResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.createDocumentLink({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('createDocumentLink', (Schemas as any).zCreateDocumentLinkData || (Schemas as any).zcreateDocumentLinkData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.createDocumentLink({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('createDocumentLink', (Schemas as any).zCreateDocumentLinkResponse || (Schemas as any).zcreateDocumentLinkResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1269,10 +1781,36 @@ export class CamundaClient {
   createDocuments(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.createDocuments({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('createDocuments', (Schemas as any).zCreateDocumentsData || (Schemas as any).zcreateDocumentsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.createDocuments(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('createDocuments', (Schemas as any).zCreateDocumentsResponse || (Schemas as any).zcreateDocumentsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.createDocuments({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('createDocuments', (Schemas as any).zCreateDocumentsData || (Schemas as any).zcreateDocumentsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.createDocuments({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('createDocuments', (Schemas as any).zCreateDocumentsResponse || (Schemas as any).zcreateDocumentsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1291,10 +1829,36 @@ export class CamundaClient {
   createElementInstanceVariables(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.createElementInstanceVariables({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('createElementInstanceVariables', (Schemas as any).zCreateElementInstanceVariablesData || (Schemas as any).zcreateElementInstanceVariablesData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.createElementInstanceVariables(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('createElementInstanceVariables', (Schemas as any).zCreateElementInstanceVariablesResponse || (Schemas as any).zcreateElementInstanceVariablesResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.createElementInstanceVariables({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('createElementInstanceVariables', (Schemas as any).zCreateElementInstanceVariablesData || (Schemas as any).zcreateElementInstanceVariablesData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.createElementInstanceVariables({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('createElementInstanceVariables', (Schemas as any).zCreateElementInstanceVariablesResponse || (Schemas as any).zcreateElementInstanceVariablesResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1312,10 +1876,36 @@ export class CamundaClient {
   createGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.createGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('createGroup', (Schemas as any).zCreateGroupData || (Schemas as any).zcreateGroupData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.createGroup(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('createGroup', (Schemas as any).zCreateGroupResponse || (Schemas as any).zcreateGroupResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.createGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('createGroup', (Schemas as any).zCreateGroupData || (Schemas as any).zcreateGroupData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.createGroup({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('createGroup', (Schemas as any).zCreateGroupResponse || (Schemas as any).zcreateGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1333,10 +1923,36 @@ export class CamundaClient {
   createMappingRule(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.createMappingRule({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('createMappingRule', (Schemas as any).zCreateMappingRuleData || (Schemas as any).zcreateMappingRuleData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.createMappingRule(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('createMappingRule', (Schemas as any).zCreateMappingRuleResponse || (Schemas as any).zcreateMappingRuleResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.createMappingRule({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('createMappingRule', (Schemas as any).zCreateMappingRuleData || (Schemas as any).zcreateMappingRuleData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.createMappingRule({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('createMappingRule', (Schemas as any).zCreateMappingRuleResponse || (Schemas as any).zcreateMappingRuleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1359,10 +1975,36 @@ export class CamundaClient {
   createProcessInstance(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.createProcessInstance({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('createProcessInstance', (Schemas as any).zCreateProcessInstanceData || (Schemas as any).zcreateProcessInstanceData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.createProcessInstance(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('createProcessInstance', (Schemas as any).zCreateProcessInstanceResponse || (Schemas as any).zcreateProcessInstanceResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.createProcessInstance({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('createProcessInstance', (Schemas as any).zCreateProcessInstanceData || (Schemas as any).zcreateProcessInstanceData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.createProcessInstance({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('createProcessInstance', (Schemas as any).zCreateProcessInstanceResponse || (Schemas as any).zcreateProcessInstanceResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1380,10 +2022,36 @@ export class CamundaClient {
   createRole(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.createRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('createRole', (Schemas as any).zCreateRoleData || (Schemas as any).zcreateRoleData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.createRole(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('createRole', (Schemas as any).zCreateRoleResponse || (Schemas as any).zcreateRoleResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.createRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('createRole', (Schemas as any).zCreateRoleData || (Schemas as any).zcreateRoleData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.createRole({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('createRole', (Schemas as any).zCreateRoleResponse || (Schemas as any).zcreateRoleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1400,10 +2068,36 @@ export class CamundaClient {
   createTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.createTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('createTenant', (Schemas as any).zCreateTenantData || (Schemas as any).zcreateTenantData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.createTenant(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('createTenant', (Schemas as any).zCreateTenantResponse || (Schemas as any).zcreateTenantResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.createTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('createTenant', (Schemas as any).zCreateTenantData || (Schemas as any).zcreateTenantData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.createTenant({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('createTenant', (Schemas as any).zCreateTenantResponse || (Schemas as any).zcreateTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1423,11 +2117,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.createUser({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('createUser', (Schemas as any).zCreateUserData || (Schemas as any).zcreateUserData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.createUser(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('createUser', (Schemas as any).zCreateUserResponse || (Schemas as any).zcreateUserResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('createUser', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.createUser({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('createUser', (Schemas as any).zCreateUserData || (Schemas as any).zcreateUserData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.createUser({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('createUser', (Schemas as any).zCreateUserResponse || (Schemas as any).zcreateUserResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('createUser', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1446,7 +2166,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { authorizationKey: arg } };
-      const call = () => Sdk.deleteAuthorization({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.deleteAuthorization(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('deleteAuthorization', (Schemas as any).zDeleteAuthorizationResponse || (Schemas as any).zdeleteAuthorizationResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1467,7 +2196,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { documentId: arg } };
-      const call = () => Sdk.deleteDocument({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.deleteDocument(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('deleteDocument', (Schemas as any).zDeleteDocumentResponse || (Schemas as any).zdeleteDocumentResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1486,7 +2224,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { groupId: arg } };
-      const call = () => Sdk.deleteGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.deleteGroup(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('deleteGroup', (Schemas as any).zDeleteGroupResponse || (Schemas as any).zdeleteGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1505,7 +2252,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { mappingRuleId: arg } };
-      const call = () => Sdk.deleteMappingRule({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.deleteMappingRule(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('deleteMappingRule', (Schemas as any).zDeleteMappingRuleResponse || (Schemas as any).zdeleteMappingRuleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1525,10 +2281,36 @@ export class CamundaClient {
   deleteResource(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.deleteResource({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('deleteResource', (Schemas as any).zDeleteResourceData || (Schemas as any).zdeleteResourceData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.deleteResource(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('deleteResource', (Schemas as any).zDeleteResourceResponse || (Schemas as any).zdeleteResourceResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.deleteResource({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('deleteResource', (Schemas as any).zDeleteResourceData || (Schemas as any).zdeleteResourceData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.deleteResource({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('deleteResource', (Schemas as any).zDeleteResourceResponse || (Schemas as any).zdeleteResourceResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1547,7 +2329,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { roleId: arg } };
-      const call = () => Sdk.deleteRole({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.deleteRole(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('deleteRole', (Schemas as any).zDeleteRoleResponse || (Schemas as any).zdeleteRoleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1565,7 +2356,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { tenantId: arg } };
-      const call = () => Sdk.deleteTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.deleteTenant(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('deleteTenant', (Schemas as any).zDeleteTenantResponse || (Schemas as any).zdeleteTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1587,7 +2387,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { username: arg } };
-      const call = () => Sdk.deleteUser({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.deleteUser(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('deleteUser', (Schemas as any).zDeleteUserResponse || (Schemas as any).zdeleteUserResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('deleteUser', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1609,10 +2418,36 @@ export class CamundaClient {
   evaluateDecision(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.evaluateDecision({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('evaluateDecision', (Schemas as any).zEvaluateDecisionData || (Schemas as any).zevaluateDecisionData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.evaluateDecision(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('evaluateDecision', (Schemas as any).zEvaluateDecisionResponse || (Schemas as any).zevaluateDecisionResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.evaluateDecision({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('evaluateDecision', (Schemas as any).zEvaluateDecisionData || (Schemas as any).zevaluateDecisionData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.evaluateDecision({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('evaluateDecision', (Schemas as any).zEvaluateDecisionResponse || (Schemas as any).zevaluateDecisionResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1630,10 +2465,36 @@ export class CamundaClient {
   failJob(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.failJob({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('failJob', (Schemas as any).zFailJobData || (Schemas as any).zfailJobData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.failJob(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('failJob', (Schemas as any).zFailJobResponse || (Schemas as any).zfailJobResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.failJob({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('failJob', (Schemas as any).zFailJobData || (Schemas as any).zfailJobData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.failJob({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('failJob', (Schemas as any).zFailJobResponse || (Schemas as any).zfailJobResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1649,7 +2510,16 @@ export class CamundaClient {
   getAuthentication(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.getAuthentication({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getAuthentication(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getAuthentication', (Schemas as any).zGetAuthenticationResponse || (Schemas as any).zgetAuthenticationResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1670,7 +2540,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { authorizationKey: arg } };
-      const call = () => Sdk.getAuthorization({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getAuthorization(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getAuthorization', (Schemas as any).zGetAuthorizationResponse || (Schemas as any).zgetAuthorizationResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getAuthorization', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1692,7 +2571,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { batchOperationKey: arg } };
-      const call = () => Sdk.getBatchOperation({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getBatchOperation(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getBatchOperation', (Schemas as any).zGetBatchOperationResponse || (Schemas as any).zgetBatchOperationResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getBatchOperation', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1715,7 +2603,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { decisionDefinitionKey: arg } };
-      const call = () => Sdk.getDecisionDefinition({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getDecisionDefinition(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getDecisionDefinition', (Schemas as any).zGetDecisionDefinitionResponse || (Schemas as any).zgetDecisionDefinitionResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getDecisionDefinition', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1738,7 +2635,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { decisionDefinitionKey: arg } };
-      const call = () => Sdk.getDecisionDefinitionXml({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getDecisionDefinitionXml(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getDecisionDefinitionXML', (Schemas as any).zGetDecisionDefinitionXmlResponse || (Schemas as any).zgetDecisionDefinitionXmlResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getDecisionDefinitionXML', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1761,7 +2667,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { decisionEvaluationInstanceKey: arg } };
-      const call = () => Sdk.getDecisionInstance({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getDecisionInstance(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getDecisionInstance', (Schemas as any).zGetDecisionInstanceResponse || (Schemas as any).zgetDecisionInstanceResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getDecisionInstance', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1784,7 +2699,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { decisionRequirementsKey: arg } };
-      const call = () => Sdk.getDecisionRequirements({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getDecisionRequirements(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getDecisionRequirements', (Schemas as any).zGetDecisionRequirementsResponse || (Schemas as any).zgetDecisionRequirementsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getDecisionRequirements', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1807,7 +2731,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { decisionRequirementsKey: arg } };
-      const call = () => Sdk.getDecisionRequirementsXml({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getDecisionRequirementsXml(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getDecisionRequirementsXML', (Schemas as any).zGetDecisionRequirementsXmlResponse || (Schemas as any).zgetDecisionRequirementsXmlResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getDecisionRequirementsXML', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1829,7 +2762,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { documentId: arg } };
-      const call = () => Sdk.getDocument({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getDocument(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getDocument', (Schemas as any).zGetDocumentResponse || (Schemas as any).zgetDocumentResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1851,7 +2793,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { elementInstanceKey: arg } };
-      const call = () => Sdk.getElementInstance({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getElementInstance(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getElementInstance', (Schemas as any).zGetElementInstanceResponse || (Schemas as any).zgetElementInstanceResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getElementInstance', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1874,7 +2825,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { groupId: arg } };
-      const call = () => Sdk.getGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getGroup(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getGroup', (Schemas as any).zGetGroupResponse || (Schemas as any).zgetGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getGroup', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1897,7 +2857,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { incidentKey: arg } };
-      const call = () => Sdk.getIncident({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getIncident(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getIncident', (Schemas as any).zGetIncidentResponse || (Schemas as any).zgetIncidentResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getIncident', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1914,7 +2883,16 @@ export class CamundaClient {
   getLicense(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.getLicense({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getLicense(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getLicense', (Schemas as any).zGetLicenseResponse || (Schemas as any).zgetLicenseResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -1936,7 +2914,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { mappingRuleId: arg } };
-      const call = () => Sdk.getMappingRule({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getMappingRule(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getMappingRule', (Schemas as any).zGetMappingRuleResponse || (Schemas as any).zgetMappingRuleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getMappingRule', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1959,7 +2946,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { processDefinitionKey: arg } };
-      const call = () => Sdk.getProcessDefinition({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getProcessDefinition(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getProcessDefinition', (Schemas as any).zGetProcessDefinitionResponse || (Schemas as any).zgetProcessDefinitionResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getProcessDefinition', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -1981,11 +2977,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.getProcessDefinitionStatistics({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('getProcessDefinitionStatistics', (Schemas as any).zGetProcessDefinitionStatisticsData || (Schemas as any).zgetProcessDefinitionStatisticsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.getProcessDefinitionStatistics(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('getProcessDefinitionStatistics', (Schemas as any).zGetProcessDefinitionStatisticsResponse || (Schemas as any).zgetProcessDefinitionStatisticsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('getProcessDefinitionStatistics', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.getProcessDefinitionStatistics({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('getProcessDefinitionStatistics', (Schemas as any).zGetProcessDefinitionStatisticsData || (Schemas as any).zgetProcessDefinitionStatisticsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.getProcessDefinitionStatistics({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getProcessDefinitionStatistics', (Schemas as any).zGetProcessDefinitionStatisticsResponse || (Schemas as any).zgetProcessDefinitionStatisticsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getProcessDefinitionStatistics', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2008,7 +3030,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { processDefinitionKey: arg } };
-      const call = () => Sdk.getProcessDefinitionXml({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getProcessDefinitionXml(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getProcessDefinitionXML', (Schemas as any).zGetProcessDefinitionXmlResponse || (Schemas as any).zgetProcessDefinitionXmlResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getProcessDefinitionXML', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2031,7 +3062,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { processInstanceKey: arg } };
-      const call = () => Sdk.getProcessInstance({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getProcessInstance(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getProcessInstance', (Schemas as any).zGetProcessInstanceResponse || (Schemas as any).zgetProcessInstanceResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getProcessInstance', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2054,7 +3094,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { processInstanceKey: arg } };
-      const call = () => Sdk.getProcessInstanceCallHierarchy({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getProcessInstanceCallHierarchy(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getProcessInstanceCallHierarchy', (Schemas as any).zGetProcessInstanceCallHierarchyResponse || (Schemas as any).zgetProcessInstanceCallHierarchyResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getProcessInstanceCallHierarchy', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2077,7 +3126,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { processInstanceKey: arg } };
-      const call = () => Sdk.getProcessInstanceSequenceFlows({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getProcessInstanceSequenceFlows(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getProcessInstanceSequenceFlows', (Schemas as any).zGetProcessInstanceSequenceFlowsResponse || (Schemas as any).zgetProcessInstanceSequenceFlowsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getProcessInstanceSequenceFlows', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2100,7 +3158,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { processInstanceKey: arg } };
-      const call = () => Sdk.getProcessInstanceStatistics({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getProcessInstanceStatistics(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getProcessInstanceStatistics', (Schemas as any).zGetProcessInstanceStatisticsResponse || (Schemas as any).zgetProcessInstanceStatisticsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getProcessInstanceStatistics', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2123,7 +3190,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { resourceKey: arg } };
-      const call = () => Sdk.getResource({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getResource(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getResource', (Schemas as any).zGetResourceResponse || (Schemas as any).zgetResourceResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -2145,7 +3221,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { resourceKey: arg } };
-      const call = () => Sdk.getResourceContent({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getResourceContent(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getResourceContent', (Schemas as any).zGetResourceContentResponse || (Schemas as any).zgetResourceContentResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -2167,7 +3252,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { roleId: arg } };
-      const call = () => Sdk.getRole({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getRole(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getRole', (Schemas as any).zGetRoleResponse || (Schemas as any).zgetRoleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getRole', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2192,7 +3286,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { processDefinitionKey: arg } };
-      const call = () => Sdk.getStartProcessForm({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getStartProcessForm(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getStartProcessForm', (Schemas as any).zGetStartProcessFormResponse || (Schemas as any).zgetStartProcessFormResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getStartProcessForm', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2214,7 +3317,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { tenantId: arg } };
-      const call = () => Sdk.getTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getTenant(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getTenant', (Schemas as any).zGetTenantResponse || (Schemas as any).zgetTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getTenant', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2231,7 +3343,16 @@ export class CamundaClient {
   getTopology(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.getTopology({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getTopology(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getTopology', (Schemas as any).zGetTopologyResponse || (Schemas as any).zgetTopologyResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -2250,7 +3371,16 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.getUsageMetrics({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getUsageMetrics(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getUsageMetrics', (Schemas as any).zGetUsageMetricsResponse || (Schemas as any).zgetUsageMetricsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getUsageMetrics', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2273,7 +3403,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { username: arg } };
-      const call = () => Sdk.getUser({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getUser(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getUser', (Schemas as any).zGetUserResponse || (Schemas as any).zgetUserResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getUser', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2296,7 +3435,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { userTaskKey: arg } };
-      const call = () => Sdk.getUserTask({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getUserTask(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getUserTask', (Schemas as any).zGetUserTaskResponse || (Schemas as any).zgetUserTaskResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getUserTask', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2321,7 +3469,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { userTaskKey: arg } };
-      const call = () => Sdk.getUserTaskForm({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getUserTaskForm(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getUserTaskForm', (Schemas as any).zGetUserTaskFormResponse || (Schemas as any).zgetUserTaskFormResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getUserTaskForm', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2344,7 +3501,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { variableKey: arg } };
-      const call = () => Sdk.getVariable({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.getVariable(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('getVariable', (Schemas as any).zGetVariableResponse || (Schemas as any).zgetVariableResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('getVariable', true, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2369,10 +3535,36 @@ export class CamundaClient {
   migrateProcessInstance(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.migrateProcessInstance({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('migrateProcessInstance', (Schemas as any).zMigrateProcessInstanceData || (Schemas as any).zmigrateProcessInstanceData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.migrateProcessInstance(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('migrateProcessInstance', (Schemas as any).zMigrateProcessInstanceResponse || (Schemas as any).zmigrateProcessInstanceResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.migrateProcessInstance({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('migrateProcessInstance', (Schemas as any).zMigrateProcessInstanceData || (Schemas as any).zmigrateProcessInstanceData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.migrateProcessInstance({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('migrateProcessInstance', (Schemas as any).zMigrateProcessInstanceResponse || (Schemas as any).zmigrateProcessInstanceResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -2396,11 +3588,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.migrateProcessInstancesBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('migrateProcessInstancesBatchOperation', (Schemas as any).zMigrateProcessInstancesBatchOperationData || (Schemas as any).zmigrateProcessInstancesBatchOperationData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.migrateProcessInstancesBatchOperation(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('migrateProcessInstancesBatchOperation', (Schemas as any).zMigrateProcessInstancesBatchOperationResponse || (Schemas as any).zmigrateProcessInstancesBatchOperationResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('migrateProcessInstancesBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.migrateProcessInstancesBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('migrateProcessInstancesBatchOperation', (Schemas as any).zMigrateProcessInstancesBatchOperationData || (Schemas as any).zmigrateProcessInstancesBatchOperationData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.migrateProcessInstancesBatchOperation({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('migrateProcessInstancesBatchOperation', (Schemas as any).zMigrateProcessInstancesBatchOperationResponse || (Schemas as any).zmigrateProcessInstancesBatchOperationResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('migrateProcessInstancesBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2424,10 +3642,36 @@ export class CamundaClient {
   modifyProcessInstance(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.modifyProcessInstance({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('modifyProcessInstance', (Schemas as any).zModifyProcessInstanceData || (Schemas as any).zmodifyProcessInstanceData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.modifyProcessInstance(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('modifyProcessInstance', (Schemas as any).zModifyProcessInstanceResponse || (Schemas as any).zmodifyProcessInstanceResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.modifyProcessInstance({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('modifyProcessInstance', (Schemas as any).zModifyProcessInstanceData || (Schemas as any).zmodifyProcessInstanceData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.modifyProcessInstance({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('modifyProcessInstance', (Schemas as any).zModifyProcessInstanceResponse || (Schemas as any).zmodifyProcessInstanceResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -2453,11 +3697,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.modifyProcessInstancesBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('modifyProcessInstancesBatchOperation', (Schemas as any).zModifyProcessInstancesBatchOperationData || (Schemas as any).zmodifyProcessInstancesBatchOperationData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.modifyProcessInstancesBatchOperation(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('modifyProcessInstancesBatchOperation', (Schemas as any).zModifyProcessInstancesBatchOperationResponse || (Schemas as any).zmodifyProcessInstancesBatchOperationResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('modifyProcessInstancesBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.modifyProcessInstancesBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('modifyProcessInstancesBatchOperation', (Schemas as any).zModifyProcessInstancesBatchOperationData || (Schemas as any).zmodifyProcessInstancesBatchOperationData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.modifyProcessInstancesBatchOperation({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('modifyProcessInstancesBatchOperation', (Schemas as any).zModifyProcessInstancesBatchOperationResponse || (Schemas as any).zmodifyProcessInstancesBatchOperationResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('modifyProcessInstancesBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2481,10 +3751,36 @@ export class CamundaClient {
   pinClock(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.pinClock({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('pinClock', (Schemas as any).zPinClockData || (Schemas as any).zpinClockData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.pinClock(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('pinClock', (Schemas as any).zPinClockResponse || (Schemas as any).zpinClockResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.pinClock({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('pinClock', (Schemas as any).zPinClockData || (Schemas as any).zpinClockData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.pinClock({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('pinClock', (Schemas as any).zPinClockResponse || (Schemas as any).zpinClockResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -2506,10 +3802,36 @@ export class CamundaClient {
   publishMessage(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.publishMessage({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('publishMessage', (Schemas as any).zPublishMessageData || (Schemas as any).zpublishMessageData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.publishMessage(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('publishMessage', (Schemas as any).zPublishMessageResponse || (Schemas as any).zpublishMessageResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.publishMessage({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('publishMessage', (Schemas as any).zPublishMessageData || (Schemas as any).zpublishMessageData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.publishMessage({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('publishMessage', (Schemas as any).zPublishMessageResponse || (Schemas as any).zpublishMessageResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -2531,7 +3853,16 @@ export class CamundaClient {
   resetClock(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.resetClock({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.resetClock(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('resetClock', (Schemas as any).zResetClockResponse || (Schemas as any).zresetClockResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -2549,10 +3880,36 @@ export class CamundaClient {
   resolveIncident(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.resolveIncident({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('resolveIncident', (Schemas as any).zResolveIncidentData || (Schemas as any).zresolveIncidentData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.resolveIncident(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('resolveIncident', (Schemas as any).zResolveIncidentResponse || (Schemas as any).zresolveIncidentResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.resolveIncident({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('resolveIncident', (Schemas as any).zResolveIncidentData || (Schemas as any).zresolveIncidentData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.resolveIncident({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('resolveIncident', (Schemas as any).zResolveIncidentResponse || (Schemas as any).zresolveIncidentResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -2576,11 +3933,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.resolveIncidentsBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('resolveIncidentsBatchOperation', (Schemas as any).zResolveIncidentsBatchOperationData || (Schemas as any).zresolveIncidentsBatchOperationData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.resolveIncidentsBatchOperation(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('resolveIncidentsBatchOperation', (Schemas as any).zResolveIncidentsBatchOperationResponse || (Schemas as any).zresolveIncidentsBatchOperationResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('resolveIncidentsBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.resolveIncidentsBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('resolveIncidentsBatchOperation', (Schemas as any).zResolveIncidentsBatchOperationData || (Schemas as any).zresolveIncidentsBatchOperationData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.resolveIncidentsBatchOperation({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('resolveIncidentsBatchOperation', (Schemas as any).zResolveIncidentsBatchOperationResponse || (Schemas as any).zresolveIncidentsBatchOperationResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('resolveIncidentsBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2603,11 +3986,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.resumeBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('resumeBatchOperation', (Schemas as any).zResumeBatchOperationData || (Schemas as any).zresumeBatchOperationData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.resumeBatchOperation(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('resumeBatchOperation', (Schemas as any).zResumeBatchOperationResponse || (Schemas as any).zresumeBatchOperationResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('resumeBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.resumeBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('resumeBatchOperation', (Schemas as any).zResumeBatchOperationData || (Schemas as any).zresumeBatchOperationData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.resumeBatchOperation({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('resumeBatchOperation', (Schemas as any).zResumeBatchOperationResponse || (Schemas as any).zresumeBatchOperationResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('resumeBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2629,11 +4038,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchAuthorizations({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchAuthorizations', (Schemas as any).zSearchAuthorizationsData || (Schemas as any).zsearchAuthorizationsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchAuthorizations(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchAuthorizations', (Schemas as any).zSearchAuthorizationsResponse || (Schemas as any).zsearchAuthorizationsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchAuthorizations', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchAuthorizations({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchAuthorizations', (Schemas as any).zSearchAuthorizationsData || (Schemas as any).zsearchAuthorizationsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchAuthorizations({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchAuthorizations', (Schemas as any).zSearchAuthorizationsResponse || (Schemas as any).zsearchAuthorizationsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchAuthorizations', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2654,11 +4089,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchBatchOperationItems({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchBatchOperationItems', (Schemas as any).zSearchBatchOperationItemsData || (Schemas as any).zsearchBatchOperationItemsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchBatchOperationItems(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchBatchOperationItems', (Schemas as any).zSearchBatchOperationItemsResponse || (Schemas as any).zsearchBatchOperationItemsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchBatchOperationItems', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchBatchOperationItems({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchBatchOperationItems', (Schemas as any).zSearchBatchOperationItemsData || (Schemas as any).zsearchBatchOperationItemsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchBatchOperationItems({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchBatchOperationItems', (Schemas as any).zSearchBatchOperationItemsResponse || (Schemas as any).zsearchBatchOperationItemsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchBatchOperationItems', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2679,11 +4140,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchBatchOperations({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchBatchOperations', (Schemas as any).zSearchBatchOperationsData || (Schemas as any).zsearchBatchOperationsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchBatchOperations(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchBatchOperations', (Schemas as any).zSearchBatchOperationsResponse || (Schemas as any).zsearchBatchOperationsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchBatchOperations', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchBatchOperations({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchBatchOperations', (Schemas as any).zSearchBatchOperationsData || (Schemas as any).zsearchBatchOperationsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchBatchOperations({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchBatchOperations', (Schemas as any).zSearchBatchOperationsResponse || (Schemas as any).zsearchBatchOperationsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchBatchOperations', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2705,11 +4192,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchClientsForGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchClientsForGroup', (Schemas as any).zSearchClientsForGroupData || (Schemas as any).zsearchClientsForGroupData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchClientsForGroup(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchClientsForGroup', (Schemas as any).zSearchClientsForGroupResponse || (Schemas as any).zsearchClientsForGroupResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchClientsForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchClientsForGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchClientsForGroup', (Schemas as any).zSearchClientsForGroupData || (Schemas as any).zsearchClientsForGroupData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchClientsForGroup({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchClientsForGroup', (Schemas as any).zSearchClientsForGroupResponse || (Schemas as any).zsearchClientsForGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchClientsForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2731,11 +4244,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchClientsForRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchClientsForRole', (Schemas as any).zSearchClientsForRoleData || (Schemas as any).zsearchClientsForRoleData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchClientsForRole(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchClientsForRole', (Schemas as any).zSearchClientsForRoleResponse || (Schemas as any).zsearchClientsForRoleResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchClientsForRole', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchClientsForRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchClientsForRole', (Schemas as any).zSearchClientsForRoleData || (Schemas as any).zsearchClientsForRoleData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchClientsForRole({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchClientsForRole', (Schemas as any).zSearchClientsForRoleResponse || (Schemas as any).zsearchClientsForRoleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchClientsForRole', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2756,11 +4295,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchClientsForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchClientsForTenant', (Schemas as any).zSearchClientsForTenantData || (Schemas as any).zsearchClientsForTenantData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchClientsForTenant(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchClientsForTenant', (Schemas as any).zSearchClientsForTenantResponse || (Schemas as any).zsearchClientsForTenantResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchClientsForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchClientsForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchClientsForTenant', (Schemas as any).zSearchClientsForTenantData || (Schemas as any).zsearchClientsForTenantData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchClientsForTenant({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchClientsForTenant', (Schemas as any).zSearchClientsForTenantResponse || (Schemas as any).zsearchClientsForTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchClientsForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2782,11 +4347,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchDecisionDefinitions({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchDecisionDefinitions', (Schemas as any).zSearchDecisionDefinitionsData || (Schemas as any).zsearchDecisionDefinitionsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchDecisionDefinitions(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchDecisionDefinitions', (Schemas as any).zSearchDecisionDefinitionsResponse || (Schemas as any).zsearchDecisionDefinitionsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchDecisionDefinitions', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchDecisionDefinitions({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchDecisionDefinitions', (Schemas as any).zSearchDecisionDefinitionsData || (Schemas as any).zsearchDecisionDefinitionsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchDecisionDefinitions({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchDecisionDefinitions', (Schemas as any).zSearchDecisionDefinitionsResponse || (Schemas as any).zsearchDecisionDefinitionsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchDecisionDefinitions', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2808,11 +4399,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchDecisionInstances({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchDecisionInstances', (Schemas as any).zSearchDecisionInstancesData || (Schemas as any).zsearchDecisionInstancesData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchDecisionInstances(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchDecisionInstances', (Schemas as any).zSearchDecisionInstancesResponse || (Schemas as any).zsearchDecisionInstancesResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchDecisionInstances', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchDecisionInstances({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchDecisionInstances', (Schemas as any).zSearchDecisionInstancesData || (Schemas as any).zsearchDecisionInstancesData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchDecisionInstances({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchDecisionInstances', (Schemas as any).zSearchDecisionInstancesResponse || (Schemas as any).zsearchDecisionInstancesResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchDecisionInstances', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2834,11 +4451,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchDecisionRequirements({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchDecisionRequirements', (Schemas as any).zSearchDecisionRequirementsData || (Schemas as any).zsearchDecisionRequirementsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchDecisionRequirements(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchDecisionRequirements', (Schemas as any).zSearchDecisionRequirementsResponse || (Schemas as any).zsearchDecisionRequirementsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchDecisionRequirements', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchDecisionRequirements({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchDecisionRequirements', (Schemas as any).zSearchDecisionRequirementsData || (Schemas as any).zsearchDecisionRequirementsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchDecisionRequirements({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchDecisionRequirements', (Schemas as any).zSearchDecisionRequirementsResponse || (Schemas as any).zsearchDecisionRequirementsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchDecisionRequirements', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2860,11 +4503,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchElementInstances({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchElementInstances', (Schemas as any).zSearchElementInstancesData || (Schemas as any).zsearchElementInstancesData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchElementInstances(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchElementInstances', (Schemas as any).zSearchElementInstancesResponse || (Schemas as any).zsearchElementInstancesResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchElementInstances', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchElementInstances({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchElementInstances', (Schemas as any).zSearchElementInstancesData || (Schemas as any).zsearchElementInstancesData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchElementInstances({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchElementInstances', (Schemas as any).zSearchElementInstancesResponse || (Schemas as any).zsearchElementInstancesResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchElementInstances', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2885,11 +4554,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchGroupIdsForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchGroupIdsForTenant', (Schemas as any).zSearchGroupIdsForTenantData || (Schemas as any).zsearchGroupIdsForTenantData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchGroupIdsForTenant(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchGroupIdsForTenant', (Schemas as any).zSearchGroupIdsForTenantResponse || (Schemas as any).zsearchGroupIdsForTenantResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchGroupIdsForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchGroupIdsForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchGroupIdsForTenant', (Schemas as any).zSearchGroupIdsForTenantData || (Schemas as any).zsearchGroupIdsForTenantData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchGroupIdsForTenant({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchGroupIdsForTenant', (Schemas as any).zSearchGroupIdsForTenantResponse || (Schemas as any).zsearchGroupIdsForTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchGroupIdsForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2911,11 +4606,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchGroups({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchGroups', (Schemas as any).zSearchGroupsData || (Schemas as any).zsearchGroupsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchGroups(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchGroups', (Schemas as any).zSearchGroupsResponse || (Schemas as any).zsearchGroupsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchGroups', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchGroups({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchGroups', (Schemas as any).zSearchGroupsData || (Schemas as any).zsearchGroupsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchGroups({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchGroups', (Schemas as any).zSearchGroupsResponse || (Schemas as any).zsearchGroupsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchGroups', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2937,11 +4658,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchGroupsForRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchGroupsForRole', (Schemas as any).zSearchGroupsForRoleData || (Schemas as any).zsearchGroupsForRoleData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchGroupsForRole(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchGroupsForRole', (Schemas as any).zSearchGroupsForRoleResponse || (Schemas as any).zsearchGroupsForRoleResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchGroupsForRole', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchGroupsForRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchGroupsForRole', (Schemas as any).zSearchGroupsForRoleData || (Schemas as any).zsearchGroupsForRoleData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchGroupsForRole({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchGroupsForRole', (Schemas as any).zSearchGroupsForRoleResponse || (Schemas as any).zsearchGroupsForRoleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchGroupsForRole', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2963,11 +4710,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchIncidents({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchIncidents', (Schemas as any).zSearchIncidentsData || (Schemas as any).zsearchIncidentsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchIncidents(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchIncidents', (Schemas as any).zSearchIncidentsResponse || (Schemas as any).zsearchIncidentsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchIncidents', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchIncidents({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchIncidents', (Schemas as any).zSearchIncidentsData || (Schemas as any).zsearchIncidentsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchIncidents({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchIncidents', (Schemas as any).zSearchIncidentsResponse || (Schemas as any).zsearchIncidentsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchIncidents', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -2988,11 +4761,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchJobs({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchJobs', (Schemas as any).zSearchJobsData || (Schemas as any).zsearchJobsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchJobs(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchJobs', (Schemas as any).zSearchJobsResponse || (Schemas as any).zsearchJobsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchJobs', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchJobs({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchJobs', (Schemas as any).zSearchJobsData || (Schemas as any).zsearchJobsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchJobs({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchJobs', (Schemas as any).zSearchJobsResponse || (Schemas as any).zsearchJobsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchJobs', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3014,11 +4813,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchMappingRule({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchMappingRule', (Schemas as any).zSearchMappingRuleData || (Schemas as any).zsearchMappingRuleData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchMappingRule(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchMappingRule', (Schemas as any).zSearchMappingRuleResponse || (Schemas as any).zsearchMappingRuleResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchMappingRule', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchMappingRule({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchMappingRule', (Schemas as any).zSearchMappingRuleData || (Schemas as any).zsearchMappingRuleData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchMappingRule({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchMappingRule', (Schemas as any).zSearchMappingRuleResponse || (Schemas as any).zsearchMappingRuleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchMappingRule', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3040,11 +4865,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchMappingRulesForGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchMappingRulesForGroup', (Schemas as any).zSearchMappingRulesForGroupData || (Schemas as any).zsearchMappingRulesForGroupData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchMappingRulesForGroup(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchMappingRulesForGroup', (Schemas as any).zSearchMappingRulesForGroupResponse || (Schemas as any).zsearchMappingRulesForGroupResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchMappingRulesForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchMappingRulesForGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchMappingRulesForGroup', (Schemas as any).zSearchMappingRulesForGroupData || (Schemas as any).zsearchMappingRulesForGroupData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchMappingRulesForGroup({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchMappingRulesForGroup', (Schemas as any).zSearchMappingRulesForGroupResponse || (Schemas as any).zsearchMappingRulesForGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchMappingRulesForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3066,11 +4917,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchMappingRulesForRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchMappingRulesForRole', (Schemas as any).zSearchMappingRulesForRoleData || (Schemas as any).zsearchMappingRulesForRoleData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchMappingRulesForRole(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchMappingRulesForRole', (Schemas as any).zSearchMappingRulesForRoleResponse || (Schemas as any).zsearchMappingRulesForRoleResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchMappingRulesForRole', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchMappingRulesForRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchMappingRulesForRole', (Schemas as any).zSearchMappingRulesForRoleData || (Schemas as any).zsearchMappingRulesForRoleData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchMappingRulesForRole({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchMappingRulesForRole', (Schemas as any).zSearchMappingRulesForRoleResponse || (Schemas as any).zsearchMappingRulesForRoleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchMappingRulesForRole', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3091,11 +4968,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchMappingsForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchMappingsForTenant', (Schemas as any).zSearchMappingsForTenantData || (Schemas as any).zsearchMappingsForTenantData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchMappingsForTenant(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchMappingsForTenant', (Schemas as any).zSearchMappingsForTenantResponse || (Schemas as any).zsearchMappingsForTenantResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchMappingsForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchMappingsForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchMappingsForTenant', (Schemas as any).zSearchMappingsForTenantData || (Schemas as any).zsearchMappingsForTenantData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchMappingsForTenant({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchMappingsForTenant', (Schemas as any).zSearchMappingsForTenantResponse || (Schemas as any).zsearchMappingsForTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchMappingsForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3117,11 +5020,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchMessageSubscriptions({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchMessageSubscriptions', (Schemas as any).zSearchMessageSubscriptionsData || (Schemas as any).zsearchMessageSubscriptionsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchMessageSubscriptions(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchMessageSubscriptions', (Schemas as any).zSearchMessageSubscriptionsResponse || (Schemas as any).zsearchMessageSubscriptionsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchMessageSubscriptions', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchMessageSubscriptions({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchMessageSubscriptions', (Schemas as any).zSearchMessageSubscriptionsData || (Schemas as any).zsearchMessageSubscriptionsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchMessageSubscriptions({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchMessageSubscriptions', (Schemas as any).zSearchMessageSubscriptionsResponse || (Schemas as any).zsearchMessageSubscriptionsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchMessageSubscriptions', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3143,11 +5072,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchProcessDefinitions({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchProcessDefinitions', (Schemas as any).zSearchProcessDefinitionsData || (Schemas as any).zsearchProcessDefinitionsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchProcessDefinitions(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchProcessDefinitions', (Schemas as any).zSearchProcessDefinitionsResponse || (Schemas as any).zsearchProcessDefinitionsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchProcessDefinitions', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchProcessDefinitions({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchProcessDefinitions', (Schemas as any).zSearchProcessDefinitionsData || (Schemas as any).zsearchProcessDefinitionsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchProcessDefinitions({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchProcessDefinitions', (Schemas as any).zSearchProcessDefinitionsResponse || (Schemas as any).zsearchProcessDefinitionsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchProcessDefinitions', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3169,11 +5124,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchProcessInstanceIncidents({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchProcessInstanceIncidents', (Schemas as any).zSearchProcessInstanceIncidentsData || (Schemas as any).zsearchProcessInstanceIncidentsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchProcessInstanceIncidents(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchProcessInstanceIncidents', (Schemas as any).zSearchProcessInstanceIncidentsResponse || (Schemas as any).zsearchProcessInstanceIncidentsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchProcessInstanceIncidents', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchProcessInstanceIncidents({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchProcessInstanceIncidents', (Schemas as any).zSearchProcessInstanceIncidentsData || (Schemas as any).zsearchProcessInstanceIncidentsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchProcessInstanceIncidents({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchProcessInstanceIncidents', (Schemas as any).zSearchProcessInstanceIncidentsResponse || (Schemas as any).zsearchProcessInstanceIncidentsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchProcessInstanceIncidents', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3195,11 +5176,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchProcessInstances({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchProcessInstances', (Schemas as any).zSearchProcessInstancesData || (Schemas as any).zsearchProcessInstancesData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchProcessInstances(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchProcessInstances', (Schemas as any).zSearchProcessInstancesResponse || (Schemas as any).zsearchProcessInstancesResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchProcessInstances', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchProcessInstances({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchProcessInstances', (Schemas as any).zSearchProcessInstancesData || (Schemas as any).zsearchProcessInstancesData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchProcessInstances({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchProcessInstances', (Schemas as any).zSearchProcessInstancesResponse || (Schemas as any).zsearchProcessInstancesResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchProcessInstances', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3221,11 +5228,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchRoles({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchRoles', (Schemas as any).zSearchRolesData || (Schemas as any).zsearchRolesData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchRoles(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchRoles', (Schemas as any).zSearchRolesResponse || (Schemas as any).zsearchRolesResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchRoles', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchRoles({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchRoles', (Schemas as any).zSearchRolesData || (Schemas as any).zsearchRolesData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchRoles({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchRoles', (Schemas as any).zSearchRolesResponse || (Schemas as any).zsearchRolesResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchRoles', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3247,11 +5280,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchRolesForGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchRolesForGroup', (Schemas as any).zSearchRolesForGroupData || (Schemas as any).zsearchRolesForGroupData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchRolesForGroup(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchRolesForGroup', (Schemas as any).zSearchRolesForGroupResponse || (Schemas as any).zsearchRolesForGroupResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchRolesForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchRolesForGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchRolesForGroup', (Schemas as any).zSearchRolesForGroupData || (Schemas as any).zsearchRolesForGroupData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchRolesForGroup({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchRolesForGroup', (Schemas as any).zSearchRolesForGroupResponse || (Schemas as any).zsearchRolesForGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchRolesForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3272,11 +5331,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchRolesForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchRolesForTenant', (Schemas as any).zSearchRolesForTenantData || (Schemas as any).zsearchRolesForTenantData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchRolesForTenant(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchRolesForTenant', (Schemas as any).zSearchRolesForTenantResponse || (Schemas as any).zsearchRolesForTenantResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchRolesForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchRolesForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchRolesForTenant', (Schemas as any).zSearchRolesForTenantData || (Schemas as any).zsearchRolesForTenantData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchRolesForTenant({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchRolesForTenant', (Schemas as any).zSearchRolesForTenantResponse || (Schemas as any).zsearchRolesForTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchRolesForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3297,11 +5382,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchTenants({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchTenants', (Schemas as any).zSearchTenantsData || (Schemas as any).zsearchTenantsData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchTenants(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchTenants', (Schemas as any).zSearchTenantsResponse || (Schemas as any).zsearchTenantsResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchTenants', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchTenants({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchTenants', (Schemas as any).zSearchTenantsData || (Schemas as any).zsearchTenantsData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchTenants({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchTenants', (Schemas as any).zSearchTenantsResponse || (Schemas as any).zsearchTenantsResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchTenants', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3323,11 +5434,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchUsers({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchUsers', (Schemas as any).zSearchUsersData || (Schemas as any).zsearchUsersData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchUsers(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchUsers', (Schemas as any).zSearchUsersResponse || (Schemas as any).zsearchUsersResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchUsers', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchUsers({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchUsers', (Schemas as any).zSearchUsersData || (Schemas as any).zsearchUsersData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchUsers({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchUsers', (Schemas as any).zSearchUsersResponse || (Schemas as any).zsearchUsersResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchUsers', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3349,11 +5486,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchUsersForGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchUsersForGroup', (Schemas as any).zSearchUsersForGroupData || (Schemas as any).zsearchUsersForGroupData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchUsersForGroup(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchUsersForGroup', (Schemas as any).zSearchUsersForGroupResponse || (Schemas as any).zsearchUsersForGroupResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchUsersForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchUsersForGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchUsersForGroup', (Schemas as any).zSearchUsersForGroupData || (Schemas as any).zsearchUsersForGroupData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchUsersForGroup({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchUsersForGroup', (Schemas as any).zSearchUsersForGroupResponse || (Schemas as any).zsearchUsersForGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchUsersForGroup', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3375,11 +5538,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchUsersForRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchUsersForRole', (Schemas as any).zSearchUsersForRoleData || (Schemas as any).zsearchUsersForRoleData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchUsersForRole(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchUsersForRole', (Schemas as any).zSearchUsersForRoleResponse || (Schemas as any).zsearchUsersForRoleResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchUsersForRole', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchUsersForRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchUsersForRole', (Schemas as any).zSearchUsersForRoleData || (Schemas as any).zsearchUsersForRoleData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchUsersForRole({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchUsersForRole', (Schemas as any).zSearchUsersForRoleResponse || (Schemas as any).zsearchUsersForRoleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchUsersForRole', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3400,11 +5589,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchUsersForTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchUsersForTenant', (Schemas as any).zSearchUsersForTenantData || (Schemas as any).zsearchUsersForTenantData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchUsersForTenant(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchUsersForTenant', (Schemas as any).zSearchUsersForTenantResponse || (Schemas as any).zsearchUsersForTenantResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchUsersForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchUsersForTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchUsersForTenant', (Schemas as any).zSearchUsersForTenantData || (Schemas as any).zsearchUsersForTenantData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchUsersForTenant({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchUsersForTenant', (Schemas as any).zSearchUsersForTenantResponse || (Schemas as any).zsearchUsersForTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchUsersForTenant', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3426,11 +5641,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchUserTasks({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchUserTasks', (Schemas as any).zSearchUserTasksData || (Schemas as any).zsearchUserTasksData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchUserTasks(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchUserTasks', (Schemas as any).zSearchUserTasksResponse || (Schemas as any).zsearchUserTasksResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchUserTasks', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchUserTasks({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchUserTasks', (Schemas as any).zSearchUserTasksData || (Schemas as any).zsearchUserTasksData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchUserTasks({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchUserTasks', (Schemas as any).zSearchUserTasksResponse || (Schemas as any).zsearchUserTasksResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchUserTasks', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3452,11 +5693,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchUserTaskVariables({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchUserTaskVariables', (Schemas as any).zSearchUserTaskVariablesData || (Schemas as any).zsearchUserTaskVariablesData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchUserTaskVariables(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchUserTaskVariables', (Schemas as any).zSearchUserTaskVariablesResponse || (Schemas as any).zsearchUserTaskVariablesResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchUserTaskVariables', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchUserTaskVariables({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchUserTaskVariables', (Schemas as any).zSearchUserTaskVariablesData || (Schemas as any).zsearchUserTaskVariablesData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchUserTaskVariables({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchUserTaskVariables', (Schemas as any).zSearchUserTaskVariablesResponse || (Schemas as any).zsearchUserTaskVariablesResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchUserTaskVariables', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3478,11 +5745,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.searchVariables({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('searchVariables', (Schemas as any).zSearchVariablesData || (Schemas as any).zsearchVariablesData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.searchVariables(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('searchVariables', (Schemas as any).zSearchVariablesResponse || (Schemas as any).zsearchVariablesResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('searchVariables', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.searchVariables({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('searchVariables', (Schemas as any).zSearchVariablesData || (Schemas as any).zsearchVariablesData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.searchVariables({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('searchVariables', (Schemas as any).zSearchVariablesResponse || (Schemas as any).zsearchVariablesResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('searchVariables', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3505,11 +5798,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.suspendBatchOperation({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('suspendBatchOperation', (Schemas as any).zSuspendBatchOperationData || (Schemas as any).zsuspendBatchOperationData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.suspendBatchOperation(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('suspendBatchOperation', (Schemas as any).zSuspendBatchOperationResponse || (Schemas as any).zsuspendBatchOperationResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('suspendBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.suspendBatchOperation({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('suspendBatchOperation', (Schemas as any).zSuspendBatchOperationData || (Schemas as any).zsuspendBatchOperationData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.suspendBatchOperation({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('suspendBatchOperation', (Schemas as any).zSuspendBatchOperationResponse || (Schemas as any).zsuspendBatchOperationResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('suspendBatchOperation', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3528,10 +5847,36 @@ export class CamundaClient {
   throwJobError(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.throwJobError({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('throwJobError', (Schemas as any).zThrowJobErrorData || (Schemas as any).zthrowJobErrorData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.throwJobError(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('throwJobError', (Schemas as any).zThrowJobErrorResponse || (Schemas as any).zthrowJobErrorResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.throwJobError({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('throwJobError', (Schemas as any).zThrowJobErrorData || (Schemas as any).zthrowJobErrorData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.throwJobError({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('throwJobError', (Schemas as any).zThrowJobErrorResponse || (Schemas as any).zthrowJobErrorResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3548,7 +5893,16 @@ export class CamundaClient {
   unassignClientFromGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.unassignClientFromGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.unassignClientFromGroup(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('unassignClientFromGroup', (Schemas as any).zUnassignClientFromGroupResponse || (Schemas as any).zunassignClientFromGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3564,7 +5918,16 @@ export class CamundaClient {
   unassignClientFromTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.unassignClientFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.unassignClientFromTenant(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('unassignClientFromTenant', (Schemas as any).zUnassignClientFromTenantResponse || (Schemas as any).zunassignClientFromTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3580,7 +5943,16 @@ export class CamundaClient {
   unassignGroupFromTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.unassignGroupFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.unassignGroupFromTenant(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('unassignGroupFromTenant', (Schemas as any).zUnassignGroupFromTenantResponse || (Schemas as any).zunassignGroupFromTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3597,7 +5969,16 @@ export class CamundaClient {
   unassignMappingRuleFromGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.unassignMappingRuleFromGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.unassignMappingRuleFromGroup(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('unassignMappingRuleFromGroup', (Schemas as any).zUnassignMappingRuleFromGroupResponse || (Schemas as any).zunassignMappingRuleFromGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3613,7 +5994,16 @@ export class CamundaClient {
   unassignMappingRuleFromTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.unassignMappingRuleFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.unassignMappingRuleFromTenant(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('unassignMappingRuleFromTenant', (Schemas as any).zUnassignMappingRuleFromTenantResponse || (Schemas as any).zunassignMappingRuleFromTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3629,7 +6019,16 @@ export class CamundaClient {
   unassignRoleFromClient(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.unassignRoleFromClient({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.unassignRoleFromClient(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('unassignRoleFromClient', (Schemas as any).zUnassignRoleFromClientResponse || (Schemas as any).zunassignRoleFromClientResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3645,7 +6044,16 @@ export class CamundaClient {
   unassignRoleFromGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.unassignRoleFromGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.unassignRoleFromGroup(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('unassignRoleFromGroup', (Schemas as any).zUnassignRoleFromGroupResponse || (Schemas as any).zunassignRoleFromGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3662,7 +6070,16 @@ export class CamundaClient {
   unassignRoleFromMappingRule(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.unassignRoleFromMappingRule({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.unassignRoleFromMappingRule(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('unassignRoleFromMappingRule', (Schemas as any).zUnassignRoleFromMappingRuleResponse || (Schemas as any).zunassignRoleFromMappingRuleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3678,7 +6095,16 @@ export class CamundaClient {
   unassignRoleFromTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.unassignRoleFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.unassignRoleFromTenant(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('unassignRoleFromTenant', (Schemas as any).zUnassignRoleFromTenantResponse || (Schemas as any).zunassignRoleFromTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3695,7 +6121,16 @@ export class CamundaClient {
   unassignRoleFromUser(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.unassignRoleFromUser({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.unassignRoleFromUser(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('unassignRoleFromUser', (Schemas as any).zUnassignRoleFromUserResponse || (Schemas as any).zunassignRoleFromUserResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3712,7 +6147,16 @@ export class CamundaClient {
   unassignUserFromGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.unassignUserFromGroup({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.unassignUserFromGroup(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('unassignUserFromGroup', (Schemas as any).zUnassignUserFromGroupResponse || (Schemas as any).zunassignUserFromGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3728,7 +6172,16 @@ export class CamundaClient {
   unassignUserFromTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       const opts = arg || {};
-      const call = () => Sdk.unassignUserFromTenant({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.unassignUserFromTenant(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('unassignUserFromTenant', (Schemas as any).zUnassignUserFromTenantResponse || (Schemas as any).zunassignUserFromTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3746,7 +6199,16 @@ export class CamundaClient {
     return toCancelable(signal => {
       let opts: any;
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { userTaskKey: arg } };
-      const call = () => Sdk.unassignUserTask({ ...opts, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        const full = { ...opts, client: this._client, signal } as any;
+        const r = await Sdk.unassignUserTask(full);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('unassignUserTask', (Schemas as any).zUnassignUserTaskResponse || (Schemas as any).zunassignUserTaskResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3763,10 +6225,36 @@ export class CamundaClient {
   updateAuthorization(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.updateAuthorization({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('updateAuthorization', (Schemas as any).zUpdateAuthorizationData || (Schemas as any).zupdateAuthorizationData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.updateAuthorization(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('updateAuthorization', (Schemas as any).zUpdateAuthorizationResponse || (Schemas as any).zupdateAuthorizationResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.updateAuthorization({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('updateAuthorization', (Schemas as any).zUpdateAuthorizationData || (Schemas as any).zupdateAuthorizationData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.updateAuthorization({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('updateAuthorization', (Schemas as any).zUpdateAuthorizationResponse || (Schemas as any).zupdateAuthorizationResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3784,10 +6272,36 @@ export class CamundaClient {
   updateGroup(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.updateGroup({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('updateGroup', (Schemas as any).zUpdateGroupData || (Schemas as any).zupdateGroupData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.updateGroup(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('updateGroup', (Schemas as any).zUpdateGroupResponse || (Schemas as any).zupdateGroupResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.updateGroup({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('updateGroup', (Schemas as any).zUpdateGroupData || (Schemas as any).zupdateGroupData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.updateGroup({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('updateGroup', (Schemas as any).zUpdateGroupResponse || (Schemas as any).zupdateGroupResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3804,10 +6318,36 @@ export class CamundaClient {
   updateJob(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.updateJob({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('updateJob', (Schemas as any).zUpdateJobData || (Schemas as any).zupdateJobData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.updateJob(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('updateJob', (Schemas as any).zUpdateJobResponse || (Schemas as any).zupdateJobResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.updateJob({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('updateJob', (Schemas as any).zUpdateJobData || (Schemas as any).zupdateJobData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.updateJob({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('updateJob', (Schemas as any).zUpdateJobResponse || (Schemas as any).zupdateJobResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3825,10 +6365,36 @@ export class CamundaClient {
   updateMappingRule(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.updateMappingRule({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('updateMappingRule', (Schemas as any).zUpdateMappingRuleData || (Schemas as any).zupdateMappingRuleData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.updateMappingRule(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('updateMappingRule', (Schemas as any).zUpdateMappingRuleResponse || (Schemas as any).zupdateMappingRuleResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.updateMappingRule({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('updateMappingRule', (Schemas as any).zUpdateMappingRuleData || (Schemas as any).zupdateMappingRuleData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.updateMappingRule({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('updateMappingRule', (Schemas as any).zUpdateMappingRuleResponse || (Schemas as any).zupdateMappingRuleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3846,10 +6412,36 @@ export class CamundaClient {
   updateRole(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.updateRole({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('updateRole', (Schemas as any).zUpdateRoleData || (Schemas as any).zupdateRoleData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.updateRole(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('updateRole', (Schemas as any).zUpdateRoleResponse || (Schemas as any).zupdateRoleResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.updateRole({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('updateRole', (Schemas as any).zUpdateRoleData || (Schemas as any).zupdateRoleData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.updateRole({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('updateRole', (Schemas as any).zUpdateRoleResponse || (Schemas as any).zupdateRoleResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3866,10 +6458,36 @@ export class CamundaClient {
   updateTenant(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.updateTenant({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('updateTenant', (Schemas as any).zUpdateTenantData || (Schemas as any).zupdateTenantData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.updateTenant(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('updateTenant', (Schemas as any).zUpdateTenantResponse || (Schemas as any).zupdateTenantResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.updateTenant({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('updateTenant', (Schemas as any).zUpdateTenantData || (Schemas as any).zupdateTenantData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.updateTenant({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('updateTenant', (Schemas as any).zUpdateTenantResponse || (Schemas as any).zupdateTenantResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
@@ -3890,11 +6508,37 @@ export class CamundaClient {
     const useConsistency = consistencyManagement.consistency;
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.updateUser({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('updateUser', (Schemas as any).zUpdateUserData || (Schemas as any).zupdateUserData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.updateUser(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('updateUser', (Schemas as any).zUpdateUserResponse || (Schemas as any).zupdateUserResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         if (useConsistency) return eventualPoll('updateUser', false, ()=>toCancelable(()=>call()), useConsistency);
         return call();
       }
-      const call = () => Sdk.updateUser({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('updateUser', (Schemas as any).zUpdateUserData || (Schemas as any).zupdateUserData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.updateUser({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('updateUser', (Schemas as any).zUpdateUserResponse || (Schemas as any).zupdateUserResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       if (useConsistency) return eventualPoll('updateUser', false, ()=>toCancelable(()=>call()), useConsistency);
       return call();
     });
@@ -3912,10 +6556,36 @@ export class CamundaClient {
   updateUserTask(arg: any): CancelablePromise<any> {
     return toCancelable(signal => {
       if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        const call = () => Sdk.updateUserTask({ ...arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+        const call = async () => {
+          const opts: any = { ...arg, client: this._client, signal };
+          if (opts.body !== undefined && this.requestValidationMode() !== 'none') {
+            const maybe = await this.gateRequest('updateUserTask', (Schemas as any).zUpdateUserTaskData || (Schemas as any).zupdateUserTaskData, opts.body);
+            if (this.requestValidationMode() === 'strict') opts.body = maybe;
+          }
+          const r = await Sdk.updateUserTask(opts);
+          let data = r?.data ?? r;
+          if (this.responseValidationMode() !== 'none') {
+            const maybeR = await this.gateResponse('updateUserTask', (Schemas as any).zUpdateUserTaskResponse || (Schemas as any).zupdateUserTaskResponse, data);
+            if (this.responseValidationMode() === 'strict') data = maybeR;
+          }
+          return data;
+        };
         return call();
       }
-      const call = () => Sdk.updateUserTask({ body: arg, client: this._client, signal } as any).then((r:any)=> r?.data ?? r);
+      const call = async () => {
+        let bodyVal: any = arg;
+        if (bodyVal !== undefined && this.requestValidationMode() !== 'none') {
+          const maybe = await this.gateRequest('updateUserTask', (Schemas as any).zUpdateUserTaskData || (Schemas as any).zupdateUserTaskData, bodyVal);
+          if (this.requestValidationMode() === 'strict') bodyVal = maybe;
+        }
+        const r = await Sdk.updateUserTask({ body: bodyVal, client: this._client, signal } as any);
+        let data = r?.data ?? r;
+        if (this.responseValidationMode() !== 'none') {
+          const maybeR = await this.gateResponse('updateUserTask', (Schemas as any).zUpdateUserTaskResponse || (Schemas as any).zupdateUserTaskResponse, data);
+          if (this.responseValidationMode() === 'strict') data = maybeR;
+        }
+        return data;
+      };
       return call();
     });
   }
