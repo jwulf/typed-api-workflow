@@ -85,10 +85,13 @@ public class CamundaKeyFlattener {
         // Step 5: Inject metadata
         injectMetadata(root);
 
-    // Step 6: Sanitize domain-only operational metadata (remove from generated spec)
-    removeOperationMetadata(root);
+        // Step 6: Sanitize domain-only operational metadata (remove from generated spec)
+        removeOperationMetadata(root);
 
-    // Step 7: Write with dynamic header comment
+        // Step 6.5: Re-apply legacy int64 formats for backward compatibility (temporary shim)
+        reapplyRemovedInt64Formats(mapper, root);
+
+        // Step 7: Write with dynamic header comment
         String headerComment = generateHeaderComment();
         try (FileWriter writer = new FileWriter(output)) {
             writer.write(headerComment);
@@ -731,6 +734,64 @@ public class CamundaKeyFlattener {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Re-applies removed int64 formats based on an external mapping file (int64-replacement.json).
+     * This is an interim backward-compatibility step so legacy consumers expecting format: int64
+     * continue to function while we progressively migrate them. Keep this logic isolated so it can
+     * be removed easily later.
+     */
+    private static void reapplyRemovedInt64Formats(ObjectMapper mapper, JsonNode root) {
+        try {
+            java.io.InputStream in = CamundaKeyFlattener.class.getResourceAsStream("/int64-replacement.json");
+            if (in == null) {
+                System.out.println("[int64-format] Mapping file not found on classpath; skipping reapplication.");
+                return;
+            }
+            JsonNode mapping = mapper.readTree(in);
+            if (mapping == null || !mapping.isArray()) {
+                System.out.println("[int64-format] Mapping file not an array; skipping.");
+                return;
+            }
+            int applied = 0;
+            for (JsonNode entry : mapping) {
+                if (!entry.has("path")) continue;
+                String path = entry.get("path").asText();
+                String action = entry.has("action") ? entry.get("action").asText() : "";
+                if (!"removed-int64".equals(action)) continue; // Only process expected action
+                // Expect paths ending with /format
+                if (!path.endsWith("/format")) continue;
+                // Traverse to parent object (the property/schema whose format we restore)
+                String parentPath = path.substring(0, path.lastIndexOf("/format"));
+                // Split into segments and walk down
+                String[] segments = parentPath.split("/");
+                JsonNode current = root;
+                for (int i = 1; i < segments.length; i++) { // skip first empty segment
+                    if (current == null || current.isMissingNode()) break;
+                    String seg = segments[i];
+                    if (current.isObject()) {
+                        current = current.get(seg);
+                    } else {
+                        current = null;
+                        break;
+                    }
+                }
+                if (current != null && current.isObject()) {
+                    ObjectNode obj = (ObjectNode) current;
+                    // Only add if absent (do not overwrite if someone already set a format)
+                    if (!obj.has("format")) {
+                        obj.put("format", "int64");
+                        applied++;
+                    }
+                } else {
+                    System.out.println("[int64-format] Could not resolve parent for path: " + path);
+                }
+            }
+            System.out.println("[int64-format] Re-applied int64 format to " + applied + " fields.");
+        } catch (Exception e) {
+            System.out.println("[int64-format] Error while reapplying int64 formats: " + e.getMessage());
         }
     }
 

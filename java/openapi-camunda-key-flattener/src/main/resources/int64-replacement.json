@@ -1,0 +1,86 @@
+[
+    {
+        "path": "/components/schemas/ProcessElementStatisticsResult/properties/active/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/ProcessElementStatisticsResult/properties/canceled/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/ProcessElementStatisticsResult/properties/incidents/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/ProcessElementStatisticsResult/properties/completed/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/UsageMetricsResponse/properties/activeTenants/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/UsageMetricsResponseItem/properties/processInstances/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/UsageMetricsResponseItem/properties/decisionInstances/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/UsageMetricsResponseItem/properties/assignees/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/ClockPinRequest/properties/timestamp/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/JobActivationRequest/properties/timeout/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/JobActivationRequest/properties/requestTimeout/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/ActivatedJobResult/properties/deadline/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/JobFailRequest/properties/retryBackOff/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/JobChangeset/properties/timeout/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/SearchQueryPageResponse/properties/totalItems/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/OperationReference/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/MessagePublicationRequest/properties/timeToLive/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/DocumentMetadata/properties/size/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/DocumentLinkRequest/properties/timeToLive/format",
+        "action": "removed-int64"
+    },
+    {
+        "path": "/components/schemas/FormResult/properties/version/format",
+        "action": "removed-int64"
+    },
+        {
+        "path": "/components/schemas/ProcessInstanceCreationInstruction/properties/requestTimeout/format",
+        "action": "removed-int64"
+    }
+]
