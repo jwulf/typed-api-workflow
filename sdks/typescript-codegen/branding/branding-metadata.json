@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2025-09-01T22:45:53.120Z",
-  "specHash": "sha256:aceb4d9216d1d8c42190aba1ca0d04d3165b1ddb8676debe88ccd4bf2c690cd9",
+  "generatedAt": "2025-09-02T02:43:02.622Z",
+  "specHash": "sha256:dba92f66fe8dd3e99437a7650081d6850c41b5323502c96247687314bf2761a4",
   "generator": {
     "name": "@hey-api/openapi-ts"
   },
@@ -391,7 +391,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DocumentId",
-        "lineStart": 10567
+        "lineStart": 10566
       },
       "extensions": {},
       "flags": {
@@ -1058,7 +1058,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/TenantId",
-        "lineStart": 11647
+        "lineStart": 11646
       },
       "extensions": {},
       "flags": {
@@ -1104,7 +1104,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/Username",
-        "lineStart": 11657
+        "lineStart": 11656
       },
       "extensions": {},
       "flags": {
@@ -1250,7 +1250,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BatchOperationItemStateFilterProperty",
-        "lineStart": 11444
+        "lineStart": 11443
       },
       "stableId": "batch-operation-item-state-filter-property"
     },
@@ -1306,7 +1306,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BatchOperationStateFilterProperty",
-        "lineStart": 11350
+        "lineStart": 11349
       },
       "stableId": "batch-operation-state-filter-property"
     },
@@ -1332,7 +1332,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BatchOperationTypeFilterProperty",
-        "lineStart": 11317
+        "lineStart": 11316
       },
       "stableId": "batch-operation-type-filter-property"
     },
@@ -1579,7 +1579,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/OperationMetadata",
-        "lineStart": 11667
+        "lineStart": 11666
       },
       "stableId": "operation-metadata"
     },
@@ -1603,7 +1603,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/ProcessInstanceCreationInstruction",
-        "lineStart": 10800
+        "lineStart": 10799
       },
       "stableId": "process-instance-creation-instruction"
     },

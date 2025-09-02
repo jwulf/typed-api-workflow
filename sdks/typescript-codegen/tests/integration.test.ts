@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import CamundaClient from '../src';
+import createCamundaClient from '../src';
 
 // NOTE: This test previously relied on an outdated integration helper (configureNewgenRuntime)
 // which no longer exists. We now hydrate config via configureFromEnv and mock global fetch,
@@ -12,7 +12,7 @@ describe('integration helper (basic auth + base URL)', () => {
       JSON.stringify({ ok: true, url: req.url }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     ));
-    const camunda = new CamundaClient({ config: { CAMUNDA_REST_ADDRESS: 'http://example.test:8080' }, fetch: fetchMock as any });
+    const camunda = createCamundaClient({ config: { CAMUNDA_REST_ADDRESS: 'http://example.test:8080' }, fetch: fetchMock as any });
     const res = await camunda.getLicense();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect((fetchMock.mock.calls[0][0] as Request).url).toBe('http://example.test:8080/license');

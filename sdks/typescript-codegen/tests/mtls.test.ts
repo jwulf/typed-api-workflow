@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { hydrateConfig } from '../src/runtime/unifiedConfiguration';
 import { createAuthFacade } from '../src/runtime/auth';
-import { CamundaClient } from '../src';
+import createCamundaClient from '../src';
 import fs from 'fs';
 
 // Minimal fake PEMs
@@ -59,7 +59,7 @@ describe('mTLS config precedence', () => {
     // Simulate facade creating an agent by stubbing global variable used in integration
     (globalThis as any).__CAMUNDA_MTLS_AGENT = { dummy: true };
     const spy = vi.fn(async () => new Response(JSON.stringify({ ok:true }), { status:200, headers:{'Content-Type':'application/json'} }));
-    const camunda = new CamundaClient({ config: {
+    const camunda = createCamundaClient({ config: {
       CAMUNDA_AUTH_STRATEGY: 'NONE',
       CAMUNDA_MTLS_CERT_PATH: certPath,
       CAMUNDA_MTLS_KEY_PATH: keyPath,

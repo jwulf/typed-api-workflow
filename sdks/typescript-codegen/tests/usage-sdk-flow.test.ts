@@ -1,11 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
-import CamundaClient, { ProcessInstanceKey } from '../src';
+import { ProcessInstanceKey } from '../src';
+import createCamundaClient from '../src'
 
 describe('End-to-end usage (mocked) - create instance -> search', () => {
   it('starts and searches using class instance operations', async () => {
     const BASE = 'https://mock.local';
     const fetchMock = vi.fn();
-    const camunda = new CamundaClient({ config: { CAMUNDA_REST_ADDRESS: BASE }, fetch: fetchMock as any });
+    const camunda = createCamundaClient({ config: { CAMUNDA_REST_ADDRESS: BASE }, fetch: fetchMock as any });
 
     // Mock responses:
     // 0. createDeployment

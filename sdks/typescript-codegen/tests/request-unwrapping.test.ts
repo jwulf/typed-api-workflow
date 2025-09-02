@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import CamundaClient from '../src';
-import { ProcessInstanceKey } from '../src/keys';
+import createCamundaClient, { ProcessInstanceKey } from '../src';
 
 function makeClient(capture: { url?: string; request?: Request; bodyText?: string }) {
   const fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -15,7 +14,7 @@ function makeClient(capture: { url?: string; request?: Request; bodyText?: strin
     try { capture.bodyText = await req.clone().text(); } catch { /* ignore */ }
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   };
-  return new CamundaClient({ config: { CAMUNDA_SDK_VALIDATION: 'none', CAMUNDA_REST_ADDRESS: 'http://localhost:8080' }, fetch });
+  return createCamundaClient({ config: { CAMUNDA_SDK_VALIDATION: 'none', CAMUNDA_REST_ADDRESS: 'http://localhost:8080' }, fetch });
 }
 
 describe('semantic key request unwrapping', () => {

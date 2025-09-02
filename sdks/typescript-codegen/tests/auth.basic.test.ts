@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { CamundaClient } from '../src';
+import createCamundaClient from '../src';
 
 describe('newgen auth integration', () => {
   it('injects Basic auth header via auth facade', async () => {
-    const camunda = new CamundaClient({ config: {
+    const camunda = createCamundaClient({ config: {
       CAMUNDA_AUTH_STRATEGY: 'BASIC',
       CAMUNDA_BASIC_AUTH_USERNAME: 'alice',
       CAMUNDA_BASIC_AUTH_PASSWORD: 'secret',

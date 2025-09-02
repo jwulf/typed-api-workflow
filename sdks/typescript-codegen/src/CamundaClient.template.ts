@@ -49,7 +49,7 @@ export interface CamundaOptions {
   env?: Record<string, string | undefined>;
 }
 
-export function createCamunda(options?: CamundaOptions) { return new CamundaClient(options); }
+export function createCamundaClient(options?: CamundaOptions) { return new CamundaClient(options); }
 
 export class CamundaClient {
   private _client: Client;

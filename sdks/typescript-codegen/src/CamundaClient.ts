@@ -25,7 +25,7 @@ function deepFreeze<T>(obj: T): T {
 }
 
 // === AUTO-GENERATED CAMUNDA SUPPORT TYPES START ===
-// Generated 2025-09-02T02:20:38.067Z
+// Generated 2025-09-02T02:43:06.207Z
 // Operations: 144
 type _RawReturn<F> = F extends (...a:any)=>Promise<infer R> ? R : never;
 type _DataOf<F> = Exclude<_RawReturn<F> extends { data: infer D } ? D : _RawReturn<F>, undefined>;
@@ -646,12 +646,12 @@ type updateUserTaskBody = (NonNullable<updateUserTaskOptions> extends { body?: i
 // === AUTO-GENERATED CAMUNDA SUPPORT TYPES END ===
 
 // Cancelable primitive (kept lightweight & local)
-export class CancelError extends Error { constructor(){ super('Cancelled'); this.name='CancelError'; } }
+export class CancelError extends Error { constructor() { super('Cancelled'); this.name = 'CancelError'; } }
 export interface CancelablePromise<T> extends Promise<T> { cancel(): void }
-function toCancelable<T>(factory:(signal:AbortSignal)=>Promise<T>): CancelablePromise<T> {
+function toCancelable<T>(factory: (signal: AbortSignal) => Promise<T>): CancelablePromise<T> {
   const ac = new AbortController();
-  const p: any = new Promise<T>((resolve,reject)=> { factory(ac.signal).then(resolve,reject); });
-  p.cancel = ()=> ac.abort();
+  const p: any = new Promise<T>((resolve, reject) => { factory(ac.signal).then(resolve, reject); });
+  p.cancel = () => ac.abort();
   return p as CancelablePromise<T>;
 }
 
@@ -664,10 +664,10 @@ export interface CamundaOptions {
   // Custom fetch implementation.
   fetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
   // Provide a custom env map (mainly for tests). Defaults to process.env.
-  env?: Record<string,string|undefined>;
+  env?: Record<string, string | undefined>;
 }
 
-export function createCamunda(options?: CamundaOptions) { return new CamundaClient(options); }
+export function createCamundaClient(options?: CamundaOptions) { return new CamundaClient(options); }
 
 export class CamundaClient {
   private _client: Client;
@@ -675,11 +675,11 @@ export class CamundaClient {
   private _auth: ReturnType<typeof createAuthFacade> = createAuthFacade({
     restAddress: '',
     auth: { strategy: 'NONE', basic: { username: '', password: '' } } as any,
-  validation: { req: 'none', res: 'none', raw: 'req:none,res:none' } as any,
+    validation: { req: 'none', res: 'none', raw: 'req:none,res:none' } as any,
     oauth: { oauthUrl: '', timeoutMs: 0, retry: { max: 0, baseDelayMs: 0 } } as any,
     tokenAudience: ''
   } as any);
-  private _fetch?: (input: RequestInfo | URL, init?: RequestInit)=>Promise<Response>;
+  private _fetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
   private _validation: ValidationManager = new ValidationManager({ req: 'none', res: 'none' });
 
   private _overrides: EnvOverrides = {};
@@ -687,11 +687,11 @@ export class CamundaClient {
   constructor(opts: CamundaOptions = {}) {
     if (opts.config) this._overrides = { ...opts.config };
     const { config } = hydrateConfig({ overrides: this._overrides, env: opts.env });
-  this._config = deepFreeze(config) as Readonly<CamundaConfig>;
+    this._config = deepFreeze(config) as Readonly<CamundaConfig>;
     this._fetch = opts.fetch;
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
     this._auth = createAuthFacade(this._config, { fetch: this._fetch });
-  this._validation.update(this._config.validation);
+    this._validation.update(this._config.validation);
   }
 
   get config(): Readonly<CamundaConfig> { return this._config; }
@@ -706,22 +706,22 @@ export class CamundaClient {
     if (next.config) this._overrides = { ...this._overrides, ...next.config };
     if (next.fetch) this._fetch = next.fetch;
     const { config } = hydrateConfig({ overrides: this._overrides, env: next.env });
-  this._config = deepFreeze(config) as Readonly<CamundaConfig>;
+    this._config = deepFreeze(config) as Readonly<CamundaConfig>;
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
     this._auth = createAuthFacade(this._config, { fetch: this._fetch });
-  this._validation.update(this._config.validation);
+    this._validation.update(this._config.validation);
   }
 
   // Auth helpers
   async getAuthHeaders() { return this._auth.getAuthHeaders(); }
   async forceAuthRefresh() { return this._auth.forceRefresh(); }
   clearAuthCache(opts?: { disk?: boolean; memory?: boolean }) { this._auth.clearCache(opts); }
-  onAuthHeaders(h: (headers: Record<string,string>) => Record<string,string>|Promise<Record<string,string>>) { this._auth.registerHeadersHook(h); }
+  onAuthHeaders(h: (headers: Record<string, string>) => Record<string, string> | Promise<Record<string, string>>) { this._auth.registerHeadersHook(h); }
 
   /** @internal ValidationManager is internal; tests may reach via (client as any)._validation */
 
   // === AUTO-GENERATED CAMUNDA METHODS START ===
-  // Generated methods (2025-09-02T02:20:38.067Z)
+  // Generated methods (2025-09-02T02:43:06.208Z)
   /**
    * Activate activities within an ad-hoc sub-process
    * Activates selected activities within an ad-hoc sub-process identified by element ID.
