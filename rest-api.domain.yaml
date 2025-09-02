@@ -5406,7 +5406,7 @@ components:
       type: "string"
       pattern: "^-?[0-9]+$"
       minLength: 1
-      maxLength: 20
+      maxLength: 25
     StartCursor:
       description: "The start cursor in a search query result set."
       allOf:
