@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2025-09-02T02:43:02.622Z",
-  "specHash": "sha256:dba92f66fe8dd3e99437a7650081d6850c41b5323502c96247687314bf2761a4",
+  "generatedAt": "2025-09-02T22:51:13.208Z",
+  "specHash": "sha256:895039c7fef1d0649afee62da9764b34c33a6ca69e84a55b6e49365ada5a1723",
   "generator": {
     "name": "@hey-api/openapi-ts"
   },
@@ -22,10 +22,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "AuthorizationKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813684332"
@@ -41,9 +43,11 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/AuthorizationKey",
-        "lineStart": 5596
+        "lineStart": 5593
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "AuthorizationKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -52,7 +56,7 @@
       },
       "stableId": "authorization-key",
       "notes": [
-        "inline semantic-type: AuthorizationKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -65,14 +69,9 @@
         "refs": [
           "CamundaKey"
         ],
-        "inlineFragments": 3
+        "inlineFragments": 0
       },
-      "constraints": {
-        "format": "DecisionDefinitionId",
-        "pattern": "^[A-Za-z0-9_@.+-]+$",
-        "minLength": 1,
-        "maxLength": 256
-      },
+      "constraints": {},
       "examples": [
         "new-hire-onboarding-workflow"
       ],
@@ -89,17 +88,16 @@
         "schemaPointer": "#/components/schemas/DecisionDefinitionId",
         "lineStart": 5558
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "DecisionDefinitionId"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": false,
         "implicitCamundaKey": false,
         "deprecated": false
       },
-      "stableId": "decision-definition-id",
-      "notes": [
-        "inline semantic-type: DecisionDefinitionId"
-      ]
+      "stableId": "decision-definition-id"
     },
     {
       "name": "DecisionDefinitionKey",
@@ -112,10 +110,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "DecisionDefinitionKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813326547"
@@ -133,7 +133,9 @@
         "schemaPointer": "#/components/schemas/DecisionDefinitionKey",
         "lineStart": 5550
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "DecisionDefinitionKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -142,7 +144,7 @@
       },
       "stableId": "decision-definition-key",
       "notes": [
-        "inline semantic-type: DecisionDefinitionKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -156,10 +158,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "DecisionEvaluationInstanceKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813684367"
@@ -177,7 +181,9 @@
         "schemaPointer": "#/components/schemas/DecisionEvaluationInstanceKey",
         "lineStart": 5569
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "DecisionEvaluationInstanceKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -186,7 +192,7 @@
       },
       "stableId": "decision-evaluation-instance-key",
       "notes": [
-        "inline semantic-type: DecisionEvaluationInstanceKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -200,16 +206,15 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "pattern": "^-?[0-9]+-[0-9]{3}$",
+        "pattern": "^-?[0-9]+$",
         "minLength": 1,
-        "maxLength": 25,
-        "format": "DecisionEvaluationKey"
+        "maxLength": 25
       },
       "examples": [
-        "2251799813623453"
+        "2251792362345323"
       ],
       "brand": {
         "tsType": "CamundaKey<'DecisionEvaluationKey'>"
@@ -224,7 +229,9 @@
         "schemaPointer": "#/components/schemas/DecisionEvaluationKey",
         "lineStart": 5577
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "DecisionEvaluationKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -233,7 +240,7 @@
       },
       "stableId": "decision-evaluation-key",
       "notes": [
-        "inline semantic-type: DecisionEvaluationKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -247,10 +254,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "DecisionInstanceKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "22517998136843567"
@@ -266,9 +275,11 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DecisionInstanceKey",
-        "lineStart": 5612
+        "lineStart": 5609
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "DecisionInstanceKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -277,7 +288,7 @@
       },
       "stableId": "decision-instance-key",
       "notes": [
-        "inline semantic-type: DecisionInstanceKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -291,10 +302,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "DecisionRequirementsKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813683346"
@@ -310,9 +323,11 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DecisionRequirementsKey",
-        "lineStart": 5588
+        "lineStart": 5585
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "DecisionRequirementsKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -321,7 +336,7 @@
       },
       "stableId": "decision-requirements-key",
       "notes": [
-        "inline semantic-type: DecisionRequirementsKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -335,10 +350,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "DeploymentKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "brand": {
         "tsType": "CamundaKey<'DeploymentKey'>"
@@ -353,7 +370,9 @@
         "schemaPointer": "#/components/schemas/DeploymentKey",
         "lineStart": 5438
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "DeploymentKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -362,7 +381,7 @@
       },
       "stableId": "deployment-key",
       "notes": [
-        "inline semantic-type: DeploymentKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -375,11 +394,9 @@
         "refs": [
           "CamundaKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
-      "constraints": {
-        "format": "DocumentId"
-      },
+      "constraints": {},
       "brand": {
         "tsType": "CamundaKey<'DocumentId'>"
       },
@@ -391,7 +408,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DocumentId",
-        "lineStart": 10566
+        "lineStart": 10560
       },
       "extensions": {},
       "flags": {
@@ -400,10 +417,7 @@
         "implicitCamundaKey": false,
         "deprecated": false
       },
-      "stableId": "document-id",
-      "notes": [
-        "inline semantic-type: DocumentId"
-      ]
+      "stableId": "document-id"
     },
     {
       "name": "ElementInstanceKey",
@@ -416,10 +430,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "ElementInstanceKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813686789"
@@ -437,7 +453,9 @@
         "schemaPointer": "#/components/schemas/ElementInstanceKey",
         "lineStart": 5470
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "ElementInstanceKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -446,7 +464,7 @@
       },
       "stableId": "element-instance-key",
       "notes": [
-        "inline semantic-type: ElementInstanceKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -459,17 +477,9 @@
         "refs": [
           "CamundaKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
-      "constraints": {
-        "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=)?$",
-        "minLength": 2,
-        "maxLength": 300,
-        "format": "base64"
-      },
-      "examples": [
-        "WzIyNTE3OTk4MTM2ODcxMDJd"
-      ],
+      "constraints": {},
       "brand": {
         "tsType": "CamundaKey<'EndCursor'>"
       },
@@ -490,10 +500,7 @@
         "implicitCamundaKey": false,
         "deprecated": false
       },
-      "stableId": "end-cursor",
-      "notes": [
-        "inline semantic-type: EndCursor"
-      ]
+      "stableId": "end-cursor"
     },
     {
       "name": "FormKey",
@@ -506,10 +513,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "FormKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813684365"
@@ -527,7 +536,9 @@
         "schemaPointer": "#/components/schemas/FormKey",
         "lineStart": 5478
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "FormKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -536,7 +547,7 @@
       },
       "stableId": "form-key",
       "notes": [
-        "inline semantic-type: FormKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -550,10 +561,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "IncidentKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813689432"
@@ -571,7 +584,9 @@
         "schemaPointer": "#/components/schemas/IncidentKey",
         "lineStart": 5518
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "IncidentKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -580,7 +595,7 @@
       },
       "stableId": "incident-key",
       "notes": [
-        "inline semantic-type: IncidentKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -594,10 +609,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "JobKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813653498"
@@ -615,7 +632,9 @@
         "schemaPointer": "#/components/schemas/JobKey",
         "lineStart": 5526
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "JobKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -624,7 +643,7 @@
       },
       "stableId": "job-key",
       "notes": [
-        "inline semantic-type: JobKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -638,10 +657,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "MessageCorrelationKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813634265"
@@ -659,7 +680,9 @@
         "schemaPointer": "#/components/schemas/MessageCorrelationKey",
         "lineStart": 5542
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "MessageCorrelationKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -668,7 +691,7 @@
       },
       "stableId": "message-correlation-key",
       "notes": [
-        "inline semantic-type: MessageCorrelationKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -682,10 +705,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "MessageKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813683467"
@@ -701,9 +726,11 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/MessageKey",
-        "lineStart": 5604
+        "lineStart": 5601
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "MessageKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -712,7 +739,7 @@
       },
       "stableId": "message-key",
       "notes": [
-        "inline semantic-type: MessageKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -726,10 +753,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "MessageSubscriptionKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813632456"
@@ -747,7 +776,9 @@
         "schemaPointer": "#/components/schemas/MessageSubscriptionKey",
         "lineStart": 5534
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "MessageSubscriptionKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -756,7 +787,7 @@
       },
       "stableId": "message-subscription-key",
       "notes": [
-        "inline semantic-type: MessageSubscriptionKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -769,13 +800,9 @@
         "refs": [
           "CamundaKey"
         ],
-        "inlineFragments": 3
+        "inlineFragments": 0
       },
-      "constraints": {
-        "format": "ProcessDefinitionId",
-        "pattern": "^[a-zA-Z_][a-zA-Z0-9_\\-\\.]*$",
-        "minLength": 1
-      },
+      "constraints": {},
       "examples": [
         "new-hire-onboarding-workflow"
       ],
@@ -792,17 +819,16 @@
         "schemaPointer": "#/components/schemas/ProcessDefinitionId",
         "lineStart": 5460
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "ProcessDefinitionId"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": false,
         "implicitCamundaKey": false,
         "deprecated": false
       },
-      "stableId": "process-definition-id",
-      "notes": [
-        "inline semantic-type: ProcessDefinitionId"
-      ]
+      "stableId": "process-definition-id"
     },
     {
       "name": "ProcessDefinitionKey",
@@ -815,10 +841,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "ProcessDefinitionKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813686749"
@@ -836,7 +864,9 @@
         "schemaPointer": "#/components/schemas/ProcessDefinitionKey",
         "lineStart": 5452
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "ProcessDefinitionKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -845,7 +875,7 @@
       },
       "stableId": "process-definition-key",
       "notes": [
-        "inline semantic-type: ProcessDefinitionKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -859,10 +889,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "ProcessInstanceKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813690746"
@@ -880,7 +912,9 @@
         "schemaPointer": "#/components/schemas/ProcessInstanceKey",
         "lineStart": 5430
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "ProcessInstanceKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -889,7 +923,7 @@
       },
       "stableId": "process-instance-key",
       "notes": [
-        "inline semantic-type: ProcessInstanceKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -903,10 +937,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "ScopeKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813683890"
@@ -924,7 +960,9 @@
         "schemaPointer": "#/components/schemas/ScopeKey",
         "lineStart": 5510
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "ScopeKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -933,7 +971,7 @@
       },
       "stableId": "scope-key",
       "notes": [
-        "inline semantic-type: ScopeKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -947,10 +985,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "SignalKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "22517998136987467"
@@ -966,9 +1006,11 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/SignalKey",
-        "lineStart": 5620
+        "lineStart": 5617
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "SignalKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -977,7 +1019,7 @@
       },
       "stableId": "signal-key",
       "notes": [
-        "inline semantic-type: SignalKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -990,17 +1032,9 @@
         "refs": [
           "CamundaKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
-      "constraints": {
-        "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=)?$",
-        "minLength": 2,
-        "maxLength": 300,
-        "format": "base64"
-      },
-      "examples": [
-        "WzIyNTE3OTk4MTM2ODcxMDJd"
-      ],
+      "constraints": {},
       "brand": {
         "tsType": "CamundaKey<'StartCursor'>"
       },
@@ -1021,10 +1055,7 @@
         "implicitCamundaKey": false,
         "deprecated": false
       },
-      "stableId": "start-cursor",
-      "notes": [
-        "inline semantic-type: StartCursor"
-      ]
+      "stableId": "start-cursor"
     },
     {
       "name": "TenantId",
@@ -1058,7 +1089,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/TenantId",
-        "lineStart": 11646
+        "lineStart": 11640
       },
       "extensions": {},
       "flags": {
@@ -1104,7 +1135,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/Username",
-        "lineStart": 11656
+        "lineStart": 11650
       },
       "extensions": {},
       "flags": {
@@ -1129,10 +1160,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "UserTaskKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "brand": {
         "tsType": "CamundaKey<'UserTaskKey'>"
@@ -1147,7 +1180,9 @@
         "schemaPointer": "#/components/schemas/UserTaskKey",
         "lineStart": 5445
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "UserTaskKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -1156,7 +1191,7 @@
       },
       "stableId": "user-task-key",
       "notes": [
-        "inline semantic-type: UserTaskKey"
+        "inherited constraints from LongKey"
       ]
     },
     {
@@ -1170,10 +1205,12 @@
           "CamundaKey",
           "LongKey"
         ],
-        "inlineFragments": 1
+        "inlineFragments": 0
       },
       "constraints": {
-        "format": "VariableKey"
+        "pattern": "^-?[0-9]+$",
+        "minLength": 1,
+        "maxLength": 25
       },
       "examples": [
         "2251799813683287"
@@ -1191,7 +1228,9 @@
         "schemaPointer": "#/components/schemas/VariableKey",
         "lineStart": 5486
       },
-      "extensions": {},
+      "extensions": {
+        "x-semantic-type": "VariableKey"
+      },
       "flags": {
         "includesCamundaKeyRef": true,
         "includesLongKeyRef": true,
@@ -1200,7 +1239,7 @@
       },
       "stableId": "variable-key",
       "notes": [
-        "inline semantic-type: VariableKey"
+        "inherited constraints from LongKey"
       ]
     }
   ],
@@ -1224,7 +1263,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BasicStringFilterProperty",
-        "lineStart": 6531
+        "lineStart": 6528
       },
       "stableId": "basic-string-filter-property"
     },
@@ -1250,13 +1289,14 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BatchOperationItemStateFilterProperty",
-        "lineStart": 11443
+        "lineStart": 11437
       },
       "stableId": "batch-operation-item-state-filter-property"
     },
     {
       "name": "BatchOperationKey",
       "kind": "hybrid-union",
+      "description": "System-generated key for an batch operation.",
       "branches": [
         {
           "branchType": "branded",
@@ -1280,7 +1320,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BatchOperationKey",
-        "lineStart": 5628
+        "lineStart": 5625
       },
       "stableId": "batch-operation-key"
     },
@@ -1306,7 +1346,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BatchOperationStateFilterProperty",
-        "lineStart": 11349
+        "lineStart": 11343
       },
       "stableId": "batch-operation-state-filter-property"
     },
@@ -1332,7 +1372,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BatchOperationTypeFilterProperty",
-        "lineStart": 11316
+        "lineStart": 11310
       },
       "stableId": "batch-operation-type-filter-property"
     },
@@ -1355,7 +1395,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DateTimeFilterProperty",
-        "lineStart": 6573
+        "lineStart": 6570
       },
       "stableId": "date-time-filter-property"
     },
@@ -1378,7 +1418,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DecisionEvaluationInstruction",
-        "lineStart": 10064
+        "lineStart": 10057
       },
       "stableId": "decision-evaluation-instruction"
     },
@@ -1404,7 +1444,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/ElementInstanceStateFilterProperty",
-        "lineStart": 6563
+        "lineStart": 6560
       },
       "stableId": "element-instance-state-filter-property"
     },
@@ -1427,7 +1467,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/IntegerFilterProperty",
-        "lineStart": 6383
+        "lineStart": 6380
       },
       "stableId": "integer-filter-property"
     },
@@ -1453,7 +1493,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/JobKindFilterProperty",
-        "lineStart": 9783
+        "lineStart": 9777
       },
       "stableId": "job-kind-filter-property"
     },
@@ -1479,7 +1519,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/JobListenerEventTypeFilterProperty",
-        "lineStart": 9816
+        "lineStart": 9810
       },
       "stableId": "job-listener-event-type-filter-property"
     },
@@ -1505,7 +1545,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/JobStateFilterProperty",
-        "lineStart": 9750
+        "lineStart": 9744
       },
       "stableId": "job-state-filter-property"
     },
@@ -1531,7 +1571,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/MessageSubscriptionTypeFilterProperty",
-        "lineStart": 7656
+        "lineStart": 7653
       },
       "stableId": "message-subscription-type-filter-property"
     },
@@ -1579,7 +1619,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/OperationMetadata",
-        "lineStart": 11666
+        "lineStart": 11660
       },
       "stableId": "operation-metadata"
     },
@@ -1603,7 +1643,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/ProcessInstanceCreationInstruction",
-        "lineStart": 10799
+        "lineStart": 10793
       },
       "stableId": "process-instance-creation-instruction"
     },
@@ -1629,7 +1669,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/ProcessInstanceStateFilterProperty",
-        "lineStart": 6553
+        "lineStart": 6550
       },
       "stableId": "process-instance-state-filter-property"
     },
@@ -1689,7 +1729,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/SearchQueryPageRequest",
-        "lineStart": 9883
+        "lineStart": 9877
       },
       "stableId": "search-query-page-request"
     },
@@ -1712,7 +1752,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/StringFilterProperty",
-        "lineStart": 6539
+        "lineStart": 6536
       },
       "stableId": "string-filter-property"
     },
@@ -1738,7 +1778,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/UserTaskStateFilterProperty",
-        "lineStart": 5912
+        "lineStart": 5909
       },
       "stableId": "user-task-state-filter-property"
     }

@@ -123,6 +123,38 @@ Auth helper features (automatic inside the client):
 * Force refresh: `await client.forceAuthRefresh()`
 * Clear caches: `client.clearAuthCache({ disk: true, memory: true })`
 
+### Token Caching & Persistence
+
+The SDK always keeps the active OAuth access token in memory. Optional disk persistence (Node only) is enabled by setting:
+
+```bash
+CAMUNDA_OAUTH_CACHE_DIR=/path/to/cache
+```
+
+When present and running under Node, each distinct credential context (combination of `oauthUrl | clientId | audience | scope`) is hashed to a filename:
+
+```
+<CAMUNDA_OAUTH_CACHE_DIR>/camunda_oauth_token_cache_<hash>.json
+```
+
+Writes are atomic (`.tmp` + rename) and use file mode `0600` (owner read/write). On process start the SDK attempts to load the persisted file to avoid an unnecessary token fetch; if the token is near expiry it will still perform an early refresh (5s skew window plus additional safety buffer based on 5% or 30s minimum).
+
+Clearing / refreshing:
+* Programmatic clear: `client.clearAuthCache({ disk: true, memory: true })`
+* Memory only: `client.clearAuthCache({ memory: true, disk: false })`
+* Force new token (ignores freshness): `await client.forceAuthRefresh()`
+
+Disable disk persistence by simply omitting `CAMUNDA_OAUTH_CACHE_DIR` (memory cache still applies). For short‑lived or serverless functions you may prefer no disk cache to minimize I/O; for long‑running workers disk caching reduces cold‑start latency and load on the identity provider across restarts / rolling deploys.
+
+Security considerations:
+* Ensure the directory has restrictive ownership/permissions; the SDK creates files with `0600` but will not alter parent directory permissions.
+* Tokens are bearer credentials; treat the directory like a secrets store and avoid including it in container image layers or backups.
+* If you rotate credentials (client secret) the filename hash changes; old cache files become unused and can be pruned safely.
+
+Browser usage: There is no disk concept—if executed in a browser the SDK (when strategy OAUTH) attempts to store the token in `sessionStorage` (tab‑scoped). Closing the tab clears the cache; a new tab will fetch a fresh token.
+
+If you need a custom persistence strategy (e.g. Redis / encrypted keychain), wrap the client and periodically call `client.forceAuthRefresh()` while storing and re‑injecting the token via a headers hook; first measure whether the built‑in disk cache already meets your needs.
+
 ## mTLS (Node only)
 Provide inline or path variables (inline wins):
 ```
@@ -156,8 +188,113 @@ await p; // rejects with CancelError if aborted
 Some endpoints accept consistency management options. Pass a `consistency` block (where supported) with `waitUpToMs` and optional `pollIntervalMs` (default 500). If the condition is not met within timeout an `EventualConsistencyTimeoutError` is thrown.
 
 ## Logging
-Set `CAMUNDA_SDK_LOG_LEVEL` to `silent|error|warn|info|debug|trace`.
-Advanced: import `setTransport` / `getLogger` from `@camunda8/orchestration-cluster/logger` to route structured events.
+Per‑client logger; no global singleton. The level defaults from `CAMUNDA_SDK_LOG_LEVEL` (default `error`).
+
+```ts
+const client = createCamundaClient({
+  log: {
+    level: 'info',
+    transport: evt => {
+      // evt: { level, scope, ts, args, code?, data? }
+      console.log(JSON.stringify(evt));
+    }
+  }
+});
+
+const log = client.logger('worker');
+log.debug(() => ['expensive detail only if enabled', { meta: 1 }]);
+log.code('info', 'WORK_START', 'Starting work loop', { pid: process.pid });
+```
+
+Lazy args (functions with zero arity) are only invoked if the level is enabled.
+
+Update log level / transport at runtime via `client.configure({ log: { level: 'debug' } })`.
+
+### Default Behaviour
+Without any explicit `log` option:
+* Level = `error` (unless `CAMUNDA_SDK_LOG_LEVEL` is set)
+* Transport = console (`console.error` / `console.warn` / `console.log`)
+* Only `error` level internal events are emitted (e.g. strict validation failure summaries, fatal auth issues)
+* No info/debug/trace noise by default
+
+To silence everything set level to `silent`:
+```bash
+CAMUNDA_SDK_LOG_LEVEL=silent
+```
+
+To enable debug logs via env:
+```bash
+CAMUNDA_SDK_LOG_LEVEL=debug
+```
+
+### Bring Your Own Logger
+Provide a `transport` function to forward structured `LogEvent` objects into any logging library.
+
+#### Pino
+```ts
+import pino from 'pino';
+import createCamundaClient from '@camunda8/orchestration-cluster';
+
+const p = pino();
+const client = createCamundaClient({
+  log: {
+    level: 'info',
+    transport: e => {
+      const lvl = e.level === 'trace' ? 'debug' : e.level; // map trace
+      p.child({ scope: e.scope, code: e.code }).[lvl]({ ts: e.ts, data: e.data, args: e.args }, e.args.filter(a=>typeof a==='string').join(' '));
+    }
+  }
+});
+```
+
+#### Winston
+```ts
+import winston from 'winston';
+import createCamundaClient from '@camunda8/orchestration-cluster';
+
+const w = winston.createLogger({ transports: [ new winston.transports.Console() ] });
+const client = createCamundaClient({
+  log: {
+    level: 'debug',
+    transport: e => {
+      const lvl = e.level === 'trace' ? 'silly' : e.level; // winston has 'silly'
+      w.log({
+        level: lvl,
+        message: e.args.filter(a=>typeof a==='string').join(' '),
+        scope: e.scope,
+        code: e.code,
+        data: e.data,
+        ts: e.ts
+      });
+    }
+  }
+});
+```
+
+#### loglevel
+```ts
+import log from 'loglevel';
+import createCamundaClient from '@camunda8/orchestration-cluster';
+
+log.setLevel('info'); // host app level
+const client = createCamundaClient({
+  log: {
+    level: 'info',
+    transport: e => {
+      if (e.level === 'silent') return;
+      const method = (['error','warn','info','debug'].includes(e.level) ? e.level : 'debug') as 'error'|'warn'|'info'|'debug';
+      (log as any)[method](`[${e.scope}]`, e.code ? `${e.code}:` : '', ...e.args);
+    }
+  }
+});
+```
+
+#### Notes
+* Map `trace` to the nearest available level if your logger lacks it.
+* Use `log.code(level, code, msg, data)` for machine-parsable events.
+* Redact secrets before logging if you add token contents to custom messages.
+* Reconfigure later: `client.configure({ log: { level: 'warn' } })` updates only that client.
+* When the effective level is `debug` (or `trace`), the client emits a lazy `config.hydrated` event on construction and `config.reconfigured` on `configure()`, each containing the redacted effective configuration `{ config: { CAMUNDA_... } }`. Secrets are already masked using the SDK's redaction rules.
 
 ## Errors
 May throw:

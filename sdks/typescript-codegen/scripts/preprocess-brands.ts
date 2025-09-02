@@ -265,6 +265,21 @@ for (const [name, schema] of Object.entries<any>(schemas)) {
     mergeConstraints(constraints, extractConstraints(schema));
   }
 
+  // Option B implementation: inherit LongKey constraints when the schema is a pure alias
+  // composed only of refs (CamundaKey + LongKey) and provided no inline fragment added
+  // explicit constraints. This preserves DRY spec definitions while retaining runtime
+  // validation for numeric key shapes.
+  if (includesLongKeyRef && Object.keys(constraints).length === 0) {
+    const longKey = (schemas as any)['LongKey'];
+    if (longKey) {
+      const beforeKeys = Object.keys(constraints).length;
+      mergeConstraints(constraints, extractConstraints(longKey));
+      if (Object.keys(constraints).length > beforeKeys) {
+        notes.push('inherited constraints from LongKey');
+      }
+    }
+  }
+
   // Updated heuristic: ONLY consider schemas that are pure alias style allOf chains.
   // A pure alias allOf schema:
   //   - has allOf

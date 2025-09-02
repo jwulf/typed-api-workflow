@@ -1,12 +1,18 @@
 import { ZodTypeAny } from 'zod';
 import { applySchemaValidation } from './validationCore';
+import { detectExtrasAndMaybeThrow, ExtrasPolicy } from './validationExtras';
 import type { Logger } from './logger';
 
-export type ValidationMode = 'strict' | 'warn' | 'none';
+export type ValidationMode = 'strict' | 'warn' | 'none' | 'fanatical';
 
 export interface ValidationSettings {
   req: ValidationMode;
   res: ValidationMode;
+  extras?: {
+    policy: ExtrasPolicy; // how to handle extra properties
+    deep: boolean;        // recurse into nested objects
+    captureDir?: string;  // directory for sample capture
+  };
 }
 
 export class ValidationManager {
@@ -26,6 +32,23 @@ export class ValidationManager {
   }
 
   private async _gate(side: 'request'|'response', opId: string, mode: ValidationMode, schema: ZodTypeAny | undefined, value: any) {
-  return applySchemaValidation({ side, operationId: opId, mode, schema, value, logger: this._logger });
+    // fanatical piggybacks on strict for core parse semantics
+    const effectiveMode = (mode === 'fanatical') ? 'strict' : mode;
+    const validated = await applySchemaValidation({ side, operationId: opId, mode: effectiveMode as any, schema, value, logger: this._logger });
+    if (side === 'response' && this._settings.extras && this._settings.extras.policy !== 'ignore' && (mode === 'fanatical' || effectiveMode !== 'none')) {
+      try {
+        detectExtrasAndMaybeThrow({
+          operationId: opId,
+          value,
+          schema,
+          settings: this._settings.extras,
+          logger: this._logger,
+          fanatical: mode === 'fanatical'
+        });
+      } catch (e) {
+        if (mode === 'fanatical' || this._settings.extras.policy === 'error') throw e;
+      }
+    }
+    return validated;
   }
 }

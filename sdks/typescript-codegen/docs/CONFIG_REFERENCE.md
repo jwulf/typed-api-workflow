@@ -1,6 +1,6 @@
 # Configuration Reference
 
-Generated: 2025-09-02T04:15:34.657Z
+Generated: 2025-09-02T22:51:18.776Z
 
 | Key | Type | Default | Requirement | Flags | Description |
 |-----|------|---------|-------------|-------|-------------|
@@ -20,6 +20,8 @@ Generated: 2025-09-02T04:15:34.657Z
 | `CAMUNDA_BASIC_AUTH_PASSWORD` | string | — | When CAMUNDA_AUTH_STRATEGY=BASIC | secret | Basic auth password (required when CAMUNDA_AUTH_STRATEGY=BASIC). |
 | `CAMUNDA_SDK_VALIDATION` | string | `req:none,res:none` | Optional |  | Validation mini-language controlling req/res modes. |
 | `CAMUNDA_SDK_LOG_LEVEL` | string | `error` | Optional |  | SDK log level (silent|error|warn|info|debug|trace). |
+| `CAMUNDA_SDK_TELEMETRY_LOG` | boolean | `false` | Optional |  | Emit telemetry (auth/http/retry) events to the SDK logger automatically (no code). |
+| `CAMUNDA_SDK_TELEMETRY_CORRELATION` | boolean | `false` | Optional |  | Enable correlation context (withCorrelation helper) when auto telemetry logging is on. |
 | `CAMUNDA_MTLS_CERT_PATH` | string | — | No default |  | Path to client certificate (PEM) for mTLS. |
 | `CAMUNDA_MTLS_KEY_PATH` | string | — | No default |  | Path to client private key (PEM) for mTLS. |
 | `CAMUNDA_MTLS_CA_PATH` | string | — | No default |  | Path to CA certificate bundle (PEM) for mTLS. |

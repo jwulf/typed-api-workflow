@@ -1,5 +1,6 @@
 import type { CamundaConfig } from './unifiedConfiguration';
 import type { Logger } from './logger';
+import type { TelemetryHooks, TelemetryAuthStartEvent, TelemetryAuthSuccessEvent, TelemetryAuthErrorEvent } from './telemetry';
 
 
 /** Auth error codes */
@@ -41,7 +42,7 @@ class OAuthManager {
 	private readonly storageKey: string;
 	private readonly isBrowser = typeof window !== 'undefined';
 	private readonly session: Storage | null;
-	constructor(private cfg: CamundaConfig, private logger: Logger) {
+	constructor(private cfg: CamundaConfig, private logger: Logger, private tHooks?: TelemetryHooks, private correlationProvider?: () => string | undefined) {
 		const hashBase = `${cfg.oauth.oauthUrl}|${cfg.oauth.clientId||''}|${cfg.tokenAudience}|${cfg.oauth.scope||''}`;
 		this.storageKey = 'camunda_oauth_token_cache_' + this.simpleHash(hashBase);
 		this.session = this.isBrowser && typeof window.sessionStorage !== 'undefined' ? window.sessionStorage : null;
@@ -107,6 +108,10 @@ class OAuthManager {
 			const controller = new AbortController();
 			const timeout = setTimeout(()=> controller.abort(), this.cfg.oauth.timeoutMs);
 			try {
+				if (attempt === 0) {
+					const evt: TelemetryAuthStartEvent = { type:'auth.start', ts: Date.now(), audience: this.cfg.tokenAudience, endpoint: this.cfg.oauth.oauthUrl, cache: !!this.token, correlationId: this.correlationProvider?.() };
+					try { this.tHooks?.authStart?.(evt); } catch {/* ignore */}
+				}
 				this.logger.debug(`OAuth token attempt ${attempt+1}/${max}`);
 				const res = await fetcher(this.cfg.oauth.oauthUrl, { method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded' }, body: body.toString(), signal: controller.signal });
 				clearTimeout(timeout);
@@ -128,6 +133,10 @@ class OAuthManager {
 				};
 				this.token = entry; this.persist();
 				this.logger.info('Token fetched; effective expiry (s)=', Math.round((entry.expires_at_epoch_ms - now)/1000));
+				try {
+					const evt: TelemetryAuthSuccessEvent = { type:'auth.success', ts: Date.now(), audience: this.cfg.tokenAudience, endpoint: this.cfg.oauth.oauthUrl, cached: false, durationMs: Date.now()-now, expiresInSec: Math.round((entry.expires_at_epoch_ms - now)/1000), scopes: entry.scope? String(entry.scope).split(/\s+/): undefined, correlationId: this.correlationProvider?.() };
+					this.tHooks?.authSuccess?.(evt);
+				} catch {/* ignore */}
 				return entry.access_token;
 			} catch (e:any) {
 				clearTimeout(timeout);
@@ -137,9 +146,17 @@ class OAuthManager {
 				const delay = base * Math.pow(2, attempt-1);
 				const jitter = delay * 0.2 * (Math.random()-0.5); // +/-20%
 				const sleep = delay + jitter;
+				try {
+					// Emit retry event (domain auth) with computed next delay
+					this.tHooks?.retry?.({ type:'retry', ts: Date.now(), attempt, nextDelayMs: Math.round(sleep), reason: lastErr?.message||'error', domain:'auth', correlationId: this.correlationProvider?.() });
+				} catch {/* ignore */}
 				await new Promise(r=> setTimeout(r, sleep));
 			}
 		}
+		try {
+			const evt: TelemetryAuthErrorEvent = { type:'auth.error', ts: Date.now(), audience: this.cfg.tokenAudience, endpoint: this.cfg.oauth.oauthUrl, durationMs: 0, status: lastErr?.message?.match(/HTTP (\d+)/)?.[1] ? parseInt(RegExp.$1,10) : undefined, message: lastErr?.message||String(lastErr), correlationId: this.correlationProvider?.() };
+			this.tHooks?.authError?.(evt);
+		} catch {/* ignore */}
 		throw new CamundaAuthError(CamundaAuthErrorCode.TOKEN_FETCH_FAILED, `Failed to fetch token after ${max} attempts: ${lastErr?.message||lastErr}` , lastErr);
 	}
 }
@@ -169,7 +186,7 @@ export interface AuthFacade {
 	debug__setTokenExpiry?(epochMs: number): void;
 }
 
-export function createAuthFacade(config: CamundaConfig, opts?: { fetch?: (input: RequestInfo, init?: RequestInit) => Promise<Response>; logger?: Logger }): AuthFacade {
+export function createAuthFacade(config: CamundaConfig, opts?: { fetch?: (input: RequestInfo, init?: RequestInit) => Promise<Response>; logger?: Logger; telemetryHooks?: TelemetryHooks; correlationProvider?: () => string | undefined }): AuthFacade {
 	const cfg = config;
 	const noop: Logger = {
 		level: () => 'silent', setLevel: ()=>{}, setTransport: ()=>{},
@@ -177,10 +194,11 @@ export function createAuthFacade(config: CamundaConfig, opts?: { fetch?: (input:
 		scope: () => noop
 	} as any;
 	const authLogger = (opts?.logger || noop).scope('auth');
+	const tHooks = opts?.telemetryHooks;
 	const hooks: HeadersHook[] = [];
 	let oauth: OAuthManager | null = null;
 	let basic: BasicAuthManager | null = null;
-	if (cfg.auth.strategy === 'OAUTH') oauth = new OAuthManager(cfg, authLogger.scope('oauth'));
+	if (cfg.auth.strategy === 'OAUTH') oauth = new OAuthManager(cfg, authLogger.scope('oauth'), tHooks, opts?.correlationProvider);
 	else if (cfg.auth.strategy === 'BASIC') basic = new BasicAuthManager(cfg);
 	const fetcher = (input: RequestInfo, init?: RequestInit) => opts?.fetch ? opts.fetch(input, init) : fetch(input, init);
 		// mTLS: if in Node and mtls config present, create https.Agent and augment fetch with agent option.

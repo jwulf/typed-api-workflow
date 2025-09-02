@@ -13,6 +13,8 @@ import { ConsistencyOptions, eventualPoll } from './runtime/eventual'
 import * as Schemas from './gen/zod.gen';
 import { ValidationManager } from './runtime/validationManager';
 import { createLogger, Logger, LogLevel, LogTransport } from './runtime/logger';
+import { wrapFetch, withCorrelation as _withCorrelation, getCorrelation } from './runtime/telemetry';
+import { installAuthInterceptor } from './runtime/installAuthInterceptor';
 
 // Internal deep-freeze to make exposed config immutable for consumers.
 function deepFreeze<T>(obj: T): T {
@@ -26,7 +28,7 @@ function deepFreeze<T>(obj: T): T {
 }
 
 // === AUTO-GENERATED CAMUNDA SUPPORT TYPES START ===
-// Generated 2025-09-02T04:15:29.980Z
+// Generated 2025-09-02T22:51:17.113Z
 // Operations: 144
 type _RawReturn<F> = F extends (...a:any)=>Promise<infer R> ? R : never;
 type _DataOf<F> = Exclude<_RawReturn<F> extends { data: infer D } ? D : _RawReturn<F>, undefined>;
@@ -668,6 +670,8 @@ export interface CamundaOptions {
   env?: Record<string, string | undefined>;
   // Per-client logging options
   log?: { level?: LogLevel; transport?: LogTransport };
+  // Telemetry (Phase 1)
+  telemetry?: { hooks?: import('./runtime/telemetry').TelemetryHooks; correlation?: boolean; mirrorToLog?: boolean };
 }
 
 export function createCamundaClient(options?: CamundaOptions) { return new CamundaClient(options); }
@@ -694,11 +698,30 @@ export class CamundaClient {
   this._config = deepFreeze(config) as Readonly<CamundaConfig>;
   // Initialize per-client logger
   this._log = createLogger({ level: opts.log?.level || this._config.logLevel, transport: opts.log?.transport });
-    this._fetch = opts.fetch;
+  const baseFetch = opts.fetch;
+  this._fetch = baseFetch;
+    // Telemetry wrap (after logger & config known). If user provided explicit telemetry, honor it.
+    // Else if environment enabled auto telemetry logging, wrap with mirrorToLog + optional correlation.
+    if (opts.telemetry) {
+      this._fetch = wrapFetch(this._fetch || fetch as any, { hooks: opts.telemetry.hooks, correlation: opts.telemetry.correlation ? () => getCorrelation() : undefined, logger: this._log, mirrorToLog: opts.telemetry.mirrorToLog });
+    } else if (this._config.telemetry?.log) {
+      this._fetch = wrapFetch(this._fetch || fetch as any, { hooks: undefined, correlation: this._config.telemetry.correlation ? () => getCorrelation() : undefined, logger: this._log, mirrorToLog: true });
+    }
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
-  this._auth = createAuthFacade(this._config, { fetch: this._fetch, logger: this._log });
+  installAuthInterceptor(this._client, () => this._config.auth.strategy, () => this._auth.getAuthHeaders());
+  this._auth = createAuthFacade(this._config, { fetch: this._fetch, logger: this._log, telemetryHooks: opts.telemetry?.hooks, correlationProvider: (opts.telemetry?.correlation || (!opts.telemetry && this._config.telemetry?.correlation)) ? () => getCorrelation() : undefined });
   this._validation.update(this._config.validation);
   this._validation.attachLogger(this._log);
+  // Debug-level emission of redacted effective configuration (lazy)
+  this._log.debug(() => {
+    try {
+      const last = (globalThis as any).__CAMUNDA_SDK_LAST_CONFIG;
+      const redacted = last?.toRedactedObject ? last.toRedactedObject() : undefined;
+      return redacted ? ['config.hydrated', { config: redacted }] : ['config.hydrated'];
+    } catch {
+      return ['config.hydrated'];
+    }
+  });
   }
 
   get config(): Readonly<CamundaConfig> { return this._config; }
@@ -711,16 +734,33 @@ export class CamundaClient {
   // Merge new overrides and re-hydrate.
   configure(next: CamundaOptions) {
     if (next.config) this._overrides = { ...this._overrides, ...next.config };
-    if (next.fetch) this._fetch = next.fetch;
+  if (next.fetch) this._fetch = next.fetch;
     const { config } = hydrateConfig({ overrides: this._overrides, env: next.env });
     this._config = deepFreeze(config) as Readonly<CamundaConfig>;
+    // Re-wrap fetch if telemetry present OR env auto telemetry toggled
+    if (next.telemetry) {
+      this._fetch = wrapFetch(this._fetch || fetch as any, { hooks: next.telemetry.hooks, correlation: next.telemetry.correlation ? () => getCorrelation() : undefined, logger: this._log, mirrorToLog: next.telemetry.mirrorToLog });
+    } else if (this._config.telemetry?.log) {
+      this._fetch = wrapFetch(this._fetch || fetch as any, { hooks: undefined, correlation: this._config.telemetry.correlation ? () => getCorrelation() : undefined, logger: this._log, mirrorToLog: true });
+    }
     this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
+  installAuthInterceptor(this._client, () => this._config.auth.strategy, () => this._auth.getAuthHeaders());
   // Update logger level / transport if provided, else apply config log level
   if (next.log?.level) this._log.setLevel(next.log.level); else this._log.setLevel(this._config.logLevel);
   if (next.log?.transport !== undefined) this._log.setTransport(next.log.transport);
-  this._auth = createAuthFacade(this._config, { fetch: this._fetch, logger: this._log });
+  this._auth = createAuthFacade(this._config, { fetch: this._fetch, logger: this._log, telemetryHooks: next.telemetry?.hooks, correlationProvider: (next.telemetry?.correlation || (!next.telemetry && this._config.telemetry?.correlation)) ? () => getCorrelation() : undefined });
   this._validation.update(this._config.validation);
   this._validation.attachLogger(this._log);
+  // Emit updated redacted configuration when debug enabled
+  this._log.debug(() => {
+    try {
+      const last = (globalThis as any).__CAMUNDA_SDK_LAST_CONFIG;
+      const redacted = last?.toRedactedObject ? last.toRedactedObject() : undefined;
+      return redacted ? ['config.reconfigured', { config: redacted }] : ['config.reconfigured'];
+    } catch {
+      return ['config.reconfigured'];
+    }
+  });
   }
 
   // Auth helpers
@@ -733,8 +773,11 @@ export class CamundaClient {
   /** Access a scoped logger (internal & future user emission). */
   logger(scope?: string) { return scope ? this._log.scope(scope) : this._log; }
 
+  // Run a function with a correlation ID (manual propagation phase 1)
+  withCorrelation<T>(id: string, fn: () => Promise<T> | T): Promise<T> { return _withCorrelation(id, fn); }
+
   // === AUTO-GENERATED CAMUNDA METHODS START ===
-  // Generated methods (2025-09-02T04:15:29.981Z)
+  // Generated methods (2025-09-02T22:51:17.120Z)
   /**
    * Activate activities within an ad-hoc sub-process
    * Activates selected activities within an ad-hoc sub-process identified by element ID.

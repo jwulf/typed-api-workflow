@@ -7,7 +7,7 @@ import { createEnv } from 'typed-env';
 import { SCHEMA, EnvVarKey, EnvOverrides, allKeys, schemaEntry, isSecret, requiredWhen as requiredWhenMeta } from './configSchema';
 
 export type AuthStrategy = 'NONE' | 'OAUTH' | 'BASIC';
-export type ValidationMode = 'none' | 'warn' | 'strict';
+export type ValidationMode = 'none' | 'warn' | 'strict' | 'fanatical';
 
 export interface Warning {
   key?: string;
@@ -80,6 +80,7 @@ export interface CamundaConfig {
   cert?: string; key?: string; ca?: string; keyPassphrase?: string;
   certPath?: string; keyPath?: string; caPath?: string;
   };
+  telemetry?: { log: boolean; correlation: boolean };
   // Raw access (canonical uppercase enums applied) keyed by env var (internal/debug)
   __raw: Record<string,string|undefined>;
 }
@@ -146,7 +147,7 @@ function parseValidation(raw: string, errors: ConfigErrorDetail[]): { req: Valid
   const val = raw.trim();
   if (val === '') return { req: 'none', res: 'none', raw: 'req:none,res:none' };
   const lower = val.toLowerCase();
-  if (['none','warn','strict'].includes(lower)) {
+  if (['none','warn','strict','fanatical'].includes(lower)) {
     return { req: lower as ValidationMode, res: lower as ValidationMode, raw: `req:${lower},res:${lower}` };
   }
   const parts = val.split(',').map(p => p.trim()).filter(Boolean);
@@ -163,7 +164,7 @@ function parseValidation(raw: string, errors: ConfigErrorDetail[]): { req: Valid
       errors.push({ code: ConfigErrorCode.CONFIG_INVALID_VALIDATION_SYNTAX, key: 'CAMUNDA_SDK_VALIDATION', message: `Unknown scope '${lhs}'` });
       continue;
     }
-    if (!['none','warn','strict'].includes(rhs)) {
+  if (!['none','warn','strict','fanatical'].includes(rhs)) {
       errors.push({ code: ConfigErrorCode.CONFIG_INVALID_VALIDATION_SYNTAX, key: 'CAMUNDA_SDK_VALIDATION', message: `Unknown mode '${rhs}'` });
       continue;
     }
@@ -369,6 +370,7 @@ export function hydrateConfig(options: HydrateOptions = {}): HydratedConfigurati
       keyPath: rawMap['CAMUNDA_MTLS_KEY_PATH'] || undefined,
       caPath: rawMap['CAMUNDA_MTLS_CA_PATH'] || undefined
     } : undefined,
+  telemetry: { log: (rawMap['CAMUNDA_SDK_TELEMETRY_LOG']||'false').toString().toLowerCase() === 'true', correlation: (rawMap['CAMUNDA_SDK_TELEMETRY_CORRELATION']||'false').toString().toLowerCase() === 'true' },
     __raw: { ...rawMap }
   };
 

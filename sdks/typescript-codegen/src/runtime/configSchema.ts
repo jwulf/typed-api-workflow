@@ -84,6 +84,16 @@ export const SCHEMA = {
     default: 'error',
     doc: 'SDK log level (silent|error|warn|info|debug|trace).'
   },
+  CAMUNDA_SDK_TELEMETRY_LOG: {
+    type: 'boolean',
+    default: false,
+    doc: 'Emit telemetry (auth/http/retry) events to the SDK logger automatically (no code).'
+  },
+  CAMUNDA_SDK_TELEMETRY_CORRELATION: {
+    type: 'boolean',
+    default: false,
+    doc: 'Enable correlation context (withCorrelation helper) when auto telemetry logging is on.'
+  },
   CAMUNDA_MTLS_CERT_PATH: { type: 'string', doc: 'Path to client certificate (PEM) for mTLS.' },
   CAMUNDA_MTLS_KEY_PATH: { type: 'string', doc: 'Path to client private key (PEM) for mTLS.' },
   CAMUNDA_MTLS_CA_PATH: { type: 'string', doc: 'Path to CA certificate bundle (PEM) for mTLS.' },

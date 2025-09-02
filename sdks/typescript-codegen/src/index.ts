@@ -3,6 +3,4 @@ import { createCamundaClient } from './CamundaClient';
 export * from './gen/types.gen';
 export { CamundaValidationError, EventualConsistencyTimeoutError } from './runtime/errors';
 export { createCamundaClient };
-// Legacy helper expected in tests: hydrate from process.env (no-op wrapper around hydrateConfig for discoverability)
-// export { hydrateConfig as configureFromEnv } from './runtime/unifiedConfiguration';
 export default createCamundaClient;
