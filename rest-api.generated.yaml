@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-08-29 20:05:39
+# File generated at: 2025-09-02 16:27:39
 
 ---
 openapi: "3.0.3"
@@ -1050,7 +1050,7 @@ paths:
       - "Tenant"
       operationId: "unassignRoleFromTenant"
       summary: "Unassign a role from a tenant"
-      description: "Unassigns a role from a specified tenant Users, Clients or Groups,\
+      description: "Unassigns a role from a specified tenant. Users, Clients or Groups,\
         \ that have the role assigned, will no longer have access to the tenant's\
         \ data - unless they are assigned directly to the tenant."
       parameters:
@@ -3459,7 +3459,7 @@ paths:
         "403":
           $ref: "#/components/responses/Forbidden"
         "404":
-          description: "The role or mapping with the given ID was not found."
+          description: "The role or mapping rule with the given ID was not found."
           content:
             application/problem+json:
               schema:
@@ -4353,7 +4353,6 @@ paths:
   /message-subscriptions/search:
     post:
       tags:
-      - "Message"
       - "Message subscription"
       operationId: "searchMessageSubscriptions"
       summary: "Search message subscriptions"
@@ -5450,25 +5449,6 @@ components:
       pattern: "^-?[0-9]+$"
       minLength: 1
       maxLength: 20
-    ProcessDefinitionId:
-      allOf:
-      - description: "Id of a process definition, from the model. Only ids of process\
-          \ definitions that are deployed are useful."
-      - format: "ProcessDefinitionId"
-      - x-semantic-type: "ProcessDefinitionId"
-        minLength: 1
-        pattern: "^[a-zA-Z_][a-zA-Z0-9_\\-\\.]*$"
-        example: "new-hire-onboarding-workflow"
-    DecisionDefinitionId:
-      allOf:
-      - description: "Id of a decision definition, from the model. Only ids of decision\
-          \ definitions that are deployed are useful."
-      - format: "DecisionDefinitionId"
-      - x-semantic-type: "DecisionDefinitionId"
-        minLength: 1
-        maxLength: 256
-        pattern: "^[A-Za-z0-9_@.+-]+$"
-        example: "new-hire-onboarding-workflow"
     TenantCreateRequest:
       type: "object"
       properties:
@@ -5702,9 +5682,9 @@ components:
           - $ref: "#/components/schemas/StringFilterProperty"
           description: "Tenant ID of this user task."
         processDefinitionId:
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
-          description: "The ID of the process definition."
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         creationDate:
           description: "The user task creation date."
           allOf:
@@ -5822,9 +5802,9 @@ components:
           items:
             type: "string"
         processDefinitionId:
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
-          description: "The ID of the process definition."
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         creationDate:
           type: "string"
           description: "The creation date of a user task."
@@ -6102,9 +6082,9 @@ components:
           description: "Version tag of this process definition."
           type: "string"
         processDefinitionId:
-          description: "Process definition ID of this process definition."
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         tenantId:
           type: "string"
           description: "The unique identifier of the tenant."
@@ -6862,9 +6842,9 @@ components:
           type: "string"
           description: "The process definition key."
         processDefinitionId:
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
-          description: "The process definition ID."
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         elementId:
           type: "string"
           description: "The element ID for this sequence flow, as provided in the\
@@ -6970,9 +6950,9 @@ components:
       type: "object"
       properties:
         processDefinitionId:
-          description: "The process definition ID associated to this element instance."
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         state:
           description: "State of element instance as defined set of values."
           allOf:
@@ -7077,9 +7057,9 @@ components:
       - "processDefinitionKey"
       properties:
         processDefinitionId:
-          description: "The process definition ID associated to this element instance."
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         startDate:
           description: "Date when element instance started."
           type: "string"
@@ -7212,9 +7192,9 @@ components:
       type: "object"
       properties:
         decisionDefinitionId:
-          allOf:
-          - $ref: "#/components/schemas/DecisionDefinitionId"
-          description: "The DMN ID of the decision definition."
+          description: "Id of a decision definition, from the model. Only ids of decision\
+            \ definitions that are deployed are useful."
+          type: "string"
         name:
           type: "string"
           description: "The DMN name of the decision definition."
@@ -7279,9 +7259,9 @@ components:
       type: "object"
       properties:
         processDefinitionId:
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
-          description: "The process definition ID associated to this incident."
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         errorType:
           type: "string"
           description: "Incident error type with a defined set of values."
@@ -7367,9 +7347,9 @@ components:
           description: "The message subscription key associated with this message\
             \ subscription."
         processDefinitionId:
-          description: "The process definition ID associated with this message subscription."
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         processDefinitionKey:
           type: "string"
           description: "The process definition key associated with this message subscription."
@@ -7521,9 +7501,9 @@ components:
       type: "object"
       properties:
         processDefinitionId:
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
-          description: "The process definition ID associated to this incident."
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         errorType:
           type: "string"
           description: "Incident error type with a defined set of values."
@@ -7595,9 +7575,9 @@ components:
       type: "object"
       properties:
         decisionDefinitionId:
-          allOf:
-          - $ref: "#/components/schemas/DecisionDefinitionId"
-          description: "The DMN ID of the decision definition."
+          description: "Id of a decision definition, from the model. Only ids of decision\
+            \ definitions that are deployed are useful."
+          type: "string"
         name:
           type: "string"
           description: "The DMN name of the decision definition."
@@ -8633,10 +8613,10 @@ components:
           description: "The value of the claim to map."
         name:
           type: "string"
-          description: "The name of the mapping."
+          description: "The name of the mapping rule."
         mappingRuleId:
           type: "string"
-          description: "The unique ID of the mapping."
+          description: "The unique ID of the mapping rule."
     MappingRuleCreateResult:
       type: "object"
       allOf:
@@ -8666,10 +8646,10 @@ components:
           description: "The value of the claim to map."
         name:
           type: "string"
-          description: "The name of the mapping."
+          description: "The name of the mapping rule."
         mappingRuleId:
           type: "string"
-          description: "The ID of the mapping."
+          description: "The ID of the mapping rule."
     TopologyResponse:
       description: "The response of a topology request."
       type: "object"
@@ -8928,9 +8908,9 @@ components:
             \ timeout is used. If the requestTimeout < 0, long polling is disabled\
             \ and the request is completed immediately, even when no job is activated.\n"
           type: "integer"
-          format: "int64"
           default: 0
           nullable: true
+          format: "int64"
         tenantIds:
           description: "A list of IDs of tenants for which to activate jobs."
           type: "array"
@@ -8977,9 +8957,9 @@ components:
           description: "The type of the job (should match what was requested)."
           type: "string"
         processDefinitionId:
-          description: "The bpmn process ID of the job's process definition."
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         processDefinitionVersion:
           description: "The version of the job's process definition."
           type: "integer"
@@ -9097,18 +9077,16 @@ components:
             \ particularly useful if a job runs out of retries and an incident is\
             \ raised, as this message can help explain why an incident was raised.\n"
           type: "string"
-          nullable: true
         retryBackOff:
           description: "The backoff timeout (in ms) for the next retry.\n"
           type: "integer"
-          format: "int64"
           default: 0
+          format: "int64"
         variables:
           additionalProperties: true
           description: "JSON object that will instantiate the variables at the local\
             \ scope of the job's associated task.\n"
           type: "object"
-          nullable: true
     JobErrorRequest:
       type: "object"
       properties:
@@ -9288,10 +9266,10 @@ components:
           nullable: true
         timeout:
           type: "integer"
-          format: "int64"
           description: "The duration of the new timeout in ms, starting from the current\
             \ moment."
           nullable: true
+          format: "int64"
     JobSearchQuery:
       description: "Job search request."
       type: "object"
@@ -9504,9 +9482,9 @@ components:
         listenerEventType:
           $ref: "#/components/schemas/JobListenerEventTypeEnum"
         processDefinitionId:
-          description: "The process definition ID associated with the job."
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         processDefinitionKey:
           type: "string"
           description: "The process definition key associated with the job."
@@ -9769,8 +9747,8 @@ components:
         totalItems:
           description: "Total items matching the criteria."
           type: "integer"
-          format: "int64"
           example: 1
+          format: "int64"
         hasMoreTotalItems:
           description: "Indicates if more results exist beyond the reported totalItems\
             \ value. Due to system limitations, the totalItems value can be capped.\n"
@@ -9878,10 +9856,9 @@ components:
       type: "object"
       properties:
         decisionDefinitionId:
-          description: "The ID of the decision to be evaluated.\nWhen using the decision\
-            \ ID, the latest\ndeployed version of the decision is used.\n"
-          allOf:
-          - $ref: "#/components/schemas/DecisionDefinitionId"
+          description: "Id of a decision definition, from the model. Only ids of decision\
+            \ definitions that are deployed are useful."
+          type: "string"
         variables:
           description: "The message variables as JSON document."
           additionalProperties: true
@@ -9897,10 +9874,9 @@ components:
       title: "Decision evaluation by ID"
       properties:
         decisionDefinitionId:
-          description: "The ID of the decision to be evaluated.\nWhen using the decision\
-            \ ID, the latest\ndeployed version of the decision is used.\n"
-          allOf:
-          - $ref: "#/components/schemas/DecisionDefinitionId"
+          description: "Id of a decision definition, from the model. Only ids of decision\
+            \ definitions that are deployed are useful."
+          type: "string"
         variables:
           description: "The message variables as JSON document."
           additionalProperties: true
@@ -9930,9 +9906,9 @@ components:
       type: "object"
       properties:
         decisionDefinitionId:
-          description: "The ID of the decision which was evaluated."
-          allOf:
-          - $ref: "#/components/schemas/DecisionDefinitionId"
+          description: "Id of a decision definition, from the model. Only ids of decision\
+            \ definitions that are deployed are useful."
+          type: "string"
         decisionDefinitionName:
           description: "The name of the decision which was evaluated."
           type: "string"
@@ -9949,9 +9925,9 @@ components:
             \ which was evaluated.\n"
           type: "string"
         failedDecisionDefinitionId:
-          description: "The ID of the decision which failed during evaluation."
-          allOf:
-          - $ref: "#/components/schemas/DecisionDefinitionId"
+          description: "Id of a decision definition, from the model. Only ids of decision\
+            \ definitions that are deployed are useful."
+          type: "string"
         failureMessage:
           description: "Message describing why the decision which was evaluated failed."
           type: "string"
@@ -9984,9 +9960,9 @@ components:
       description: "A decision that was evaluated."
       properties:
         decisionDefinitionId:
-          description: "The ID of the decision which was evaluated."
-          allOf:
-          - $ref: "#/components/schemas/DecisionDefinitionId"
+          description: "Id of a decision definition, from the model. Only ids of decision\
+            \ definitions that are deployed are useful."
+          type: "string"
         decisionDefinitionName:
           description: "The name of the decision which was evaluated."
           type: "string"
@@ -10120,9 +10096,9 @@ components:
           allOf:
           - $ref: "#/components/schemas/DateTimeFilterProperty"
         decisionDefinitionId:
-          allOf:
-          - $ref: "#/components/schemas/DecisionDefinitionId"
-          description: "The ID of the DMN decision."
+          description: "Id of a decision definition, from the model. Only ids of decision\
+            \ definitions that are deployed are useful."
+          type: "string"
         decisionDefinitionName:
           type: "string"
           description: "The name of the DMN decision."
@@ -10181,9 +10157,9 @@ components:
           type: "string"
           description: "The evaluation failure of the decision instance."
         decisionDefinitionId:
-          allOf:
-          - $ref: "#/components/schemas/DecisionDefinitionId"
-          description: "The ID of the DMN decision."
+          description: "Id of a decision definition, from the model. Only ids of decision\
+            \ definitions that are deployed are useful."
+          type: "string"
         decisionDefinitionName:
           type: "string"
           description: "The name of the DMN decision."
@@ -10256,23 +10232,25 @@ components:
       description: "A reference key chosen by the user that will be part of all records\
         \ resulting from this operation.\nMust be > 0 if provided.\n"
       type: "integer"
-      format: "int64"
       minimum: 1
+      format: "int64"
     MessageCorrelationRequest:
       type: "object"
+      required:
+      - "name"
+      - "correlationKey"
       properties:
         name:
           description: "The message name as defined in the BPMN process\n"
           type: "string"
         correlationKey:
-          description: "The correlation key of the message"
+          description: "The correlation key of the message."
           type: "string"
-          default: ""
+          example: "customer-43421"
         variables:
           description: "The message variables as JSON document"
           additionalProperties: true
           type: "object"
-          nullable: true
         tenantId:
           type: "string"
           description: "The unique identifier of the tenant."
@@ -10300,22 +10278,21 @@ components:
         correlationKey:
           description: "The correlation key of the message."
           type: "string"
-          default: ""
+          example: "customer-43421"
         timeToLive:
           description: "Timespan (in ms) to buffer the message on the broker."
           type: "integer"
-          format: "int64"
           default: 0
+          format: "int64"
         messageId:
-          description: "The unique ID of the message. Only useful to ensure only one\
-            \ message with the given ID\nwill ever be published (during its lifetime).\n"
+          description: "The unique ID of the message. This is used to ensure only\
+            \ one message with the given ID\nwill be published during the lifetime\
+            \ of the message (if `timeToLive` is set).\n"
           type: "string"
-          nullable: true
         variables:
           description: "The message variables as JSON document."
           additionalProperties: true
           type: "object"
-          nullable: true
         tenantId:
           type: "string"
           description: "The unique identifier of the tenant."
@@ -10389,12 +10366,12 @@ components:
           description: "The date and time when the document expires."
         size:
           type: "integer"
-          format: "int64"
           description: "The size of the document in bytes."
+          format: "int64"
         processDefinitionId:
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
-          description: "The ID of the process definition that created the document."
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         processInstanceKey:
           type: "string"
           description: "The key of the process instance that created the document."
@@ -10407,9 +10384,9 @@ components:
       properties:
         timeToLive:
           type: "integer"
-          format: "int64"
           description: "The time-to-live of the document link in ms."
           default: 3600000
+          format: "int64"
     DocumentLink:
       type: "object"
       properties:
@@ -10462,10 +10439,9 @@ components:
       - "tenantId"
       properties:
         processDefinitionId:
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
-          description: "The bpmn process ID, as parsed during deployment, together\
-            \ with the version forms a\nunique identifier for a specific process definition.\n"
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         processDefinitionVersion:
           type: "integer"
           format: "int32"
@@ -10486,10 +10462,9 @@ components:
       type: "object"
       properties:
         decisionDefinitionId:
-          allOf:
-          - $ref: "#/components/schemas/DecisionDefinitionId"
-          description: "The dmn decision ID, as parsed during deployment, together\
-            \ with the version forms a\nunique identifier for a specific decision.\n"
+          description: "Id of a decision definition, from the model. Only ids of decision\
+            \ definitions that are deployed are useful."
+          type: "string"
         version:
           type: "integer"
           format: "int32"
@@ -10600,10 +10575,9 @@ components:
         \ can be specified\neither by ID or by key.\n"
       properties:
         processDefinitionId:
-          description: "The BPMN process ID of the process definition to start an\
-            \ instance of.\n"
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         processDefinitionVersion:
           description: "The version of the process. By default, the latest version\
             \ of the process is used.\n"
@@ -10669,10 +10643,9 @@ components:
       additionalProperties: false
       properties:
         processDefinitionId:
-          description: "The BPMN process ID of the process definition to start an\
-            \ instance of.\n"
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
+          type: "string"
         processDefinitionVersion:
           description: "The version of the process. By default, the latest version\
             \ of the process is used.\n"
@@ -10723,7 +10696,6 @@ components:
             \ By default or\nwhen set to 0, the generic request timeout configured\
             \ in the cluster is applied.\n"
           type: "integer"
-          format: "int64"
         tags:
           $ref: "#/components/schemas/TagSet"
     ProcessInstanceCreationInstructionByKey:
@@ -10835,11 +10807,10 @@ components:
       type: "object"
       properties:
         processDefinitionId:
-          description: "The BPMN process ID of the process definition which was used\
-            \ to create the process.\ninstance\n"
-          allOf:
-          - $ref: "#/components/schemas/ProcessDefinitionId"
+          description: "Id of a process definition, from the model. Only ids of process\
+            \ definitions that are deployed are useful."
           example: "my-process-model-1"
+          type: "string"
         processDefinitionVersion:
           description: "The version of the process definition which was used to create\
             \ the process instance.\n"

@@ -7064,19 +7064,15 @@ components:
         active:
           description: "The total number of active instances of the element."
           type: "integer"
-          format: "int64"
         canceled:
           description: "The total number of canceled instances of the element."
           type: "integer"
-          format: "int64"
         incidents:
           description: "The total number of incidents for the element."
           type: "integer"
-          format: "int64"
         completed:
           description: "The total number of completed instances of the element."
           type: "integer"
-          format: "int64"
     CancelProcessInstanceRequest:
       type: "object"
       nullable: true
@@ -7815,7 +7811,6 @@ components:
         activeTenants:
           description: "The amount of active tenants."
           type: "integer"
-          format: "int64"
         tenants:
           description: "The usage metrics by tenants. Only available if request `withTenants`\
             \ query parameter was `true`."
@@ -7830,15 +7825,12 @@ components:
         processInstances:
           description: "The amount of created root process instances."
           type: "integer"
-          format: "int64"
         decisionInstances:
           description: "The amount of executed decision instances."
           type: "integer"
-          format: "int64"
         assignees:
           description: "The amount of unique active task users."
           type: "integer"
-          format: "int64"
     PermissionTypeEnum:
       description: "Specifies the type of permissions."
       enum:
@@ -9080,7 +9072,6 @@ components:
           description: "The exact time in epoch milliseconds to which the clock should\
             \ be pinned."
           type: "integer"
-          format: "int64"
       required:
         - "timestamp"
     JobActivationRequest:
@@ -9099,7 +9090,6 @@ components:
           description: "A job returned after this call will not be activated by another\
             \ call until the timeout (in ms) has been reached.\n"
           type: "integer"
-          format: "int64"
         maxJobsToActivate:
           description: "The maximum jobs to activate by this request."
           type: "integer"
@@ -9118,7 +9108,6 @@ components:
             \ timeout is used. If the requestTimeout < 0, long polling is disabled\
             \ and the request is completed immediately, even when no job is activated.\n"
           type: "integer"
-          format: "int64"
           default: 0
           nullable: true
         tenantIds:
@@ -9192,7 +9181,6 @@ components:
           description: "When the job can be activated again, sent as a UNIX epoch\
             \ timestamp."
           type: "integer"
-          format: "int64"
         variables:
           description: "All variables visible to the task scope, computed at activation\
             \ time."
@@ -9294,18 +9282,15 @@ components:
             \ particularly useful if a job runs out of retries and an incident is\
             \ raised, as this message can help explain why an incident was raised.\n"
           type: "string"
-          nullable: true
         retryBackOff:
           description: "The backoff timeout (in ms) for the next retry.\n"
           type: "integer"
-          format: "int64"
           default: 0
         variables:
           additionalProperties: true
           description: "JSON object that will instantiate the variables at the local\
             \ scope of the job's associated task.\n"
           type: "object"
-          nullable: true
     JobErrorRequest:
       type: "object"
       properties:
@@ -9485,7 +9470,6 @@ components:
           nullable: true
         timeout:
           type: "integer"
-          format: "int64"
           description: "The duration of the new timeout in ms, starting from the current\
             \ moment."
           nullable: true
@@ -9962,7 +9946,6 @@ components:
         totalItems:
           description: "Total items matching the criteria."
           type: "integer"
-          format: "int64"
           example: 1
         hasMoreTotalItems:
           description: "Indicates if more results exist beyond the reported totalItems\
@@ -10457,27 +10440,27 @@ components:
       description: "A reference key chosen by the user that will be part of all records\
         \ resulting from this operation.\nMust be > 0 if provided.\n"
       type: "integer"
-      format: "int64"
       minimum: 1
     MessageCorrelationRequest:
       type: "object"
+      required:
+        - "name"
+        - "correlationKey"
       properties:
         name:
           description: "The message name as defined in the BPMN process\n"
           type: "string"
         correlationKey:
-          description: "The correlation key of the message"
+          description: "The correlation key of the message."
           type: "string"
-          default: ""
+          example: "customer-43421"
         variables:
           description: "The message variables as JSON document"
           additionalProperties: true
           type: "object"
-          nullable: true
         tenantId:
           description: "the tenant for which the message is published"
           $ref: "#/components/schemas/TenantId"
-          nullable: true
     MessageCorrelationResult:
       description: "The message key of the correlated message, as well as the first\
         \ process instance key it\ncorrelated with.\n"
@@ -10504,22 +10487,19 @@ components:
         correlationKey:
           description: "The correlation key of the message."
           type: "string"
-          default: ""
+          example: "customer-43421"
         timeToLive:
           description: "Timespan (in ms) to buffer the message on the broker."
           type: "integer"
-          format: "int64"
           default: 0
         messageId:
-          description: "The unique ID of the message. Only useful to ensure only one\
-            \ message with the given ID\nwill ever be published (during its lifetime).\n"
+          description: "The unique ID of the message. This is used to ensure only one\
+            \ message with the given ID\nwill be published during the lifetime of the message (if `timeToLive` is set).\n"
           type: "string"
-          nullable: true
         variables:
           description: "The message variables as JSON document."
           additionalProperties: true
           type: "object"
-          nullable: true
         tenantId:
           description: "The tenant of the message sender."
           $ref: "#/components/schemas/TenantId"
@@ -10602,7 +10582,6 @@ components:
           description: "The date and time when the document expires."
         size:
           type: "integer"
-          format: "int64"
           description: "The size of the document in bytes."
         processDefinitionId:
           allOf:
@@ -10621,7 +10600,6 @@ components:
       properties:
         timeToLive:
           type: "integer"
-          format: "int64"
           description: "The time-to-live of the document link in ms."
           default: 3600000
     DocumentLink:
@@ -10884,7 +10862,6 @@ components:
             \ By default or\nwhen set to 0, the generic request timeout configured\
             \ in the cluster is applied.\n"
           type: "integer"
-          format: "int64"
         tags:
           $ref: '#/components/schemas/TagSet'
     ProcessInstanceCreationInstructionByKey:
@@ -10944,7 +10921,6 @@ components:
             \ By default or\nwhen set to 0, the generic request timeout configured\
             \ in the cluster is applied.\n"
           type: "integer"
-          format: "int64"
         tags:
           $ref: '#/components/schemas/TagSet'
     ProcessInstanceCreationStartInstruction:
@@ -11236,7 +11212,6 @@ components:
         version:
           description: "The version of the the deployed form."
           type: "integer"
-          format: "int64"
         formKey:
           allOf:
             - $ref: "#/components/schemas/FormKey"
