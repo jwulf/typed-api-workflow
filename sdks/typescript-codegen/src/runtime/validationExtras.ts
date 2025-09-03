@@ -27,14 +27,13 @@ export function detectExtrasAndMaybeThrow(opts: DetectOptions) {
     policy: opts.settings.policy
   };
   if (!value || typeof value !== 'object') return; // only objects
-  if (!schema || (schema as any)._def?.typeName !== 'ZodObject') return; // root must be object for meaningful diff
+  if (!schema || !(schema instanceof ZodObject)) return; // root must be object for meaningful diff
   const issues: string[] = [];
   const extras: Record<string,string[]> = {};
 
   const visit = (val: any, sch: ZodTypeAny | undefined, path: string) => {
     if (!val || typeof val !== 'object') return;
-    const typeName = (sch as any)?._def?.typeName;
-    if (typeName === 'ZodObject') {
+    if (sch instanceof ZodObject) {
       const shape = (sch as ZodObject<any>) .shape;
       const expected = new Set(Object.keys(shape));
       const keys = Object.keys(val);

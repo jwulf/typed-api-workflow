@@ -1,6 +1,6 @@
 import { ZodTypeAny } from 'zod';
 import { applySchemaValidation } from './validationCore';
-import { detectExtrasAndMaybeThrow, ExtrasPolicy } from './validationExtras';
+import { detectExtrasAndMaybeThrow } from './validationExtras';
 import type { Logger } from './logger';
 
 export type ValidationMode = 'strict' | 'warn' | 'none' | 'fanatical';
@@ -8,11 +8,6 @@ export type ValidationMode = 'strict' | 'warn' | 'none' | 'fanatical';
 export interface ValidationSettings {
   req: ValidationMode;
   res: ValidationMode;
-  extras?: {
-    policy: ExtrasPolicy; // how to handle extra properties
-    deep: boolean;        // recurse into nested objects
-    captureDir?: string;  // directory for sample capture
-  };
 }
 
 export class ValidationManager {
@@ -35,18 +30,25 @@ export class ValidationManager {
     // fanatical piggybacks on strict for core parse semantics
     const effectiveMode = (mode === 'fanatical') ? 'strict' : mode;
     const validated = await applySchemaValidation({ side, operationId: opId, mode: effectiveMode as any, schema, value, logger: this._logger });
-    if (side === 'response' && this._settings.extras && this._settings.extras.policy !== 'ignore' && (mode === 'fanatical' || effectiveMode !== 'none')) {
+    if (side === 'response' && mode === 'fanatical') {
+      // Fanatical = strict + mandatory extras detection (error + capture)
       try {
+  this._logger?.debug?.('validation.fanatical.extras', { operationId: opId });
         detectExtrasAndMaybeThrow({
           operationId: opId,
           value,
           schema,
-          settings: this._settings.extras,
+          settings: {
+            // Hard-coded fanatical semantics
+            policy: 'error',
+            deep: true,
+            captureDir: (typeof process !== 'undefined' && process?.env?.CAMUNDA_SDK_VALIDATION_CAPTURE_DIR) || '.camunda-sdk-captures'
+          },
           logger: this._logger,
-          fanatical: mode === 'fanatical'
+          fanatical: true
         });
       } catch (e) {
-        if (mode === 'fanatical' || this._settings.extras.policy === 'error') throw e;
+        throw e; // always error for fanatical extras
       }
     }
     return validated;
