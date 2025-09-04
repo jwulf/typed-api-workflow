@@ -1,7 +1,7 @@
 // @generated ergonomic operation wrappers
 // DO NOT EDIT MANUALLY – run npm run generate
 import { /* underlying */ activateAdHocSubProcessActivities as _activateAdHocSubProcessActivities, activateJobs as _activateJobs, assignClientToGroup as _assignClientToGroup, assignClientToTenant as _assignClientToTenant, assignGroupToTenant as _assignGroupToTenant, assignMappingRuleToGroup as _assignMappingRuleToGroup, assignMappingRuleToTenant as _assignMappingRuleToTenant, assignRoleToClient as _assignRoleToClient, assignRoleToGroup as _assignRoleToGroup, assignRoleToMappingRule as _assignRoleToMappingRule, assignRoleToTenant as _assignRoleToTenant, assignRoleToUser as _assignRoleToUser, assignUserTask as _assignUserTask, assignUserToGroup as _assignUserToGroup, assignUserToTenant as _assignUserToTenant, broadcastSignal as _broadcastSignal, cancelBatchOperation as _cancelBatchOperation, cancelProcessInstance as _cancelProcessInstance, cancelProcessInstancesBatchOperation as _cancelProcessInstancesBatchOperation, completeJob as _completeJob, completeUserTask as _completeUserTask, correlateMessage as _correlateMessage, createAdminUser as _createAdminUser, createAuthorization as _createAuthorization, createDeployment as _createDeployment, createDocument as _createDocument, createDocumentLink as _createDocumentLink, createDocuments as _createDocuments, createElementInstanceVariables as _createElementInstanceVariables, createGroup as _createGroup, createMappingRule as _createMappingRule, createProcessInstance as _createProcessInstance, createRole as _createRole, createTenant as _createTenant, createUser as _createUser, deleteAuthorization as _deleteAuthorization, deleteDocument as _deleteDocument, deleteGroup as _deleteGroup, deleteMappingRule as _deleteMappingRule, deleteResource as _deleteResource, deleteRole as _deleteRole, deleteTenant as _deleteTenant, deleteUser as _deleteUser, evaluateDecision as _evaluateDecision, failJob as _failJob, getAuthentication as _getAuthentication, getAuthorization as _getAuthorization, getBatchOperation as _getBatchOperation, getDecisionDefinition as _getDecisionDefinition, getDecisionDefinitionXml as _getDecisionDefinitionXml, getDecisionInstance as _getDecisionInstance, getDecisionRequirements as _getDecisionRequirements, getDecisionRequirementsXml as _getDecisionRequirementsXml, getDocument as _getDocument, getElementInstance as _getElementInstance, getGroup as _getGroup, getIncident as _getIncident, getLicense as _getLicense, getMappingRule as _getMappingRule, getProcessDefinition as _getProcessDefinition, getProcessDefinitionStatistics as _getProcessDefinitionStatistics, getProcessDefinitionXml as _getProcessDefinitionXml, getProcessInstance as _getProcessInstance, getProcessInstanceCallHierarchy as _getProcessInstanceCallHierarchy, getProcessInstanceSequenceFlows as _getProcessInstanceSequenceFlows, getProcessInstanceStatistics as _getProcessInstanceStatistics, getResource as _getResource, getResourceContent as _getResourceContent, getRole as _getRole, getStartProcessForm as _getStartProcessForm, getTenant as _getTenant, getTopology as _getTopology, getUsageMetrics as _getUsageMetrics, getUser as _getUser, getUserTask as _getUserTask, getUserTaskForm as _getUserTaskForm, getVariable as _getVariable, migrateProcessInstance as _migrateProcessInstance, migrateProcessInstancesBatchOperation as _migrateProcessInstancesBatchOperation, modifyProcessInstance as _modifyProcessInstance, modifyProcessInstancesBatchOperation as _modifyProcessInstancesBatchOperation, pinClock as _pinClock, publishMessage as _publishMessage, resetClock as _resetClock, resolveIncident as _resolveIncident, resolveIncidentsBatchOperation as _resolveIncidentsBatchOperation, resumeBatchOperation as _resumeBatchOperation, searchAuthorizations as _searchAuthorizations, searchBatchOperationItems as _searchBatchOperationItems, searchBatchOperations as _searchBatchOperations, searchClientsForGroup as _searchClientsForGroup, searchClientsForRole as _searchClientsForRole, searchClientsForTenant as _searchClientsForTenant, searchDecisionDefinitions as _searchDecisionDefinitions, searchDecisionInstances as _searchDecisionInstances, searchDecisionRequirements as _searchDecisionRequirements, searchElementInstances as _searchElementInstances, searchGroupIdsForTenant as _searchGroupIdsForTenant, searchGroups as _searchGroups, searchGroupsForRole as _searchGroupsForRole, searchIncidents as _searchIncidents, searchJobs as _searchJobs, searchMappingRule as _searchMappingRule, searchMappingRulesForGroup as _searchMappingRulesForGroup, searchMappingRulesForRole as _searchMappingRulesForRole, searchMappingsForTenant as _searchMappingsForTenant, searchMessageSubscriptions as _searchMessageSubscriptions, searchProcessDefinitions as _searchProcessDefinitions, searchProcessInstanceIncidents as _searchProcessInstanceIncidents, searchProcessInstances as _searchProcessInstances, searchRoles as _searchRoles, searchRolesForGroup as _searchRolesForGroup, searchRolesForTenant as _searchRolesForTenant, searchTenants as _searchTenants, searchUsers as _searchUsers, searchUsersForGroup as _searchUsersForGroup, searchUsersForRole as _searchUsersForRole, searchUsersForTenant as _searchUsersForTenant, searchUserTasks as _searchUserTasks, searchUserTaskVariables as _searchUserTaskVariables, searchVariables as _searchVariables, suspendBatchOperation as _suspendBatchOperation, throwJobError as _throwJobError, unassignClientFromGroup as _unassignClientFromGroup, unassignClientFromTenant as _unassignClientFromTenant, unassignGroupFromTenant as _unassignGroupFromTenant, unassignMappingRuleFromGroup as _unassignMappingRuleFromGroup, unassignMappingRuleFromTenant as _unassignMappingRuleFromTenant, unassignRoleFromClient as _unassignRoleFromClient, unassignRoleFromGroup as _unassignRoleFromGroup, unassignRoleFromMappingRule as _unassignRoleFromMappingRule, unassignRoleFromTenant as _unassignRoleFromTenant, unassignRoleFromUser as _unassignRoleFromUser, unassignUserFromGroup as _unassignUserFromGroup, unassignUserFromTenant as _unassignUserFromTenant, unassignUserTask as _unassignUserTask, updateAuthorization as _updateAuthorization, updateGroup as _updateGroup, updateJob as _updateJob, updateMappingRule as _updateMappingRule, updateRole as _updateRole, updateTenant as _updateTenant, updateUser as _updateUser, updateUserTask as _updateUserTask } from '../gen/sdk.gen';
-import { eventualPoll } from '../runtime/eventual';
+import { eventualPoll, ConsistencyOptions } from '../runtime/eventual';
 
 // Lightweight CancelablePromise implementation (local to facade)
 export class CancelError extends Error { constructor(){ super("Cancelled"); this.name = "CancelError"; } }
@@ -32,15 +32,8 @@ type _activateJobs_Body = [ _activateJobs_MaybeBody ] extends [never] ? unknown 
  * @operationId activateJobs
  * @tags Job
  */
-export function activateJobs(body: _activateJobs_Body): CancelablePromise<_DataOf<typeof _activateJobs>>;
-export function activateJobs(options: _activateJobs_Options): CancelablePromise<_DataOf<typeof _activateJobs>>;
-export function activateJobs(arg: any): CancelablePromise<_DataOf<typeof _activateJobs>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _activateJobs({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _activateJobs({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function activateJobs(body: _activateJobs_Body): CancelablePromise<_DataOf<typeof _activateJobs>> {
+  return toCancelable(signal => _activateJobs({ body, signal } as any).then((r:any)=> r?.data ?? r));
 }
 
 type _broadcastSignal_Options = Parameters<typeof _broadcastSignal>[0];
@@ -53,15 +46,8 @@ type _broadcastSignal_Body = [ _broadcastSignal_MaybeBody ] extends [never] ? un
  * @operationId broadcastSignal
  * @tags Signal
  */
-export function broadcastSignal(body: _broadcastSignal_Body): CancelablePromise<_DataOf<typeof _broadcastSignal>>;
-export function broadcastSignal(options: _broadcastSignal_Options): CancelablePromise<_DataOf<typeof _broadcastSignal>>;
-export function broadcastSignal(arg: any): CancelablePromise<_DataOf<typeof _broadcastSignal>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _broadcastSignal({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _broadcastSignal({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function broadcastSignal(body: _broadcastSignal_Body): CancelablePromise<_DataOf<typeof _broadcastSignal>> {
+  return toCancelable(signal => _broadcastSignal({ body, signal } as any).then((r:any)=> r?.data ?? r));
 }
 
 type _cancelProcessInstancesBatchOperation_Options = Parameters<typeof _cancelProcessInstancesBatchOperation>[0];
@@ -77,16 +63,13 @@ type _cancelProcessInstancesBatchOperation_Body = [ _cancelProcessInstancesBatch
   *
  * @operationId cancelProcessInstancesBatchOperation
  * @tags Process instance
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function cancelProcessInstancesBatchOperation(body: _cancelProcessInstancesBatchOperation_Body): CancelablePromise<_DataOf<typeof _cancelProcessInstancesBatchOperation>>;
-export function cancelProcessInstancesBatchOperation(options: _cancelProcessInstancesBatchOperation_Options): CancelablePromise<_DataOf<typeof _cancelProcessInstancesBatchOperation>>;
-export function cancelProcessInstancesBatchOperation(arg: any): CancelablePromise<_DataOf<typeof _cancelProcessInstancesBatchOperation>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _cancelProcessInstancesBatchOperation({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _cancelProcessInstancesBatchOperation({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function cancelProcessInstancesBatchOperation(body: _cancelProcessInstancesBatchOperation_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _cancelProcessInstancesBatchOperation>> }): CancelablePromise<_DataOf<typeof _cancelProcessInstancesBatchOperation>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _cancelProcessInstancesBatchOperation({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('cancelProcessInstancesBatchOperation', false, invoke, ec.consistency);
 }
 
 type _correlateMessage_Options = Parameters<typeof _correlateMessage>[0];
@@ -103,15 +86,8 @@ type _correlateMessage_Body = [ _correlateMessage_MaybeBody ] extends [never] ? 
  * @operationId correlateMessage
  * @tags Message
  */
-export function correlateMessage(body: _correlateMessage_Body): CancelablePromise<_DataOf<typeof _correlateMessage>>;
-export function correlateMessage(options: _correlateMessage_Options): CancelablePromise<_DataOf<typeof _correlateMessage>>;
-export function correlateMessage(arg: any): CancelablePromise<_DataOf<typeof _correlateMessage>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _correlateMessage({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _correlateMessage({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function correlateMessage(body: _correlateMessage_Body): CancelablePromise<_DataOf<typeof _correlateMessage>> {
+  return toCancelable(signal => _correlateMessage({ body, signal } as any).then((r:any)=> r?.data ?? r));
 }
 
 type _createAdminUser_Options = Parameters<typeof _createAdminUser>[0];
@@ -123,16 +99,13 @@ type _createAdminUser_Body = [ _createAdminUser_MaybeBody ] extends [never] ? un
   *
  * @operationId createAdminUser
  * @tags Setup
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function createAdminUser(body: _createAdminUser_Body): CancelablePromise<_DataOf<typeof _createAdminUser>>;
-export function createAdminUser(options: _createAdminUser_Options): CancelablePromise<_DataOf<typeof _createAdminUser>>;
-export function createAdminUser(arg: any): CancelablePromise<_DataOf<typeof _createAdminUser>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _createAdminUser({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _createAdminUser({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function createAdminUser(body: _createAdminUser_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _createAdminUser>> }): CancelablePromise<_DataOf<typeof _createAdminUser>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _createAdminUser({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('createAdminUser', false, invoke, ec.consistency);
 }
 
 type _createAuthorization_Options = Parameters<typeof _createAuthorization>[0];
@@ -145,15 +118,8 @@ type _createAuthorization_Body = [ _createAuthorization_MaybeBody ] extends [nev
  * @operationId createAuthorization
  * @tags Authorization
  */
-export function createAuthorization(body: _createAuthorization_Body): CancelablePromise<_DataOf<typeof _createAuthorization>>;
-export function createAuthorization(options: _createAuthorization_Options): CancelablePromise<_DataOf<typeof _createAuthorization>>;
-export function createAuthorization(arg: any): CancelablePromise<_DataOf<typeof _createAuthorization>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _createAuthorization({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _createAuthorization({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function createAuthorization(body: _createAuthorization_Body): CancelablePromise<_DataOf<typeof _createAuthorization>> {
+  return toCancelable(signal => _createAuthorization({ body, signal } as any).then((r:any)=> r?.data ?? r));
 }
 
 type _createDeployment_Options = Parameters<typeof _createDeployment>[0];
@@ -168,15 +134,8 @@ type _createDeployment_Body = [ _createDeployment_MaybeBody ] extends [never] ? 
  * @operationId createDeployment
  * @tags Resource
  */
-export function createDeployment(body: _createDeployment_Body): CancelablePromise<_DataOf<typeof _createDeployment>>;
-export function createDeployment(options: _createDeployment_Options): CancelablePromise<_DataOf<typeof _createDeployment>>;
-export function createDeployment(arg: any): CancelablePromise<_DataOf<typeof _createDeployment>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _createDeployment({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _createDeployment({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function createDeployment(body: _createDeployment_Body): CancelablePromise<_DataOf<typeof _createDeployment>> {
+  return toCancelable(signal => _createDeployment({ body, signal } as any).then((r:any)=> r?.data ?? r));
 }
 
 type _createGroup_Options = Parameters<typeof _createGroup>[0];
@@ -190,15 +149,8 @@ type _createGroup_Body = [ _createGroup_MaybeBody ] extends [never] ? unknown : 
  * @operationId createGroup
  * @tags Group
  */
-export function createGroup(body: _createGroup_Body): CancelablePromise<_DataOf<typeof _createGroup>>;
-export function createGroup(options: _createGroup_Options): CancelablePromise<_DataOf<typeof _createGroup>>;
-export function createGroup(arg: any): CancelablePromise<_DataOf<typeof _createGroup>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _createGroup({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _createGroup({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function createGroup(body: _createGroup_Body): CancelablePromise<_DataOf<typeof _createGroup>> {
+  return toCancelable(signal => _createGroup({ body, signal } as any).then((r:any)=> r?.data ?? r));
 }
 
 type _createMappingRule_Options = Parameters<typeof _createMappingRule>[0];
@@ -212,15 +164,8 @@ type _createMappingRule_Body = [ _createMappingRule_MaybeBody ] extends [never] 
  * @operationId createMappingRule
  * @tags Mapping rule
  */
-export function createMappingRule(body: _createMappingRule_Body): CancelablePromise<_DataOf<typeof _createMappingRule>>;
-export function createMappingRule(options: _createMappingRule_Options): CancelablePromise<_DataOf<typeof _createMappingRule>>;
-export function createMappingRule(arg: any): CancelablePromise<_DataOf<typeof _createMappingRule>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _createMappingRule({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _createMappingRule({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function createMappingRule(body: _createMappingRule_Body): CancelablePromise<_DataOf<typeof _createMappingRule>> {
+  return toCancelable(signal => _createMappingRule({ body, signal } as any).then((r:any)=> r?.data ?? r));
 }
 
 type _createProcessInstance_Options = Parameters<typeof _createProcessInstance>[0];
@@ -239,15 +184,8 @@ type _createProcessInstance_Body = [ _createProcessInstance_MaybeBody ] extends 
  * @operationId createProcessInstance
  * @tags Process instance
  */
-export function createProcessInstance(body: _createProcessInstance_Body): CancelablePromise<_DataOf<typeof _createProcessInstance>>;
-export function createProcessInstance(options: _createProcessInstance_Options): CancelablePromise<_DataOf<typeof _createProcessInstance>>;
-export function createProcessInstance(arg: any): CancelablePromise<_DataOf<typeof _createProcessInstance>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _createProcessInstance({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _createProcessInstance({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function createProcessInstance(body: _createProcessInstance_Body): CancelablePromise<_DataOf<typeof _createProcessInstance>> {
+  return toCancelable(signal => _createProcessInstance({ body, signal } as any).then((r:any)=> r?.data ?? r));
 }
 
 type _createRole_Options = Parameters<typeof _createRole>[0];
@@ -261,15 +199,8 @@ type _createRole_Body = [ _createRole_MaybeBody ] extends [never] ? unknown : _c
  * @operationId createRole
  * @tags Role
  */
-export function createRole(body: _createRole_Body): CancelablePromise<_DataOf<typeof _createRole>>;
-export function createRole(options: _createRole_Options): CancelablePromise<_DataOf<typeof _createRole>>;
-export function createRole(arg: any): CancelablePromise<_DataOf<typeof _createRole>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _createRole({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _createRole({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function createRole(body: _createRole_Body): CancelablePromise<_DataOf<typeof _createRole>> {
+  return toCancelable(signal => _createRole({ body, signal } as any).then((r:any)=> r?.data ?? r));
 }
 
 type _createTenant_Options = Parameters<typeof _createTenant>[0];
@@ -282,15 +213,8 @@ type _createTenant_Body = [ _createTenant_MaybeBody ] extends [never] ? unknown 
  * @operationId createTenant
  * @tags Tenant
  */
-export function createTenant(body: _createTenant_Body): CancelablePromise<_DataOf<typeof _createTenant>>;
-export function createTenant(options: _createTenant_Options): CancelablePromise<_DataOf<typeof _createTenant>>;
-export function createTenant(arg: any): CancelablePromise<_DataOf<typeof _createTenant>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _createTenant({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _createTenant({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function createTenant(body: _createTenant_Body): CancelablePromise<_DataOf<typeof _createTenant>> {
+  return toCancelable(signal => _createTenant({ body, signal } as any).then((r:any)=> r?.data ?? r));
 }
 
 type _createUser_Options = Parameters<typeof _createUser>[0];
@@ -302,16 +226,13 @@ type _createUser_Body = [ _createUser_MaybeBody ] extends [never] ? unknown : _c
   *
  * @operationId createUser
  * @tags User
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function createUser(body: _createUser_Body): CancelablePromise<_DataOf<typeof _createUser>>;
-export function createUser(options: _createUser_Options): CancelablePromise<_DataOf<typeof _createUser>>;
-export function createUser(arg: any): CancelablePromise<_DataOf<typeof _createUser>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _createUser({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _createUser({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function createUser(body: _createUser_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _createUser>> }): CancelablePromise<_DataOf<typeof _createUser>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _createUser({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('createUser', false, invoke, ec.consistency);
 }
 
 type _evaluateDecision_Options = Parameters<typeof _evaluateDecision>[0];
@@ -328,15 +249,8 @@ type _evaluateDecision_Body = [ _evaluateDecision_MaybeBody ] extends [never] ? 
  * @operationId evaluateDecision
  * @tags Decision definition
  */
-export function evaluateDecision(body: _evaluateDecision_Body): CancelablePromise<_DataOf<typeof _evaluateDecision>>;
-export function evaluateDecision(options: _evaluateDecision_Options): CancelablePromise<_DataOf<typeof _evaluateDecision>>;
-export function evaluateDecision(arg: any): CancelablePromise<_DataOf<typeof _evaluateDecision>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _evaluateDecision({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _evaluateDecision({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function evaluateDecision(body: _evaluateDecision_Body): CancelablePromise<_DataOf<typeof _evaluateDecision>> {
+  return toCancelable(signal => _evaluateDecision({ body, signal } as any).then((r:any)=> r?.data ?? r));
 }
 
 type _migrateProcessInstancesBatchOperation_Options = Parameters<typeof _migrateProcessInstancesBatchOperation>[0];
@@ -352,16 +266,13 @@ type _migrateProcessInstancesBatchOperation_Body = [ _migrateProcessInstancesBat
   *
  * @operationId migrateProcessInstancesBatchOperation
  * @tags Process instance
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function migrateProcessInstancesBatchOperation(body: _migrateProcessInstancesBatchOperation_Body): CancelablePromise<_DataOf<typeof _migrateProcessInstancesBatchOperation>>;
-export function migrateProcessInstancesBatchOperation(options: _migrateProcessInstancesBatchOperation_Options): CancelablePromise<_DataOf<typeof _migrateProcessInstancesBatchOperation>>;
-export function migrateProcessInstancesBatchOperation(arg: any): CancelablePromise<_DataOf<typeof _migrateProcessInstancesBatchOperation>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _migrateProcessInstancesBatchOperation({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _migrateProcessInstancesBatchOperation({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function migrateProcessInstancesBatchOperation(body: _migrateProcessInstancesBatchOperation_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _migrateProcessInstancesBatchOperation>> }): CancelablePromise<_DataOf<typeof _migrateProcessInstancesBatchOperation>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _migrateProcessInstancesBatchOperation({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('migrateProcessInstancesBatchOperation', false, invoke, ec.consistency);
 }
 
 type _modifyProcessInstancesBatchOperation_Options = Parameters<typeof _modifyProcessInstancesBatchOperation>[0];
@@ -379,16 +290,13 @@ type _modifyProcessInstancesBatchOperation_Body = [ _modifyProcessInstancesBatch
   *
  * @operationId modifyProcessInstancesBatchOperation
  * @tags Process instance
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function modifyProcessInstancesBatchOperation(body: _modifyProcessInstancesBatchOperation_Body): CancelablePromise<_DataOf<typeof _modifyProcessInstancesBatchOperation>>;
-export function modifyProcessInstancesBatchOperation(options: _modifyProcessInstancesBatchOperation_Options): CancelablePromise<_DataOf<typeof _modifyProcessInstancesBatchOperation>>;
-export function modifyProcessInstancesBatchOperation(arg: any): CancelablePromise<_DataOf<typeof _modifyProcessInstancesBatchOperation>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _modifyProcessInstancesBatchOperation({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _modifyProcessInstancesBatchOperation({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function modifyProcessInstancesBatchOperation(body: _modifyProcessInstancesBatchOperation_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _modifyProcessInstancesBatchOperation>> }): CancelablePromise<_DataOf<typeof _modifyProcessInstancesBatchOperation>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _modifyProcessInstancesBatchOperation({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('modifyProcessInstancesBatchOperation', false, invoke, ec.consistency);
 }
 
 type _pinClock_Options = Parameters<typeof _pinClock>[0];
@@ -407,15 +315,8 @@ type _pinClock_Body = [ _pinClock_MaybeBody ] extends [never] ? unknown : _pinCl
  * @operationId pinClock
  * @tags Clock
  */
-export function pinClock(body: _pinClock_Body): CancelablePromise<_DataOf<typeof _pinClock>>;
-export function pinClock(options: _pinClock_Options): CancelablePromise<_DataOf<typeof _pinClock>>;
-export function pinClock(arg: any): CancelablePromise<_DataOf<typeof _pinClock>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _pinClock({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _pinClock({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function pinClock(body: _pinClock_Body): CancelablePromise<_DataOf<typeof _pinClock>> {
+  return toCancelable(signal => _pinClock({ body, signal } as any).then((r:any)=> r?.data ?? r));
 }
 
 type _publishMessage_Options = Parameters<typeof _publishMessage>[0];
@@ -433,15 +334,8 @@ type _publishMessage_Body = [ _publishMessage_MaybeBody ] extends [never] ? unkn
  * @operationId publishMessage
  * @tags Message
  */
-export function publishMessage(body: _publishMessage_Body): CancelablePromise<_DataOf<typeof _publishMessage>>;
-export function publishMessage(options: _publishMessage_Options): CancelablePromise<_DataOf<typeof _publishMessage>>;
-export function publishMessage(arg: any): CancelablePromise<_DataOf<typeof _publishMessage>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _publishMessage({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _publishMessage({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function publishMessage(body: _publishMessage_Body): CancelablePromise<_DataOf<typeof _publishMessage>> {
+  return toCancelable(signal => _publishMessage({ body, signal } as any).then((r:any)=> r?.data ?? r));
 }
 
 type _resolveIncidentsBatchOperation_Options = Parameters<typeof _resolveIncidentsBatchOperation>[0];
@@ -457,16 +351,13 @@ type _resolveIncidentsBatchOperation_Body = [ _resolveIncidentsBatchOperation_Ma
   *
  * @operationId resolveIncidentsBatchOperation
  * @tags Process instance
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function resolveIncidentsBatchOperation(body: _resolveIncidentsBatchOperation_Body): CancelablePromise<_DataOf<typeof _resolveIncidentsBatchOperation>>;
-export function resolveIncidentsBatchOperation(options: _resolveIncidentsBatchOperation_Options): CancelablePromise<_DataOf<typeof _resolveIncidentsBatchOperation>>;
-export function resolveIncidentsBatchOperation(arg: any): CancelablePromise<_DataOf<typeof _resolveIncidentsBatchOperation>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _resolveIncidentsBatchOperation({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _resolveIncidentsBatchOperation({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function resolveIncidentsBatchOperation(body: _resolveIncidentsBatchOperation_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _resolveIncidentsBatchOperation>> }): CancelablePromise<_DataOf<typeof _resolveIncidentsBatchOperation>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _resolveIncidentsBatchOperation({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('resolveIncidentsBatchOperation', false, invoke, ec.consistency);
 }
 
 type _searchAuthorizations_Options = Parameters<typeof _searchAuthorizations>[0];
@@ -479,16 +370,13 @@ type _searchAuthorizations_Body = [ _searchAuthorizations_MaybeBody ] extends [n
   *
  * @operationId searchAuthorizations
  * @tags Authorization
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchAuthorizations(body: _searchAuthorizations_Body): CancelablePromise<_DataOf<typeof _searchAuthorizations>>;
-export function searchAuthorizations(options: _searchAuthorizations_Options): CancelablePromise<_DataOf<typeof _searchAuthorizations>>;
-export function searchAuthorizations(arg: any): CancelablePromise<_DataOf<typeof _searchAuthorizations>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchAuthorizations({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchAuthorizations({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchAuthorizations(body: _searchAuthorizations_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchAuthorizations>> }): CancelablePromise<_DataOf<typeof _searchAuthorizations>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchAuthorizations({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchAuthorizations', false, invoke, ec.consistency);
 }
 
 type _searchBatchOperationItems_Options = Parameters<typeof _searchBatchOperationItems>[0];
@@ -500,16 +388,13 @@ type _searchBatchOperationItems_Body = [ _searchBatchOperationItems_MaybeBody ] 
   *
  * @operationId searchBatchOperationItems
  * @tags Batch operation
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchBatchOperationItems(body: _searchBatchOperationItems_Body): CancelablePromise<_DataOf<typeof _searchBatchOperationItems>>;
-export function searchBatchOperationItems(options: _searchBatchOperationItems_Options): CancelablePromise<_DataOf<typeof _searchBatchOperationItems>>;
-export function searchBatchOperationItems(arg: any): CancelablePromise<_DataOf<typeof _searchBatchOperationItems>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchBatchOperationItems({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchBatchOperationItems({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchBatchOperationItems(body: _searchBatchOperationItems_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchBatchOperationItems>> }): CancelablePromise<_DataOf<typeof _searchBatchOperationItems>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchBatchOperationItems({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchBatchOperationItems', false, invoke, ec.consistency);
 }
 
 type _searchBatchOperations_Options = Parameters<typeof _searchBatchOperations>[0];
@@ -521,16 +406,13 @@ type _searchBatchOperations_Body = [ _searchBatchOperations_MaybeBody ] extends 
   *
  * @operationId searchBatchOperations
  * @tags Batch operation
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchBatchOperations(body: _searchBatchOperations_Body): CancelablePromise<_DataOf<typeof _searchBatchOperations>>;
-export function searchBatchOperations(options: _searchBatchOperations_Options): CancelablePromise<_DataOf<typeof _searchBatchOperations>>;
-export function searchBatchOperations(arg: any): CancelablePromise<_DataOf<typeof _searchBatchOperations>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchBatchOperations({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchBatchOperations({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchBatchOperations(body: _searchBatchOperations_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchBatchOperations>> }): CancelablePromise<_DataOf<typeof _searchBatchOperations>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchBatchOperations({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchBatchOperations', false, invoke, ec.consistency);
 }
 
 type _searchDecisionDefinitions_Options = Parameters<typeof _searchDecisionDefinitions>[0];
@@ -543,16 +425,13 @@ type _searchDecisionDefinitions_Body = [ _searchDecisionDefinitions_MaybeBody ] 
   *
  * @operationId searchDecisionDefinitions
  * @tags Decision definition
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchDecisionDefinitions(body: _searchDecisionDefinitions_Body): CancelablePromise<_DataOf<typeof _searchDecisionDefinitions>>;
-export function searchDecisionDefinitions(options: _searchDecisionDefinitions_Options): CancelablePromise<_DataOf<typeof _searchDecisionDefinitions>>;
-export function searchDecisionDefinitions(arg: any): CancelablePromise<_DataOf<typeof _searchDecisionDefinitions>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchDecisionDefinitions({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchDecisionDefinitions({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchDecisionDefinitions(body: _searchDecisionDefinitions_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchDecisionDefinitions>> }): CancelablePromise<_DataOf<typeof _searchDecisionDefinitions>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchDecisionDefinitions({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchDecisionDefinitions', false, invoke, ec.consistency);
 }
 
 type _searchDecisionInstances_Options = Parameters<typeof _searchDecisionInstances>[0];
@@ -565,16 +444,13 @@ type _searchDecisionInstances_Body = [ _searchDecisionInstances_MaybeBody ] exte
   *
  * @operationId searchDecisionInstances
  * @tags Decision instance
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchDecisionInstances(body: _searchDecisionInstances_Body): CancelablePromise<_DataOf<typeof _searchDecisionInstances>>;
-export function searchDecisionInstances(options: _searchDecisionInstances_Options): CancelablePromise<_DataOf<typeof _searchDecisionInstances>>;
-export function searchDecisionInstances(arg: any): CancelablePromise<_DataOf<typeof _searchDecisionInstances>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchDecisionInstances({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchDecisionInstances({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchDecisionInstances(body: _searchDecisionInstances_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchDecisionInstances>> }): CancelablePromise<_DataOf<typeof _searchDecisionInstances>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchDecisionInstances({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchDecisionInstances', false, invoke, ec.consistency);
 }
 
 type _searchDecisionRequirements_Options = Parameters<typeof _searchDecisionRequirements>[0];
@@ -587,16 +463,13 @@ type _searchDecisionRequirements_Body = [ _searchDecisionRequirements_MaybeBody 
   *
  * @operationId searchDecisionRequirements
  * @tags Decision requirements
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchDecisionRequirements(body: _searchDecisionRequirements_Body): CancelablePromise<_DataOf<typeof _searchDecisionRequirements>>;
-export function searchDecisionRequirements(options: _searchDecisionRequirements_Options): CancelablePromise<_DataOf<typeof _searchDecisionRequirements>>;
-export function searchDecisionRequirements(arg: any): CancelablePromise<_DataOf<typeof _searchDecisionRequirements>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchDecisionRequirements({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchDecisionRequirements({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchDecisionRequirements(body: _searchDecisionRequirements_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchDecisionRequirements>> }): CancelablePromise<_DataOf<typeof _searchDecisionRequirements>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchDecisionRequirements({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchDecisionRequirements', false, invoke, ec.consistency);
 }
 
 type _searchElementInstances_Options = Parameters<typeof _searchElementInstances>[0];
@@ -609,16 +482,13 @@ type _searchElementInstances_Body = [ _searchElementInstances_MaybeBody ] extend
   *
  * @operationId searchElementInstances
  * @tags Element instance
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchElementInstances(body: _searchElementInstances_Body): CancelablePromise<_DataOf<typeof _searchElementInstances>>;
-export function searchElementInstances(options: _searchElementInstances_Options): CancelablePromise<_DataOf<typeof _searchElementInstances>>;
-export function searchElementInstances(arg: any): CancelablePromise<_DataOf<typeof _searchElementInstances>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchElementInstances({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchElementInstances({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchElementInstances(body: _searchElementInstances_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchElementInstances>> }): CancelablePromise<_DataOf<typeof _searchElementInstances>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchElementInstances({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchElementInstances', false, invoke, ec.consistency);
 }
 
 type _searchGroups_Options = Parameters<typeof _searchGroups>[0];
@@ -631,16 +501,13 @@ type _searchGroups_Body = [ _searchGroups_MaybeBody ] extends [never] ? unknown 
   *
  * @operationId searchGroups
  * @tags Group
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchGroups(body: _searchGroups_Body): CancelablePromise<_DataOf<typeof _searchGroups>>;
-export function searchGroups(options: _searchGroups_Options): CancelablePromise<_DataOf<typeof _searchGroups>>;
-export function searchGroups(arg: any): CancelablePromise<_DataOf<typeof _searchGroups>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchGroups({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchGroups({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchGroups(body: _searchGroups_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchGroups>> }): CancelablePromise<_DataOf<typeof _searchGroups>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchGroups({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchGroups', false, invoke, ec.consistency);
 }
 
 type _searchIncidents_Options = Parameters<typeof _searchIncidents>[0];
@@ -653,16 +520,13 @@ type _searchIncidents_Body = [ _searchIncidents_MaybeBody ] extends [never] ? un
   *
  * @operationId searchIncidents
  * @tags Incident
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchIncidents(body: _searchIncidents_Body): CancelablePromise<_DataOf<typeof _searchIncidents>>;
-export function searchIncidents(options: _searchIncidents_Options): CancelablePromise<_DataOf<typeof _searchIncidents>>;
-export function searchIncidents(arg: any): CancelablePromise<_DataOf<typeof _searchIncidents>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchIncidents({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchIncidents({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchIncidents(body: _searchIncidents_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchIncidents>> }): CancelablePromise<_DataOf<typeof _searchIncidents>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchIncidents({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchIncidents', false, invoke, ec.consistency);
 }
 
 type _searchJobs_Options = Parameters<typeof _searchJobs>[0];
@@ -674,25 +538,13 @@ type _searchJobs_Body = [ _searchJobs_MaybeBody ] extends [never] ? unknown : _s
   *
  * @operationId searchJobs
  * @tags Job
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export interface SearchJobsConsistency { waitUpToMs: number; pollIntervalMs?: number; predicate?: (data:any)=>boolean }
-export function searchJobs(body: _searchJobs_Body, ec?: { consistency: SearchJobsConsistency }): CancelablePromise<_DataOf<typeof _searchJobs>>;
-export function searchJobs(options: _searchJobs_Options, ec?: { consistency: SearchJobsConsistency }): CancelablePromise<_DataOf<typeof _searchJobs>>;
-export function searchJobs(arg: any, ec?: { consistency: SearchJobsConsistency }): CancelablePromise<_DataOf<typeof _searchJobs>> {
-  if (ec?.consistency) {
-    return eventualPoll<_DataOf<typeof _searchJobs>>('searchJobs', false, (signal)=> {
-      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-        return _searchJobs({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-      }
-      return _searchJobs({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }, ec.consistency as any);
-  }
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchJobs({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchJobs({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchJobs(body: _searchJobs_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchJobs>> }): CancelablePromise<_DataOf<typeof _searchJobs>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchJobs({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchJobs', false, invoke, ec.consistency);
 }
 
 type _searchMappingRule_Options = Parameters<typeof _searchMappingRule>[0];
@@ -705,16 +557,13 @@ type _searchMappingRule_Body = [ _searchMappingRule_MaybeBody ] extends [never] 
   *
  * @operationId searchMappingRule
  * @tags Mapping rule
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchMappingRule(body: _searchMappingRule_Body): CancelablePromise<_DataOf<typeof _searchMappingRule>>;
-export function searchMappingRule(options: _searchMappingRule_Options): CancelablePromise<_DataOf<typeof _searchMappingRule>>;
-export function searchMappingRule(arg: any): CancelablePromise<_DataOf<typeof _searchMappingRule>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchMappingRule({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchMappingRule({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchMappingRule(body: _searchMappingRule_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchMappingRule>> }): CancelablePromise<_DataOf<typeof _searchMappingRule>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchMappingRule({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchMappingRule', false, invoke, ec.consistency);
 }
 
 type _searchMessageSubscriptions_Options = Parameters<typeof _searchMessageSubscriptions>[0];
@@ -727,16 +576,13 @@ type _searchMessageSubscriptions_Body = [ _searchMessageSubscriptions_MaybeBody 
   *
  * @operationId searchMessageSubscriptions
  * @tags Message subscription
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchMessageSubscriptions(body: _searchMessageSubscriptions_Body): CancelablePromise<_DataOf<typeof _searchMessageSubscriptions>>;
-export function searchMessageSubscriptions(options: _searchMessageSubscriptions_Options): CancelablePromise<_DataOf<typeof _searchMessageSubscriptions>>;
-export function searchMessageSubscriptions(arg: any): CancelablePromise<_DataOf<typeof _searchMessageSubscriptions>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchMessageSubscriptions({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchMessageSubscriptions({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchMessageSubscriptions(body: _searchMessageSubscriptions_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchMessageSubscriptions>> }): CancelablePromise<_DataOf<typeof _searchMessageSubscriptions>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchMessageSubscriptions({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchMessageSubscriptions', false, invoke, ec.consistency);
 }
 
 type _searchProcessDefinitions_Options = Parameters<typeof _searchProcessDefinitions>[0];
@@ -749,16 +595,13 @@ type _searchProcessDefinitions_Body = [ _searchProcessDefinitions_MaybeBody ] ex
   *
  * @operationId searchProcessDefinitions
  * @tags Process definition
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchProcessDefinitions(body: _searchProcessDefinitions_Body): CancelablePromise<_DataOf<typeof _searchProcessDefinitions>>;
-export function searchProcessDefinitions(options: _searchProcessDefinitions_Options): CancelablePromise<_DataOf<typeof _searchProcessDefinitions>>;
-export function searchProcessDefinitions(arg: any): CancelablePromise<_DataOf<typeof _searchProcessDefinitions>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchProcessDefinitions({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchProcessDefinitions({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchProcessDefinitions(body: _searchProcessDefinitions_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchProcessDefinitions>> }): CancelablePromise<_DataOf<typeof _searchProcessDefinitions>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchProcessDefinitions({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchProcessDefinitions', false, invoke, ec.consistency);
 }
 
 type _searchProcessInstances_Options = Parameters<typeof _searchProcessInstances>[0];
@@ -771,16 +614,13 @@ type _searchProcessInstances_Body = [ _searchProcessInstances_MaybeBody ] extend
   *
  * @operationId searchProcessInstances
  * @tags Process instance
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchProcessInstances(body: _searchProcessInstances_Body): CancelablePromise<_DataOf<typeof _searchProcessInstances>>;
-export function searchProcessInstances(options: _searchProcessInstances_Options): CancelablePromise<_DataOf<typeof _searchProcessInstances>>;
-export function searchProcessInstances(arg: any): CancelablePromise<_DataOf<typeof _searchProcessInstances>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchProcessInstances({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchProcessInstances({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchProcessInstances(body: _searchProcessInstances_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchProcessInstances>> }): CancelablePromise<_DataOf<typeof _searchProcessInstances>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchProcessInstances({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchProcessInstances', false, invoke, ec.consistency);
 }
 
 type _searchRoles_Options = Parameters<typeof _searchRoles>[0];
@@ -793,16 +633,13 @@ type _searchRoles_Body = [ _searchRoles_MaybeBody ] extends [never] ? unknown : 
   *
  * @operationId searchRoles
  * @tags Role
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchRoles(body: _searchRoles_Body): CancelablePromise<_DataOf<typeof _searchRoles>>;
-export function searchRoles(options: _searchRoles_Options): CancelablePromise<_DataOf<typeof _searchRoles>>;
-export function searchRoles(arg: any): CancelablePromise<_DataOf<typeof _searchRoles>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchRoles({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchRoles({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchRoles(body: _searchRoles_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchRoles>> }): CancelablePromise<_DataOf<typeof _searchRoles>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchRoles({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchRoles', false, invoke, ec.consistency);
 }
 
 type _searchTenants_Options = Parameters<typeof _searchTenants>[0];
@@ -814,16 +651,13 @@ type _searchTenants_Body = [ _searchTenants_MaybeBody ] extends [never] ? unknow
   *
  * @operationId searchTenants
  * @tags Tenant
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchTenants(body: _searchTenants_Body): CancelablePromise<_DataOf<typeof _searchTenants>>;
-export function searchTenants(options: _searchTenants_Options): CancelablePromise<_DataOf<typeof _searchTenants>>;
-export function searchTenants(arg: any): CancelablePromise<_DataOf<typeof _searchTenants>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchTenants({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchTenants({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchTenants(body: _searchTenants_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchTenants>> }): CancelablePromise<_DataOf<typeof _searchTenants>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchTenants({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchTenants', false, invoke, ec.consistency);
 }
 
 type _searchUsers_Options = Parameters<typeof _searchUsers>[0];
@@ -836,16 +670,13 @@ type _searchUsers_Body = [ _searchUsers_MaybeBody ] extends [never] ? unknown : 
   *
  * @operationId searchUsers
  * @tags User
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchUsers(body: _searchUsers_Body): CancelablePromise<_DataOf<typeof _searchUsers>>;
-export function searchUsers(options: _searchUsers_Options): CancelablePromise<_DataOf<typeof _searchUsers>>;
-export function searchUsers(arg: any): CancelablePromise<_DataOf<typeof _searchUsers>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchUsers({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchUsers({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchUsers(body: _searchUsers_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchUsers>> }): CancelablePromise<_DataOf<typeof _searchUsers>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchUsers({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchUsers', false, invoke, ec.consistency);
 }
 
 type _searchUserTasks_Options = Parameters<typeof _searchUserTasks>[0];
@@ -858,16 +689,13 @@ type _searchUserTasks_Body = [ _searchUserTasks_MaybeBody ] extends [never] ? un
   *
  * @operationId searchUserTasks
  * @tags User task
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchUserTasks(body: _searchUserTasks_Body): CancelablePromise<_DataOf<typeof _searchUserTasks>>;
-export function searchUserTasks(options: _searchUserTasks_Options): CancelablePromise<_DataOf<typeof _searchUserTasks>>;
-export function searchUserTasks(arg: any): CancelablePromise<_DataOf<typeof _searchUserTasks>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchUserTasks({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchUserTasks({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchUserTasks(body: _searchUserTasks_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchUserTasks>> }): CancelablePromise<_DataOf<typeof _searchUserTasks>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchUserTasks({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchUserTasks', false, invoke, ec.consistency);
 }
 
 type _searchVariables_Options = Parameters<typeof _searchVariables>[0];
@@ -880,16 +708,13 @@ type _searchVariables_Body = [ _searchVariables_MaybeBody ] extends [never] ? un
   *
  * @operationId searchVariables
  * @tags Variable
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchVariables(body: _searchVariables_Body): CancelablePromise<_DataOf<typeof _searchVariables>>;
-export function searchVariables(options: _searchVariables_Options): CancelablePromise<_DataOf<typeof _searchVariables>>;
-export function searchVariables(arg: any): CancelablePromise<_DataOf<typeof _searchVariables>> {
-  return toCancelable(signal => {
-    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {
-      return _searchVariables({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);
-    }
-    return _searchVariables({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);
-  });
+export function searchVariables(body: _searchVariables_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchVariables>> }): CancelablePromise<_DataOf<typeof _searchVariables>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchVariables({ body, signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchVariables', false, invoke, ec.consistency);
 }
 
 /**
@@ -1060,9 +885,13 @@ export function assignUserToTenant(options?: Parameters<typeof _assignUserToTena
   *
  * @operationId cancelBatchOperation
  * @tags Batch operation
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function cancelBatchOperation(options?: Parameters<typeof _cancelBatchOperation>[0]): CancelablePromise<_DataOf<typeof _cancelBatchOperation>> {
-  return toCancelable(signal => _cancelBatchOperation({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function cancelBatchOperation(options: Parameters<typeof _cancelBatchOperation>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _cancelBatchOperation>> }): CancelablePromise<_DataOf<typeof _cancelBatchOperation>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _cancelBatchOperation({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('cancelBatchOperation', false, invoke, ec.consistency);
 }
 
 /**
@@ -1269,9 +1098,13 @@ export function deleteTenant(options?: Parameters<typeof _deleteTenant>[0]): Can
   *
  * @operationId deleteUser
  * @tags User
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function deleteUser(options?: Parameters<typeof _deleteUser>[0]): CancelablePromise<_DataOf<typeof _deleteUser>> {
-  return toCancelable(signal => _deleteUser({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function deleteUser(options: Parameters<typeof _deleteUser>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _deleteUser>> }): CancelablePromise<_DataOf<typeof _deleteUser>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _deleteUser({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('deleteUser', false, invoke, ec.consistency);
 }
 
 /**
@@ -1303,9 +1136,13 @@ export function getAuthentication(options?: Parameters<typeof _getAuthentication
   *
  * @operationId getAuthorization
  * @tags Authorization
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getAuthorization(options?: Parameters<typeof _getAuthorization>[0]): CancelablePromise<_DataOf<typeof _getAuthorization>> {
-  return toCancelable(signal => _getAuthorization({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getAuthorization(options: Parameters<typeof _getAuthorization>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getAuthorization>> }): CancelablePromise<_DataOf<typeof _getAuthorization>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getAuthorization({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getAuthorization', true, invoke, ec.consistency);
 }
 
 /**
@@ -1314,9 +1151,13 @@ export function getAuthorization(options?: Parameters<typeof _getAuthorization>[
   *
  * @operationId getBatchOperation
  * @tags Batch operation
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getBatchOperation(options?: Parameters<typeof _getBatchOperation>[0]): CancelablePromise<_DataOf<typeof _getBatchOperation>> {
-  return toCancelable(signal => _getBatchOperation({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getBatchOperation(options: Parameters<typeof _getBatchOperation>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getBatchOperation>> }): CancelablePromise<_DataOf<typeof _getBatchOperation>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getBatchOperation({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getBatchOperation', true, invoke, ec.consistency);
 }
 
 /**
@@ -1326,9 +1167,13 @@ export function getBatchOperation(options?: Parameters<typeof _getBatchOperation
   *
  * @operationId getDecisionDefinition
  * @tags Decision definition
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getDecisionDefinition(options?: Parameters<typeof _getDecisionDefinition>[0]): CancelablePromise<_DataOf<typeof _getDecisionDefinition>> {
-  return toCancelable(signal => _getDecisionDefinition({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getDecisionDefinition(options: Parameters<typeof _getDecisionDefinition>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getDecisionDefinition>> }): CancelablePromise<_DataOf<typeof _getDecisionDefinition>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getDecisionDefinition({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getDecisionDefinition', true, invoke, ec.consistency);
 }
 
 /**
@@ -1338,9 +1183,13 @@ export function getDecisionDefinition(options?: Parameters<typeof _getDecisionDe
   *
  * @operationId getDecisionDefinitionXML
  * @tags Decision definition
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getDecisionDefinitionXml(options?: Parameters<typeof _getDecisionDefinitionXml>[0]): CancelablePromise<_DataOf<typeof _getDecisionDefinitionXml>> {
-  return toCancelable(signal => _getDecisionDefinitionXml({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getDecisionDefinitionXml(options: Parameters<typeof _getDecisionDefinitionXml>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getDecisionDefinitionXml>> }): CancelablePromise<_DataOf<typeof _getDecisionDefinitionXml>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getDecisionDefinitionXml({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getDecisionDefinitionXML', true, invoke, ec.consistency);
 }
 /** @deprecated Use getDecisionDefinitionXml instead; legacy operationId retained for transitional compatibility. */
 export const getDecisionDefinitionXML = getDecisionDefinitionXml;
@@ -1352,9 +1201,13 @@ export const getDecisionDefinitionXML = getDecisionDefinitionXml;
   *
  * @operationId getDecisionInstance
  * @tags Decision instance
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getDecisionInstance(options?: Parameters<typeof _getDecisionInstance>[0]): CancelablePromise<_DataOf<typeof _getDecisionInstance>> {
-  return toCancelable(signal => _getDecisionInstance({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getDecisionInstance(options: Parameters<typeof _getDecisionInstance>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getDecisionInstance>> }): CancelablePromise<_DataOf<typeof _getDecisionInstance>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getDecisionInstance({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getDecisionInstance', true, invoke, ec.consistency);
 }
 
 /**
@@ -1364,9 +1217,13 @@ export function getDecisionInstance(options?: Parameters<typeof _getDecisionInst
   *
  * @operationId getDecisionRequirements
  * @tags Decision requirements
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getDecisionRequirements(options?: Parameters<typeof _getDecisionRequirements>[0]): CancelablePromise<_DataOf<typeof _getDecisionRequirements>> {
-  return toCancelable(signal => _getDecisionRequirements({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getDecisionRequirements(options: Parameters<typeof _getDecisionRequirements>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getDecisionRequirements>> }): CancelablePromise<_DataOf<typeof _getDecisionRequirements>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getDecisionRequirements({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getDecisionRequirements', true, invoke, ec.consistency);
 }
 
 /**
@@ -1376,9 +1233,13 @@ export function getDecisionRequirements(options?: Parameters<typeof _getDecision
   *
  * @operationId getDecisionRequirementsXML
  * @tags Decision requirements
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getDecisionRequirementsXml(options?: Parameters<typeof _getDecisionRequirementsXml>[0]): CancelablePromise<_DataOf<typeof _getDecisionRequirementsXml>> {
-  return toCancelable(signal => _getDecisionRequirementsXml({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getDecisionRequirementsXml(options: Parameters<typeof _getDecisionRequirementsXml>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getDecisionRequirementsXml>> }): CancelablePromise<_DataOf<typeof _getDecisionRequirementsXml>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getDecisionRequirementsXml({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getDecisionRequirementsXML', true, invoke, ec.consistency);
 }
 /** @deprecated Use getDecisionRequirementsXml instead; legacy operationId retained for transitional compatibility. */
 export const getDecisionRequirementsXML = getDecisionRequirementsXml;
@@ -1404,9 +1265,13 @@ export function getDocument(options?: Parameters<typeof _getDocument>[0]): Cance
   *
  * @operationId getElementInstance
  * @tags Element instance
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getElementInstance(options?: Parameters<typeof _getElementInstance>[0]): CancelablePromise<_DataOf<typeof _getElementInstance>> {
-  return toCancelable(signal => _getElementInstance({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getElementInstance(options: Parameters<typeof _getElementInstance>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getElementInstance>> }): CancelablePromise<_DataOf<typeof _getElementInstance>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getElementInstance({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getElementInstance', true, invoke, ec.consistency);
 }
 
 /**
@@ -1416,9 +1281,13 @@ export function getElementInstance(options?: Parameters<typeof _getElementInstan
   *
  * @operationId getGroup
  * @tags Group
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getGroup(options?: Parameters<typeof _getGroup>[0]): CancelablePromise<_DataOf<typeof _getGroup>> {
-  return toCancelable(signal => _getGroup({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getGroup(options: Parameters<typeof _getGroup>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getGroup>> }): CancelablePromise<_DataOf<typeof _getGroup>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getGroup({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getGroup', true, invoke, ec.consistency);
 }
 
 /**
@@ -1428,9 +1297,13 @@ export function getGroup(options?: Parameters<typeof _getGroup>[0]): CancelableP
   *
  * @operationId getIncident
  * @tags Incident
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getIncident(options?: Parameters<typeof _getIncident>[0]): CancelablePromise<_DataOf<typeof _getIncident>> {
-  return toCancelable(signal => _getIncident({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getIncident(options: Parameters<typeof _getIncident>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getIncident>> }): CancelablePromise<_DataOf<typeof _getIncident>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getIncident({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getIncident', true, invoke, ec.consistency);
 }
 
 /**
@@ -1451,9 +1324,13 @@ export function getLicense(options?: Parameters<typeof _getLicense>[0]): Cancela
   *
  * @operationId getMappingRule
  * @tags Mapping rule
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getMappingRule(options?: Parameters<typeof _getMappingRule>[0]): CancelablePromise<_DataOf<typeof _getMappingRule>> {
-  return toCancelable(signal => _getMappingRule({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getMappingRule(options: Parameters<typeof _getMappingRule>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getMappingRule>> }): CancelablePromise<_DataOf<typeof _getMappingRule>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getMappingRule({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getMappingRule', true, invoke, ec.consistency);
 }
 
 /**
@@ -1463,9 +1340,13 @@ export function getMappingRule(options?: Parameters<typeof _getMappingRule>[0]):
   *
  * @operationId getProcessDefinition
  * @tags Process definition
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getProcessDefinition(options?: Parameters<typeof _getProcessDefinition>[0]): CancelablePromise<_DataOf<typeof _getProcessDefinition>> {
-  return toCancelable(signal => _getProcessDefinition({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getProcessDefinition(options: Parameters<typeof _getProcessDefinition>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getProcessDefinition>> }): CancelablePromise<_DataOf<typeof _getProcessDefinition>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getProcessDefinition({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getProcessDefinition', true, invoke, ec.consistency);
 }
 
 /**
@@ -1475,9 +1356,13 @@ export function getProcessDefinition(options?: Parameters<typeof _getProcessDefi
   *
  * @operationId getProcessDefinitionStatistics
  * @tags Process definition
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getProcessDefinitionStatistics(options?: Parameters<typeof _getProcessDefinitionStatistics>[0]): CancelablePromise<_DataOf<typeof _getProcessDefinitionStatistics>> {
-  return toCancelable(signal => _getProcessDefinitionStatistics({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getProcessDefinitionStatistics(options: Parameters<typeof _getProcessDefinitionStatistics>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getProcessDefinitionStatistics>> }): CancelablePromise<_DataOf<typeof _getProcessDefinitionStatistics>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getProcessDefinitionStatistics({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getProcessDefinitionStatistics', false, invoke, ec.consistency);
 }
 
 /**
@@ -1487,9 +1372,13 @@ export function getProcessDefinitionStatistics(options?: Parameters<typeof _getP
   *
  * @operationId getProcessDefinitionXML
  * @tags Process definition
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getProcessDefinitionXml(options?: Parameters<typeof _getProcessDefinitionXml>[0]): CancelablePromise<_DataOf<typeof _getProcessDefinitionXml>> {
-  return toCancelable(signal => _getProcessDefinitionXml({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getProcessDefinitionXml(options: Parameters<typeof _getProcessDefinitionXml>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getProcessDefinitionXml>> }): CancelablePromise<_DataOf<typeof _getProcessDefinitionXml>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getProcessDefinitionXml({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getProcessDefinitionXML', true, invoke, ec.consistency);
 }
 /** @deprecated Use getProcessDefinitionXml instead; legacy operationId retained for transitional compatibility. */
 export const getProcessDefinitionXML = getProcessDefinitionXml;
@@ -1501,9 +1390,13 @@ export const getProcessDefinitionXML = getProcessDefinitionXml;
   *
  * @operationId getProcessInstance
  * @tags Process instance
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getProcessInstance(options?: Parameters<typeof _getProcessInstance>[0]): CancelablePromise<_DataOf<typeof _getProcessInstance>> {
-  return toCancelable(signal => _getProcessInstance({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getProcessInstance(options: Parameters<typeof _getProcessInstance>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getProcessInstance>> }): CancelablePromise<_DataOf<typeof _getProcessInstance>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getProcessInstance({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getProcessInstance', true, invoke, ec.consistency);
 }
 
 /**
@@ -1513,9 +1406,13 @@ export function getProcessInstance(options?: Parameters<typeof _getProcessInstan
   *
  * @operationId getProcessInstanceCallHierarchy
  * @tags Process instance
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getProcessInstanceCallHierarchy(options?: Parameters<typeof _getProcessInstanceCallHierarchy>[0]): CancelablePromise<_DataOf<typeof _getProcessInstanceCallHierarchy>> {
-  return toCancelable(signal => _getProcessInstanceCallHierarchy({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getProcessInstanceCallHierarchy(options: Parameters<typeof _getProcessInstanceCallHierarchy>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getProcessInstanceCallHierarchy>> }): CancelablePromise<_DataOf<typeof _getProcessInstanceCallHierarchy>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getProcessInstanceCallHierarchy({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getProcessInstanceCallHierarchy', true, invoke, ec.consistency);
 }
 
 /**
@@ -1525,9 +1422,13 @@ export function getProcessInstanceCallHierarchy(options?: Parameters<typeof _get
   *
  * @operationId getProcessInstanceSequenceFlows
  * @tags Process instance
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getProcessInstanceSequenceFlows(options?: Parameters<typeof _getProcessInstanceSequenceFlows>[0]): CancelablePromise<_DataOf<typeof _getProcessInstanceSequenceFlows>> {
-  return toCancelable(signal => _getProcessInstanceSequenceFlows({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getProcessInstanceSequenceFlows(options: Parameters<typeof _getProcessInstanceSequenceFlows>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getProcessInstanceSequenceFlows>> }): CancelablePromise<_DataOf<typeof _getProcessInstanceSequenceFlows>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getProcessInstanceSequenceFlows({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getProcessInstanceSequenceFlows', true, invoke, ec.consistency);
 }
 
 /**
@@ -1537,9 +1438,13 @@ export function getProcessInstanceSequenceFlows(options?: Parameters<typeof _get
   *
  * @operationId getProcessInstanceStatistics
  * @tags Process instance
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getProcessInstanceStatistics(options?: Parameters<typeof _getProcessInstanceStatistics>[0]): CancelablePromise<_DataOf<typeof _getProcessInstanceStatistics>> {
-  return toCancelable(signal => _getProcessInstanceStatistics({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getProcessInstanceStatistics(options: Parameters<typeof _getProcessInstanceStatistics>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getProcessInstanceStatistics>> }): CancelablePromise<_DataOf<typeof _getProcessInstanceStatistics>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getProcessInstanceStatistics({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getProcessInstanceStatistics', true, invoke, ec.consistency);
 }
 
 /**
@@ -1579,9 +1484,13 @@ export function getResourceContent(options?: Parameters<typeof _getResourceConte
   *
  * @operationId getRole
  * @tags Role
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getRole(options?: Parameters<typeof _getRole>[0]): CancelablePromise<_DataOf<typeof _getRole>> {
-  return toCancelable(signal => _getRole({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getRole(options: Parameters<typeof _getRole>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getRole>> }): CancelablePromise<_DataOf<typeof _getRole>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getRole({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getRole', true, invoke, ec.consistency);
 }
 
 /**
@@ -1593,9 +1502,13 @@ export function getRole(options?: Parameters<typeof _getRole>[0]): CancelablePro
   *
  * @operationId getStartProcessForm
  * @tags Process definition
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getStartProcessForm(options?: Parameters<typeof _getStartProcessForm>[0]): CancelablePromise<_DataOf<typeof _getStartProcessForm>> {
-  return toCancelable(signal => _getStartProcessForm({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getStartProcessForm(options: Parameters<typeof _getStartProcessForm>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getStartProcessForm>> }): CancelablePromise<_DataOf<typeof _getStartProcessForm>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getStartProcessForm({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getStartProcessForm', true, invoke, ec.consistency);
 }
 
 /**
@@ -1604,9 +1517,13 @@ export function getStartProcessForm(options?: Parameters<typeof _getStartProcess
   *
  * @operationId getTenant
  * @tags Tenant
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getTenant(options?: Parameters<typeof _getTenant>[0]): CancelablePromise<_DataOf<typeof _getTenant>> {
-  return toCancelable(signal => _getTenant({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getTenant(options: Parameters<typeof _getTenant>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getTenant>> }): CancelablePromise<_DataOf<typeof _getTenant>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getTenant({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getTenant', true, invoke, ec.consistency);
 }
 
 /**
@@ -1626,9 +1543,13 @@ export function getTopology(options?: Parameters<typeof _getTopology>[0]): Cance
   *
  * @operationId getUsageMetrics
  * @tags System
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getUsageMetrics(options?: Parameters<typeof _getUsageMetrics>[0]): CancelablePromise<_DataOf<typeof _getUsageMetrics>> {
-  return toCancelable(signal => _getUsageMetrics({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getUsageMetrics(options: Parameters<typeof _getUsageMetrics>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getUsageMetrics>> }): CancelablePromise<_DataOf<typeof _getUsageMetrics>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getUsageMetrics({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getUsageMetrics', true, invoke, ec.consistency);
 }
 
 /**
@@ -1638,9 +1559,13 @@ export function getUsageMetrics(options?: Parameters<typeof _getUsageMetrics>[0]
   *
  * @operationId getUser
  * @tags User
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getUser(options?: Parameters<typeof _getUser>[0]): CancelablePromise<_DataOf<typeof _getUser>> {
-  return toCancelable(signal => _getUser({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getUser(options: Parameters<typeof _getUser>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getUser>> }): CancelablePromise<_DataOf<typeof _getUser>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getUser({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getUser', true, invoke, ec.consistency);
 }
 
 /**
@@ -1650,9 +1575,13 @@ export function getUser(options?: Parameters<typeof _getUser>[0]): CancelablePro
   *
  * @operationId getUserTask
  * @tags User task
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getUserTask(options?: Parameters<typeof _getUserTask>[0]): CancelablePromise<_DataOf<typeof _getUserTask>> {
-  return toCancelable(signal => _getUserTask({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getUserTask(options: Parameters<typeof _getUserTask>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getUserTask>> }): CancelablePromise<_DataOf<typeof _getUserTask>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getUserTask({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getUserTask', true, invoke, ec.consistency);
 }
 
 /**
@@ -1664,9 +1593,13 @@ export function getUserTask(options?: Parameters<typeof _getUserTask>[0]): Cance
   *
  * @operationId getUserTaskForm
  * @tags User task
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getUserTaskForm(options?: Parameters<typeof _getUserTaskForm>[0]): CancelablePromise<_DataOf<typeof _getUserTaskForm>> {
-  return toCancelable(signal => _getUserTaskForm({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getUserTaskForm(options: Parameters<typeof _getUserTaskForm>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getUserTaskForm>> }): CancelablePromise<_DataOf<typeof _getUserTaskForm>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getUserTaskForm({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getUserTaskForm', true, invoke, ec.consistency);
 }
 
 /**
@@ -1676,9 +1609,13 @@ export function getUserTaskForm(options?: Parameters<typeof _getUserTaskForm>[0]
   *
  * @operationId getVariable
  * @tags Variable
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function getVariable(options?: Parameters<typeof _getVariable>[0]): CancelablePromise<_DataOf<typeof _getVariable>> {
-  return toCancelable(signal => _getVariable({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function getVariable(options: Parameters<typeof _getVariable>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _getVariable>> }): CancelablePromise<_DataOf<typeof _getVariable>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _getVariable({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('getVariable', true, invoke, ec.consistency);
 }
 
 /**
@@ -1753,9 +1690,13 @@ export function resolveIncident(options?: Parameters<typeof _resolveIncident>[0]
   *
  * @operationId resumeBatchOperation
  * @tags Batch operation
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function resumeBatchOperation(options?: Parameters<typeof _resumeBatchOperation>[0]): CancelablePromise<_DataOf<typeof _resumeBatchOperation>> {
-  return toCancelable(signal => _resumeBatchOperation({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function resumeBatchOperation(options: Parameters<typeof _resumeBatchOperation>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _resumeBatchOperation>> }): CancelablePromise<_DataOf<typeof _resumeBatchOperation>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _resumeBatchOperation({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('resumeBatchOperation', false, invoke, ec.consistency);
 }
 
 /**
@@ -1765,9 +1706,13 @@ export function resumeBatchOperation(options?: Parameters<typeof _resumeBatchOpe
   *
  * @operationId searchClientsForGroup
  * @tags Group
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchClientsForGroup(options?: Parameters<typeof _searchClientsForGroup>[0]): CancelablePromise<_DataOf<typeof _searchClientsForGroup>> {
-  return toCancelable(signal => _searchClientsForGroup({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchClientsForGroup(options: Parameters<typeof _searchClientsForGroup>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchClientsForGroup>> }): CancelablePromise<_DataOf<typeof _searchClientsForGroup>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchClientsForGroup({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchClientsForGroup', false, invoke, ec.consistency);
 }
 
 /**
@@ -1777,9 +1722,13 @@ export function searchClientsForGroup(options?: Parameters<typeof _searchClients
   *
  * @operationId searchClientsForRole
  * @tags Role
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchClientsForRole(options?: Parameters<typeof _searchClientsForRole>[0]): CancelablePromise<_DataOf<typeof _searchClientsForRole>> {
-  return toCancelable(signal => _searchClientsForRole({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchClientsForRole(options: Parameters<typeof _searchClientsForRole>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchClientsForRole>> }): CancelablePromise<_DataOf<typeof _searchClientsForRole>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchClientsForRole({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchClientsForRole', false, invoke, ec.consistency);
 }
 
 /**
@@ -1788,9 +1737,13 @@ export function searchClientsForRole(options?: Parameters<typeof _searchClientsF
   *
  * @operationId searchClientsForTenant
  * @tags Tenant
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchClientsForTenant(options?: Parameters<typeof _searchClientsForTenant>[0]): CancelablePromise<_DataOf<typeof _searchClientsForTenant>> {
-  return toCancelable(signal => _searchClientsForTenant({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchClientsForTenant(options: Parameters<typeof _searchClientsForTenant>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchClientsForTenant>> }): CancelablePromise<_DataOf<typeof _searchClientsForTenant>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchClientsForTenant({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchClientsForTenant', false, invoke, ec.consistency);
 }
 
 /**
@@ -1799,9 +1752,13 @@ export function searchClientsForTenant(options?: Parameters<typeof _searchClient
   *
  * @operationId searchGroupIdsForTenant
  * @tags Tenant
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchGroupIdsForTenant(options?: Parameters<typeof _searchGroupIdsForTenant>[0]): CancelablePromise<_DataOf<typeof _searchGroupIdsForTenant>> {
-  return toCancelable(signal => _searchGroupIdsForTenant({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchGroupIdsForTenant(options: Parameters<typeof _searchGroupIdsForTenant>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchGroupIdsForTenant>> }): CancelablePromise<_DataOf<typeof _searchGroupIdsForTenant>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchGroupIdsForTenant({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchGroupIdsForTenant', false, invoke, ec.consistency);
 }
 
 /**
@@ -1811,9 +1768,13 @@ export function searchGroupIdsForTenant(options?: Parameters<typeof _searchGroup
   *
  * @operationId searchGroupsForRole
  * @tags Role
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchGroupsForRole(options?: Parameters<typeof _searchGroupsForRole>[0]): CancelablePromise<_DataOf<typeof _searchGroupsForRole>> {
-  return toCancelable(signal => _searchGroupsForRole({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchGroupsForRole(options: Parameters<typeof _searchGroupsForRole>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchGroupsForRole>> }): CancelablePromise<_DataOf<typeof _searchGroupsForRole>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchGroupsForRole({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchGroupsForRole', false, invoke, ec.consistency);
 }
 
 /**
@@ -1823,9 +1784,13 @@ export function searchGroupsForRole(options?: Parameters<typeof _searchGroupsFor
   *
  * @operationId searchMappingRulesForGroup
  * @tags Group
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchMappingRulesForGroup(options?: Parameters<typeof _searchMappingRulesForGroup>[0]): CancelablePromise<_DataOf<typeof _searchMappingRulesForGroup>> {
-  return toCancelable(signal => _searchMappingRulesForGroup({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchMappingRulesForGroup(options: Parameters<typeof _searchMappingRulesForGroup>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchMappingRulesForGroup>> }): CancelablePromise<_DataOf<typeof _searchMappingRulesForGroup>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchMappingRulesForGroup({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchMappingRulesForGroup', false, invoke, ec.consistency);
 }
 
 /**
@@ -1835,9 +1800,13 @@ export function searchMappingRulesForGroup(options?: Parameters<typeof _searchMa
   *
  * @operationId searchMappingRulesForRole
  * @tags Role
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchMappingRulesForRole(options?: Parameters<typeof _searchMappingRulesForRole>[0]): CancelablePromise<_DataOf<typeof _searchMappingRulesForRole>> {
-  return toCancelable(signal => _searchMappingRulesForRole({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchMappingRulesForRole(options: Parameters<typeof _searchMappingRulesForRole>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchMappingRulesForRole>> }): CancelablePromise<_DataOf<typeof _searchMappingRulesForRole>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchMappingRulesForRole({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchMappingRulesForRole', false, invoke, ec.consistency);
 }
 
 /**
@@ -1846,9 +1815,13 @@ export function searchMappingRulesForRole(options?: Parameters<typeof _searchMap
   *
  * @operationId searchMappingsForTenant
  * @tags Tenant
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchMappingsForTenant(options?: Parameters<typeof _searchMappingsForTenant>[0]): CancelablePromise<_DataOf<typeof _searchMappingsForTenant>> {
-  return toCancelable(signal => _searchMappingsForTenant({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchMappingsForTenant(options: Parameters<typeof _searchMappingsForTenant>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchMappingsForTenant>> }): CancelablePromise<_DataOf<typeof _searchMappingsForTenant>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchMappingsForTenant({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchMappingsForTenant', false, invoke, ec.consistency);
 }
 
 /**
@@ -1858,9 +1831,13 @@ export function searchMappingsForTenant(options?: Parameters<typeof _searchMappi
   *
  * @operationId searchProcessInstanceIncidents
  * @tags Process instance
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchProcessInstanceIncidents(options?: Parameters<typeof _searchProcessInstanceIncidents>[0]): CancelablePromise<_DataOf<typeof _searchProcessInstanceIncidents>> {
-  return toCancelable(signal => _searchProcessInstanceIncidents({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchProcessInstanceIncidents(options: Parameters<typeof _searchProcessInstanceIncidents>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchProcessInstanceIncidents>> }): CancelablePromise<_DataOf<typeof _searchProcessInstanceIncidents>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchProcessInstanceIncidents({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchProcessInstanceIncidents', false, invoke, ec.consistency);
 }
 
 /**
@@ -1870,9 +1847,13 @@ export function searchProcessInstanceIncidents(options?: Parameters<typeof _sear
   *
  * @operationId searchRolesForGroup
  * @tags Group
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchRolesForGroup(options?: Parameters<typeof _searchRolesForGroup>[0]): CancelablePromise<_DataOf<typeof _searchRolesForGroup>> {
-  return toCancelable(signal => _searchRolesForGroup({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchRolesForGroup(options: Parameters<typeof _searchRolesForGroup>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchRolesForGroup>> }): CancelablePromise<_DataOf<typeof _searchRolesForGroup>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchRolesForGroup({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchRolesForGroup', false, invoke, ec.consistency);
 }
 
 /**
@@ -1881,9 +1862,13 @@ export function searchRolesForGroup(options?: Parameters<typeof _searchRolesForG
   *
  * @operationId searchRolesForTenant
  * @tags Tenant
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchRolesForTenant(options?: Parameters<typeof _searchRolesForTenant>[0]): CancelablePromise<_DataOf<typeof _searchRolesForTenant>> {
-  return toCancelable(signal => _searchRolesForTenant({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchRolesForTenant(options: Parameters<typeof _searchRolesForTenant>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchRolesForTenant>> }): CancelablePromise<_DataOf<typeof _searchRolesForTenant>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchRolesForTenant({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchRolesForTenant', false, invoke, ec.consistency);
 }
 
 /**
@@ -1893,9 +1878,13 @@ export function searchRolesForTenant(options?: Parameters<typeof _searchRolesFor
   *
  * @operationId searchUsersForGroup
  * @tags Group
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchUsersForGroup(options?: Parameters<typeof _searchUsersForGroup>[0]): CancelablePromise<_DataOf<typeof _searchUsersForGroup>> {
-  return toCancelable(signal => _searchUsersForGroup({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchUsersForGroup(options: Parameters<typeof _searchUsersForGroup>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchUsersForGroup>> }): CancelablePromise<_DataOf<typeof _searchUsersForGroup>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchUsersForGroup({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchUsersForGroup', false, invoke, ec.consistency);
 }
 
 /**
@@ -1905,9 +1894,13 @@ export function searchUsersForGroup(options?: Parameters<typeof _searchUsersForG
   *
  * @operationId searchUsersForRole
  * @tags Role
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchUsersForRole(options?: Parameters<typeof _searchUsersForRole>[0]): CancelablePromise<_DataOf<typeof _searchUsersForRole>> {
-  return toCancelable(signal => _searchUsersForRole({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchUsersForRole(options: Parameters<typeof _searchUsersForRole>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchUsersForRole>> }): CancelablePromise<_DataOf<typeof _searchUsersForRole>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchUsersForRole({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchUsersForRole', false, invoke, ec.consistency);
 }
 
 /**
@@ -1916,9 +1909,13 @@ export function searchUsersForRole(options?: Parameters<typeof _searchUsersForRo
   *
  * @operationId searchUsersForTenant
  * @tags Tenant
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchUsersForTenant(options?: Parameters<typeof _searchUsersForTenant>[0]): CancelablePromise<_DataOf<typeof _searchUsersForTenant>> {
-  return toCancelable(signal => _searchUsersForTenant({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchUsersForTenant(options: Parameters<typeof _searchUsersForTenant>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchUsersForTenant>> }): CancelablePromise<_DataOf<typeof _searchUsersForTenant>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchUsersForTenant({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchUsersForTenant', false, invoke, ec.consistency);
 }
 
 /**
@@ -1928,9 +1925,13 @@ export function searchUsersForTenant(options?: Parameters<typeof _searchUsersFor
   *
  * @operationId searchUserTaskVariables
  * @tags User task
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function searchUserTaskVariables(options?: Parameters<typeof _searchUserTaskVariables>[0]): CancelablePromise<_DataOf<typeof _searchUserTaskVariables>> {
-  return toCancelable(signal => _searchUserTaskVariables({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function searchUserTaskVariables(options: Parameters<typeof _searchUserTaskVariables>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _searchUserTaskVariables>> }): CancelablePromise<_DataOf<typeof _searchUserTaskVariables>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _searchUserTaskVariables({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('searchUserTaskVariables', false, invoke, ec.consistency);
 }
 
 /**
@@ -1941,9 +1942,13 @@ export function searchUserTaskVariables(options?: Parameters<typeof _searchUserT
   *
  * @operationId suspendBatchOperation
  * @tags Batch operation
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function suspendBatchOperation(options?: Parameters<typeof _suspendBatchOperation>[0]): CancelablePromise<_DataOf<typeof _suspendBatchOperation>> {
-  return toCancelable(signal => _suspendBatchOperation({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function suspendBatchOperation(options: Parameters<typeof _suspendBatchOperation>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _suspendBatchOperation>> }): CancelablePromise<_DataOf<typeof _suspendBatchOperation>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _suspendBatchOperation({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('suspendBatchOperation', false, invoke, ec.consistency);
 }
 
 /**
@@ -2182,9 +2187,13 @@ export function updateTenant(options?: Parameters<typeof _updateTenant>[0]): Can
   *
  * @operationId updateUser
  * @tags User
+  *
+ * Consistency: Eventually consistent – may return 404/empty until propagation.
  */
-export function updateUser(options?: Parameters<typeof _updateUser>[0]): CancelablePromise<_DataOf<typeof _updateUser>> {
-  return toCancelable(signal => _updateUser({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+export function updateUser(options: Parameters<typeof _updateUser>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _updateUser>> }): CancelablePromise<_DataOf<typeof _updateUser>> {
+  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');
+  const invoke = () => toCancelable(signal => _updateUser({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
+  return eventualPoll('updateUser', false, invoke, ec.consistency);
 }
 
 /**
@@ -2197,3 +2206,5 @@ export function updateUser(options?: Parameters<typeof _updateUser>[0]): Cancela
 export function updateUserTask(options?: Parameters<typeof _updateUserTask>[0]): CancelablePromise<_DataOf<typeof _updateUserTask>> {
   return toCancelable(signal => _updateUserTask({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));
 }
+
+// SENTINEL_FACADE_PREWRITE hash=823997f4dfa46e05 totalWrappers=144 elements=1005 physicalLines=2209

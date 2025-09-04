@@ -99,7 +99,13 @@ function main() {
       for (const pp of o.pathParams) extras.push(`${pp}: ${o.opId}PathParam_${pp}`);
       for (const qp of o.queryParams) extras.push(`${qp}${o.bodyOnly ? '?' : ''}: ${o.opId}QueryParam_${qp}`); // query optional by default (cannot infer required easily without spec extension here)
       if (extras.length) pieces.push(`{ ${extras.join('; ')} }`);
-      support.push(`type ${o.opId}Input = ${pieces.join(' & ')};`);
+      if (o.opId === 'createDeployment') {
+        // Enforce File[] resources at the public input surface (Blob not allowed)
+        // createDeploymentBody comes from generated SDK types (still broad); override here.
+        support.push(`type ${o.opId}Input = Omit<${o.opId}Body, 'resources'> & { resources: File[] };`);
+      } else {
+        support.push(`type ${o.opId}Input = ${pieces.join(' & ')};`);
+      }
     } else {
       support.push(`type ${o.opId}Input = void;`);
     }

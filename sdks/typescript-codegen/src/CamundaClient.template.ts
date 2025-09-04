@@ -54,6 +54,9 @@ export interface CamundaOptions {
   log?: { level?: LogLevel; transport?: LogTransport };
   // Telemetry (Phase 1)
   telemetry?: { hooks?: import('./runtime/telemetry').TelemetryHooks; correlation?: boolean; mirrorToLog?: boolean };
+  // If true (default), non-2xx HTTP responses throw instead of returning an error object.
+  // Set to false to opt into non-throwing behavior.
+  throwOnError?: boolean;
 }
 
 export function createCamundaClient(options?: CamundaOptions) { return new CamundaClient(options); }
@@ -72,6 +75,9 @@ export class CamundaClient {
   private _validation: ValidationManager = new ValidationManager({ req: 'none', res: 'none' });
   private _log: Logger = createLogger();
 
+  // Internal fixed error mode for eventual consistency ('throw' | 'result'). Not user mutable after construction.
+  private readonly _errorMode: 'throw' | 'result';
+
   private _overrides: EnvOverrides = {};
 
   constructor(opts: CamundaOptions = {}) {
@@ -89,11 +95,12 @@ export class CamundaClient {
     } else if (this._config.telemetry?.log) {
       this._fetch = wrapFetch(this._fetch || fetch as any, { hooks: undefined, correlation: this._config.telemetry.correlation ? () => getCorrelation() : undefined, logger: this._log, mirrorToLog: true });
     }
-    this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
+  this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch, throwOnError: opts.throwOnError !== false });
   installAuthInterceptor(this._client, () => this._config.auth.strategy, () => this._auth.getAuthHeaders());
   this._auth = createAuthFacade(this._config, { fetch: this._fetch, logger: this._log, telemetryHooks: opts.telemetry?.hooks, correlationProvider: (opts.telemetry?.correlation || (!opts.telemetry && this._config.telemetry?.correlation)) ? () => getCorrelation() : undefined });
   this._validation.update(this._config.validation);
   this._validation.attachLogger(this._log);
+  this._errorMode = (opts as any).errorMode === 'result' ? 'result' : 'throw';
   // Debug-level emission of redacted effective configuration (lazy)
   this._log.debug(() => {
     try {
@@ -125,7 +132,7 @@ export class CamundaClient {
     } else if (this._config.telemetry?.log) {
       this._fetch = wrapFetch(this._fetch || fetch as any, { hooks: undefined, correlation: this._config.telemetry.correlation ? () => getCorrelation() : undefined, logger: this._log, mirrorToLog: true });
     }
-    this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
+  this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch, throwOnError: next.throwOnError !== false });
   installAuthInterceptor(this._client, () => this._config.auth.strategy, () => this._auth.getAuthHeaders());
   // Update logger level / transport if provided, else apply config log level
   if (next.log?.level) this._log.setLevel(next.log.level); else this._log.setLevel(this._config.logLevel);
@@ -133,6 +140,7 @@ export class CamundaClient {
   this._auth = createAuthFacade(this._config, { fetch: this._fetch, logger: this._log, telemetryHooks: next.telemetry?.hooks, correlationProvider: (next.telemetry?.correlation || (!next.telemetry && this._config.telemetry?.correlation)) ? () => getCorrelation() : undefined });
   this._validation.update(this._config.validation);
   this._validation.attachLogger(this._log);
+  // _errorMode intentionally not mutable post-construction.
   // Emit updated redacted configuration when debug enabled
   this._log.debug(() => {
     try {
@@ -154,6 +162,9 @@ export class CamundaClient {
   /** @internal ValidationManager is internal; tests may reach via (client as any)._validation */
   /** Access a scoped logger (internal & future user emission). */
   logger(scope?: string) { return scope ? this._log.scope(scope) : this._log; }
+
+  /** Internal accessor (read-only) for eventual consistency error mode. */
+  getErrorMode(): 'throw' | 'result' { return this._errorMode; }
 
   // Run a function with a correlation ID (manual propagation phase 1)
   withCorrelation<T>(id: string, fn: () => Promise<T> | T): Promise<T> { return _withCorrelation(id, fn); }

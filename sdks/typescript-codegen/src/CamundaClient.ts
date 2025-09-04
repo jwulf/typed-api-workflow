@@ -28,7 +28,7 @@ function deepFreeze<T>(obj: T): T {
 }
 
 // === AUTO-GENERATED CAMUNDA SUPPORT TYPES START ===
-// Generated 2025-09-04T04:10:06.052Z
+// Generated 2025-09-04T22:09:26.186Z
 // Operations: 144
 type _RawReturn<F> = F extends (...a:any)=>Promise<infer R> ? R : never;
 type _DataOf<F> = Exclude<_RawReturn<F> extends { data: infer D } ? D : _RawReturn<F>, undefined>;
@@ -139,7 +139,7 @@ type createAuthorizationBody = (NonNullable<createAuthorizationOptions> extends 
 type createAuthorizationInput = createAuthorizationBody;
 type createDeploymentOptions = Parameters<typeof Sdk.createDeployment>[0];
 type createDeploymentBody = (NonNullable<createDeploymentOptions> extends { body?: infer B } ? B : never);
-type createDeploymentInput = createDeploymentBody;
+type createDeploymentInput = Omit<createDeploymentBody, 'resources'> & { resources: File[] };
 type createDocumentOptions = Parameters<typeof Sdk.createDocument>[0];
 type createDocumentBody = (NonNullable<createDocumentOptions> extends { body?: infer B } ? B : never);
 type createDocumentQueryParam_storeId = (NonNullable<createDocumentOptions> extends { query: { storeId: infer Q } } ? Q : any);
@@ -924,6 +924,9 @@ export interface CamundaOptions {
   log?: { level?: LogLevel; transport?: LogTransport };
   // Telemetry (Phase 1)
   telemetry?: { hooks?: import('./runtime/telemetry').TelemetryHooks; correlation?: boolean; mirrorToLog?: boolean };
+  // If true (default), non-2xx HTTP responses throw instead of returning an error object.
+  // Set to false to opt into non-throwing behavior.
+  throwOnError?: boolean;
 }
 
 export function createCamundaClient(options?: CamundaOptions) { return new CamundaClient(options); }
@@ -942,6 +945,9 @@ export class CamundaClient {
   private _validation: ValidationManager = new ValidationManager({ req: 'none', res: 'none' });
   private _log: Logger = createLogger();
 
+  // Internal fixed error mode for eventual consistency ('throw' | 'result'). Not user mutable after construction.
+  private readonly _errorMode: 'throw' | 'result';
+
   private _overrides: EnvOverrides = {};
 
   constructor(opts: CamundaOptions = {}) {
@@ -959,11 +965,12 @@ export class CamundaClient {
     } else if (this._config.telemetry?.log) {
       this._fetch = wrapFetch(this._fetch || fetch as any, { hooks: undefined, correlation: this._config.telemetry.correlation ? () => getCorrelation() : undefined, logger: this._log, mirrorToLog: true });
     }
-    this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
+  this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch, throwOnError: opts.throwOnError !== false });
   installAuthInterceptor(this._client, () => this._config.auth.strategy, () => this._auth.getAuthHeaders());
   this._auth = createAuthFacade(this._config, { fetch: this._fetch, logger: this._log, telemetryHooks: opts.telemetry?.hooks, correlationProvider: (opts.telemetry?.correlation || (!opts.telemetry && this._config.telemetry?.correlation)) ? () => getCorrelation() : undefined });
   this._validation.update(this._config.validation);
   this._validation.attachLogger(this._log);
+  this._errorMode = (opts as any).errorMode === 'result' ? 'result' : 'throw';
   // Debug-level emission of redacted effective configuration (lazy)
   this._log.debug(() => {
     try {
@@ -995,7 +1002,7 @@ export class CamundaClient {
     } else if (this._config.telemetry?.log) {
       this._fetch = wrapFetch(this._fetch || fetch as any, { hooks: undefined, correlation: this._config.telemetry.correlation ? () => getCorrelation() : undefined, logger: this._log, mirrorToLog: true });
     }
-    this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch });
+  this._client = createClient({ baseUrl: this._config.restAddress, fetch: this._fetch, throwOnError: next.throwOnError !== false });
   installAuthInterceptor(this._client, () => this._config.auth.strategy, () => this._auth.getAuthHeaders());
   // Update logger level / transport if provided, else apply config log level
   if (next.log?.level) this._log.setLevel(next.log.level); else this._log.setLevel(this._config.logLevel);
@@ -1003,6 +1010,7 @@ export class CamundaClient {
   this._auth = createAuthFacade(this._config, { fetch: this._fetch, logger: this._log, telemetryHooks: next.telemetry?.hooks, correlationProvider: (next.telemetry?.correlation || (!next.telemetry && this._config.telemetry?.correlation)) ? () => getCorrelation() : undefined });
   this._validation.update(this._config.validation);
   this._validation.attachLogger(this._log);
+  // _errorMode intentionally not mutable post-construction.
   // Emit updated redacted configuration when debug enabled
   this._log.debug(() => {
     try {
@@ -1025,11 +1033,14 @@ export class CamundaClient {
   /** Access a scoped logger (internal & future user emission). */
   logger(scope?: string) { return scope ? this._log.scope(scope) : this._log; }
 
+  /** Internal accessor (read-only) for eventual consistency error mode. */
+  getErrorMode(): 'throw' | 'result' { return this._errorMode; }
+
   // Run a function with a correlation ID (manual propagation phase 1)
   withCorrelation<T>(id: string, fn: () => Promise<T> | T): Promise<T> { return _withCorrelation(id, fn); }
 
   // === AUTO-GENERATED CAMUNDA METHODS START ===
-  // Generated methods (2025-09-04T04:10:06.053Z)
+  // Generated methods (2025-09-04T22:09:26.187Z)
   /**
    * Activate activities within an ad-hoc sub-process
    * Activates selected activities within an ad-hoc sub-process identified by element ID.

@@ -1,27 +1,59 @@
 import { describe, it, expect } from 'vitest';
-import createCamundaClient from '../dist'
-import fs from 'fs'
+import createCamundaClient, { createCamundaResultClient } from '../dist';
+import fs from 'fs';
 
 describe('acceptance', () => {
     it.skip('can get the the current CamundaUser', async () => {
-        const camunda = createCamundaClient() 
+        const camunda = createCamundaClient()
         const res = await camunda.getAuthentication()
         console.log(JSON.stringify(res, null, 2))
         expect(res).toBeDefined()
     })
-    it('can deploy a process model', async () => {
-    const buffer = await fs.promises.readFile('./tests-integration/fixtures/test-process.bpmn');
+    it('throws when using a Blob instead of File (invalid resources array)', async () => {
+        const buffer = await fs.promises.readFile('./tests-integration/fixtures/test-process.bpmn');
+        const copied = Uint8Array.from(buffer);
+        const blob = new Blob([copied], { type: 'application/xml' });
+        const camunda = createCamundaClient({ throwOnError: true });
+        await expect(camunda.createDeployment({ resources: [blob as any] } as any)).rejects.toBeDefined();
+    });
 
-    const copied = Uint8Array.from(buffer);
-    const file = new File([copied], 'test-process.bpmn', { type: 'application/xml' });
+    it('throws on 401/403 (invalid auth) when throwOnError true', async () => {
+        const buffer = await fs.promises.readFile('./tests-integration/fixtures/test-process.bpmn');
+        const copied = Uint8Array.from(buffer);
+        const file = new File([copied], 'test-process.bpmn', { type: 'application/xml' });
+        const camunda = createCamundaClient({
+            throwOnError: true,
+            // Force bad credentials to guarantee a non-2xx response
+            config: {
+                CAMUNDA_AUTH_STRATEGY: 'BASIC',
+                CAMUNDA_BASIC_AUTH_USERNAME: '___invalid___',
+                CAMUNDA_BASIC_AUTH_PASSWORD: '___invalid___'
+            }
+        } as any);
+        await expect(camunda.createDeployment({ resources: [file] } as any)).rejects.toBeDefined();
+    });
 
-        const camunda = createCamundaClient();
+    it('returns Result (ok:false) with CamundaResultClient instead of throwing', async () => {
+        const buffer = await fs.promises.readFile('./tests-integration/fixtures/test-process.bpmn');
+        const copied = Uint8Array.from(buffer);
+        const blob = new Blob([copied], { type: 'application/xml' });
+        const client = createCamundaResultClient({});
+        const res = await (client as any).createDeployment({ resources: [blob as any] });
+        expect(res.ok).toBe(false);
+        expect(res.error).toBeDefined();
+    });
 
-        // const result = await camunda.createDeployment(
-        //   { resources: [file] }    
-        // );
-
-        const result = await camunda.deployResourcesFromFiles(['./tests-integration/fixtures/test-process.bpmn'])
-        console.log(JSON.stringify(result, null, 2))
-    })
+    it.only('can do all the things', { timeout: 20000 }, async () => {
+        const camunda = createCamundaClient({});
+        const res = await camunda.deployResourcesFromFiles(['./tests-integration/fixtures/test-process.bpmn']);
+        const process = await camunda.createProcessInstance({
+            processDefinitionKey: res.processes[0].processDefinitionKey,
+        })
+        const search = await camunda.searchProcessInstances({
+            filter: {
+                processInstanceKey: process.processInstanceKey
+            }
+        }, { consistency: { waitUpToMs: 20000, pollIntervalMs: 2000 } })
+        expect(search.items.length).toBe(1);
+    });
 });

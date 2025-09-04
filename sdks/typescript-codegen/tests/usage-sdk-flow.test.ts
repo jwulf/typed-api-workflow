@@ -26,7 +26,7 @@ describe('End-to-end usage (mocked) - create instance -> search', () => {
       return new Response(JSON.stringify({ items: [{ processInstanceKey: '5001', processDefinitionKey: '1001' }], total: 1 }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     });
 
-    const deployment = await camunda.createDeployment({ resources: [new Blob()] });
+    const deployment = await camunda.createDeployment({ resources: [new File(['dummy content'], 'dummy.bpmn', { type: 'application/octet-stream'})] });
 
     const { processDefinitionKey } = deployment.deployments[0].processDefinition!;
     const createResult = await camunda.createProcessInstance({ processDefinitionKey });

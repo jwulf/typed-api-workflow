@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "generatedAt": "2025-09-02T22:51:13.208Z",
-  "specHash": "sha256:895039c7fef1d0649afee62da9764b34c33a6ca69e84a55b6e49365ada5a1723",
+  "generatedAt": "2025-09-04T22:09:23.028Z",
+  "specHash": "sha256:250921cb785633a419a2629b02fbe3a8981b9d08d61029ba67b24a348e6e019e",
   "generator": {
     "name": "@hey-api/openapi-ts"
   },
@@ -408,7 +408,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DocumentId",
-        "lineStart": 10560
+        "lineStart": 10557
       },
       "extensions": {},
       "flags": {
@@ -1089,7 +1089,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/TenantId",
-        "lineStart": 11640
+        "lineStart": 11637
       },
       "extensions": {},
       "flags": {
@@ -1135,7 +1135,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/Username",
-        "lineStart": 11650
+        "lineStart": 11647
       },
       "extensions": {},
       "flags": {
@@ -1289,7 +1289,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BatchOperationItemStateFilterProperty",
-        "lineStart": 11437
+        "lineStart": 11434
       },
       "stableId": "batch-operation-item-state-filter-property"
     },
@@ -1346,7 +1346,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BatchOperationStateFilterProperty",
-        "lineStart": 11343
+        "lineStart": 11340
       },
       "stableId": "batch-operation-state-filter-property"
     },
@@ -1372,7 +1372,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/BatchOperationTypeFilterProperty",
-        "lineStart": 11310
+        "lineStart": 11307
       },
       "stableId": "batch-operation-type-filter-property"
     },
@@ -1418,7 +1418,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/DecisionEvaluationInstruction",
-        "lineStart": 10057
+        "lineStart": 10052
       },
       "stableId": "decision-evaluation-instruction"
     },
@@ -1493,7 +1493,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/JobKindFilterProperty",
-        "lineStart": 9777
+        "lineStart": 9772
       },
       "stableId": "job-kind-filter-property"
     },
@@ -1519,7 +1519,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/JobListenerEventTypeFilterProperty",
-        "lineStart": 9810
+        "lineStart": 9805
       },
       "stableId": "job-listener-event-type-filter-property"
     },
@@ -1545,7 +1545,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/JobStateFilterProperty",
-        "lineStart": 9744
+        "lineStart": 9739
       },
       "stableId": "job-state-filter-property"
     },
@@ -1619,7 +1619,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/OperationMetadata",
-        "lineStart": 11660
+        "lineStart": 11657
       },
       "stableId": "operation-metadata"
     },
@@ -1643,7 +1643,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/ProcessInstanceCreationInstruction",
-        "lineStart": 10793
+        "lineStart": 10790
       },
       "stableId": "process-instance-creation-instruction"
     },
@@ -1729,7 +1729,7 @@
       },
       "source": {
         "schemaPointer": "#/components/schemas/SearchQueryPageRequest",
-        "lineStart": 9877
+        "lineStart": 9872
       },
       "stableId": "search-query-page-request"
     },

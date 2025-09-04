@@ -15,6 +15,7 @@
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'yaml';
+import crypto from 'crypto';
 
 interface OA3Parameter { in?: string; name?: string }
 interface OA3RequestBody { content?: Record<string, any> }
@@ -39,12 +40,28 @@ function main() {
   let underlyingDocs: Record<string,string> = {};
   if (fs.existsSync(SDK_GEN_PATH)) {
     const sdkSrc = fs.readFileSync(SDK_GEN_PATH,'utf8');
-    const docRe = /\/\*\*([\s\S]*?)\*\/\s*export const (\w+)\s*=\s*</g;
-    let m: RegExpExecArray | null;
-    while ((m = docRe.exec(sdkSrc))) {
-      const rawBlock = '/**' + m[1] + '*/';
-      const name = m[2];
-      underlyingDocs[name] = rawBlock;
+    // Safer scan: find each /** ... */ then ensure the next non-whitespace chars start with export const <name>
+    let idx = 0;
+    while (true) {
+      const start = sdkSrc.indexOf('/**', idx);
+      if (start === -1) break;
+      const end = sdkSrc.indexOf('*/', start + 3);
+      if (end === -1) break; // malformed
+      const after = sdkSrc.slice(end + 2); // chars after */
+      const leading = after.match(/^[\s\r\n]*/)?.[0] || '';
+      const rest = after.slice(leading.length);
+      const exportMatch = rest.match(/^export const (\w+)\s*=\s*</);
+      if (exportMatch) {
+        const name = exportMatch[1];
+        const rawBlock = sdkSrc.slice(start, end + 2);
+        // Reject if rawBlock contains code-like lines (e.g., 'client?: Client;') – indicates we spanned multiple small comments.
+        if (/^\s*client\?: Client;/m.test(rawBlock) || /^\s*meta\?: Record<.*>;?/m.test(rawBlock)) {
+          // skip polluted block
+        } else {
+          underlyingDocs[name] = rawBlock;
+        }
+      }
+      idx = end + 2;
     }
   }
 
@@ -114,28 +131,16 @@ function main() {
     } else lines.push(jsdoc);
   }
   if (op.eventual) {
-    lines.push(`export function ${op.opId}(body: _${op.opId}_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _${op.opId}>> }): CancelablePromise<_DataOf<typeof _${op.opId}>>;`);
-    lines.push(`export function ${op.opId}(options: _${op.opId}_Options, ec: { consistency: ConsistencyOptions<_DataOf<typeof _${op.opId}>> }): CancelablePromise<_DataOf<typeof _${op.opId}>>;`);
-    lines.push(`export function ${op.opId}(arg: any, ec: { consistency: ConsistencyOptions<_DataOf<typeof _${op.opId}>> }): CancelablePromise<_DataOf<typeof _${op.opId}>> {`);
+    // Eventually consistent body-only operation: single signature (body + consistency opts)
+    lines.push(`export function ${op.opId}(body: _${op.opId}_Body, ec: { consistency: ConsistencyOptions<_DataOf<typeof _${op.opId}>> }): CancelablePromise<_DataOf<typeof _${op.opId}>> {`);
     lines.push(`  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');`);
-    lines.push(`  const invoke = () => toCancelable(signal => {`);
-    lines.push(`    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {`);
-    lines.push(`      return _${op.opId}({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);`);
-    lines.push('    }');
-    lines.push(`    return _${op.opId}({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);`);
-    lines.push('  });');
-    lines.push(`  return eventualPoll('${(op as any).originalOpId}', '${op.verb}' === 'get', invoke, ec.consistency);`);
+    lines.push(`  const invoke = () => toCancelable(signal => _${op.opId}({ body, signal } as any).then((r:any)=> r?.data ?? r));`);
+    lines.push(`  return eventualPoll('${(op as any).originalOpId}', ${op.verb === 'get'}, invoke, ec.consistency);`);
     lines.push('}');
   } else {
-    lines.push(`export function ${op.opId}(body: _${op.opId}_Body): CancelablePromise<_DataOf<typeof _${op.opId}>>;`);
-    lines.push(`export function ${op.opId}(options: _${op.opId}_Options): CancelablePromise<_DataOf<typeof _${op.opId}>>;`);
-    lines.push(`export function ${op.opId}(arg: any): CancelablePromise<_DataOf<typeof _${op.opId}>> {`);
-    lines.push(`  return toCancelable(signal => {`);
-    lines.push(`    if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {`);
-    lines.push(`      return _${op.opId}({ ...arg, signal } as any).then((r:any)=> r?.data ?? r);`);
-    lines.push('    }');
-    lines.push(`    return _${op.opId}({ body: arg, signal } as any).then((r:any)=> r?.data ?? r);`);
-    lines.push('  });');
+    // Simple body-only operation: single signature accepting raw body
+    lines.push(`export function ${op.opId}(body: _${op.opId}_Body): CancelablePromise<_DataOf<typeof _${op.opId}>> {`);
+    lines.push(`  return toCancelable(signal => _${op.opId}({ body, signal } as any).then((r:any)=> r?.data ?? r));`);
     lines.push('}');
   }
     const original = (op as any).originalOpId;
@@ -159,7 +164,7 @@ function main() {
       lines.push(`export function ${op.opId}(options: Parameters<typeof _${op.opId}>[0] | undefined, ec: { consistency: ConsistencyOptions<_DataOf<typeof _${op.opId}>> }): CancelablePromise<_DataOf<typeof _${op.opId}>> {`);
       lines.push(`  if (!ec || !ec.consistency) throw new Error('Missing consistency options (mandatory for eventually consistent endpoint)');`);
       lines.push(`  const invoke = () => toCancelable(signal => _${op.opId}({ ...(options||{}), signal } as any).then((r:any)=> r?.data ?? r));`);
-      lines.push(`  return eventualPoll('${(op as any).originalOpId}', '${op.verb}' === 'get', invoke, ec.consistency);`);
+      lines.push(`  return eventualPoll('${(op as any).originalOpId}', ${op.verb === 'get'}, invoke, ec.consistency);`);
       lines.push('}');
     } else {
       lines.push(`export function ${op.opId}(options?: Parameters<typeof _${op.opId}>[0]): CancelablePromise<_DataOf<typeof _${op.opId}>> {`);
@@ -178,8 +183,16 @@ function main() {
     lines.push('export {} // no operations found');
   }
 
-  fs.writeFileSync(OUT_FILE, lines.join('\n'), 'utf8');
-  console.log(`[facade-gen] Wrote ${bodyOnlyOps.length} flattened + ${passthroughOps.length} passthrough wrappers (total ${allOps.length}) -> ${path.relative(ROOT, OUT_FILE)}`);
+  // --- Instrumentation: compute hash BEFORE sentinel insertion ---
+  const preContent = lines.join('\n');
+  const hash = crypto.createHash('sha256').update(preContent).digest('hex').slice(0, 16);
+  // NOTE: lines.length under-counts actual file lines because many pushed strings (JSDoc blocks) contain embedded newlines.
+  // Compute the real physical line count for accurate diagnostics.
+  const physicalLineCount = preContent.split(/\n/).length; // wc -l equivalent (both count trailing sentinel line)
+  lines.push(`// SENTINEL_FACADE_PREWRITE hash=${hash} totalWrappers=${allOps.length} elements=${lines.length} physicalLines=${physicalLineCount}`);
+  fs.writeFileSync(OUT_FILE, preContent + '\n' + lines[lines.length-1] + '\n', 'utf8');
+  console.log(`[facade-gen] Wrote ${bodyOnlyOps.length} flattened + ${passthroughOps.length} passthrough wrappers (total ${allOps.length}) -> ${path.relative(ROOT, OUT_FILE)} (hash=${hash}, elements=${lines.length}, physicalLines=${physicalLineCount})`);
+
 
   // Greenfield: no legacy wrapper or request shims emitted.
 
@@ -199,12 +212,13 @@ function main() {
         keyNames = Array.from(new Set(keyNames)).sort();
       }
     }
-    const barrel = [
+  const barrel = [
       '// @generated facade barrel',
       "export * from '../facade/operations.gen';",
       keyNames.length ? 'export { '+ keyNames.join(', ') +" } from './types.gen';" : '//' + ' no key names found'
     ].join('\n');
-    const barrelPath = path.join(ROOT,'src/gen/facade.gen.ts');
+  const barrelPath = path.join(ROOT,'src/gen/facade.gen.ts');
+  fs.mkdirSync(path.dirname(barrelPath), { recursive: true });
     fs.writeFileSync(barrelPath, barrel, 'utf8');
     console.log(`[facade-gen] Wrote barrel with ${keyNames.length} CamundaKey exports -> src/gen/facade.gen.ts`);
   } catch (e) {

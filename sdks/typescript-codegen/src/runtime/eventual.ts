@@ -4,6 +4,7 @@
 // by codegen without circular deps.
 import { EventualConsistencyTimeoutError } from './errors';
 import { hydrateConfig } from './unifiedConfiguration';
+import type { Result } from '../resultClient';
 
 import type { Logger } from './logger';
 
@@ -42,7 +43,13 @@ type PollInvokeResult<T> = { kind: 'success'; value: T; status?: number } | { ki
 
 function now() { return Date.now(); }
 
-export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () => CancelablePromise<T>, options: ConsistencyOptions<T> & { logger?: Logger }): CancelablePromise<T> {
+// errorMode: 'throw' returns CancelablePromise<T> rejecting on errors; 'result' resolves with Result<T> never throwing.
+// Overloads (Option A):
+// - Default / throw mode -> CancelablePromise<T>
+// - Result mode -> CancelablePromise<Result<T>>
+export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () => CancelablePromise<T>, options: ConsistencyOptions<T> & { logger?: Logger; errorMode?: 'throw' | undefined }): CancelablePromise<T>;
+export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () => CancelablePromise<T>, options: ConsistencyOptions<T> & { logger?: Logger; errorMode: 'result' }): CancelablePromise<Result<T>>;
+export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () => CancelablePromise<T>, options: ConsistencyOptions<T> & { logger?: Logger; errorMode?: 'throw' | 'result' }): CancelablePromise<any> {
   const { waitUpToMs, predicate, onAttempt, onComplete, abortSignal } = options;
   const elog = options.logger?.scope('eventual');
   const pollDefaultMs = hydrateConfig().config.eventual?.pollDefaultMs || 500;
@@ -50,9 +57,18 @@ export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () 
   const baseInterval = userInterval != null ? userInterval : pollDefaultMs;
   const pollInterval = Math.max(10, baseInterval);
 
-  if (waitUpToMs === 0) return invoke();
+  if (waitUpToMs === 0) {
+    const base = invoke();
+    if (options.errorMode === 'result') {
+      return toCancelable<Result<T>>((signal) => {
+        signal.addEventListener('abort', () => (base as any).cancel?.());
+        return base.then(v => ({ ok: true, value: v } as Result<T>)).catch(e => ({ ok: false, error: e } as Result<T>));
+      });
+    }
+    return base;
+  }
 
-  return toCancelable<T>(outerSignal => {
+  return toCancelable<any>(outerSignal => {
     let attempts = 0;
     const started = now();
     let cancelled = false;
@@ -69,8 +85,8 @@ export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () 
       attempts++;
       const attemptStarted = now();
       let settled = false;
-      const settleOk = (val: T) => { if (settled) return; settled = true; resolve(val); };
-      const settleErr = (err: any) => { if (settled) return; settled = true; reject(err); };
+  const settleOk = (val: T) => { if (settled) return; settled = true; if (options.errorMode === 'result') (resolve as any)({ ok: true, value: val } as Result<T>); else resolve(val as any); };
+  const settleErr = (err: any) => { if (settled) return; settled = true; if (options.errorMode === 'result') (resolve as any)({ ok: false, error: err } as Result<T>); else reject(err); };
       const req = invoke();
       (req as any).then(async (res: any) => {
         if (cancelled || outerSignal.aborted) return settleErr(new Error('Cancelled'));

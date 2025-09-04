@@ -22,7 +22,7 @@ describe('semantic key request unwrapping', () => {
     const capture: any = {};
     const client = makeClient(capture);
     const key = ProcessInstanceKey.assumeExists('12345');
-    await client.getProcessInstance(key, { consistency: { waitUpToMs: 0}});
+    await client.getProcessInstance({processInstanceKey: key}, { consistency: { waitUpToMs: 0}});
     expect(capture.url).toContain('/process-instances/12345');
   });
 

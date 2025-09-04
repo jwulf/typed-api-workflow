@@ -192,6 +192,9 @@ await p; // rejects with CancelError if aborted
 ## Eventual Consistency Polling
 Some endpoints accept consistency management options. Pass a `consistency` block (where supported) with `waitUpToMs` and optional `pollIntervalMs` (default 500). If the condition is not met within timeout an `EventualConsistencyTimeoutError` is thrown.
 
+To consume eventual polling in a non‑throwing fashion set the client error mode before invoking an eventually consistent method:
+At present the canonical client operates in throwing mode. Non‑throwing adaptation (Result / fp-ts) is achieved via the functional wrappers rather than mutating the base client.
+
 ## Logging
 Per‑client logger; no global singleton. The level defaults from `CAMUNDA_SDK_LOG_LEVEL` (default `error`).
 
@@ -308,6 +311,69 @@ May throw:
 * Validation errors (strict mode)
 * `EventualConsistencyTimeoutError`
 * `CancelError` on cancellation
+
+### Functional / Non‑Throwing Variant
+If you prefer FP‑style explicit error handling instead of exceptions, use the result client wrapper:
+
+```ts
+import { createCamundaResultClient, isOk } from '@camunda8/orchestration-cluster';
+
+const camundaR = createCamundaResultClient();
+const res = await camundaR.createDeployment({ resources: [file] });
+if (isOk(res)) {
+  console.log('Deployment key', res.value.deployments[0].deploymentKey);
+} else {
+  console.error('Deployment failed', res.error);
+}
+```
+
+API surface differences:
+* All async operation methods return `Promise<Result<T>>` where `Result<T> = { ok: true; value: T } | { ok: false; error: unknown }`.
+* No exceptions are thrown for HTTP / validation errors (cancellation and programmer errors like invalid argument sync throws are still converted to `{ ok:false }`).
+* The original throwing client is available via `client.inner` if you need to mix styles.
+
+Helpers:
+```ts
+import { isOk, isErr } from '@camunda8/orchestration-cluster';
+```
+
+When to use:
+* Integrating with algebraic effects / functional pipelines.
+* Avoiding try/catch nesting in larger orchestration flows.
+* Converting to libraries expecting an Either/Result pattern.
+
+### fp-ts Adapter (TaskEither / Either)
+For projects using `fp-ts`, wrap the throwing client in a lazy `TaskEither` facade:
+
+```ts
+import { createCamundaFpClient } from '@camunda8/orchestration-cluster';
+import { pipe } from 'fp-ts/function';
+import * as TE from 'fp-ts/TaskEither';
+
+const fp = createCamundaFpClient();
+
+const deployTE = fp.createDeployment({ resources: [file] }); // TaskEither<unknown, ExtendedDeploymentResult>
+
+pipe(
+  deployTE(), // invoke the task (returns Promise<Either>)
+  then => then // typical usage would use TE.match / TE.fold; shown expanded for clarity
+);
+
+// With helpers
+const task = fp.createDeployment({ resources: [file] });
+const either = await task();
+if (either._tag === 'Right') {
+  console.log(either.right.deployments.length);
+} else {
+  console.error('Error', either.left);
+}
+```
+
+Notes:
+* No runtime dependency on `fp-ts`; adapter implements a minimal `Either` shape. Structural typing lets you lift into real `fp-ts` functions (`fromEither`, etc.).
+* Each method becomes a function returning `() => Promise<Either<E,A>>` (a `TaskEither` shape). Invoke it later to execute.
+* Cancellation: calling `.cancel()` on the original promise isn’t surfaced; if you need cancellation use the base client directly.
+* For richer interop, you can map the returned factory to `TE.tryCatch` in userland.
 
 ## Pagination
 Search endpoints expose typed request bodies that include pagination fields. Provide the desired page object; auto‑pagination is not (yet) bundled.
