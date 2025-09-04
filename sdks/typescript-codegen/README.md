@@ -18,7 +18,12 @@ Type‑safe, promise‑based client for the Camunda 8 Orchestration Cluster REST
 ```bash
 npm install @camunda8/orchestration-cluster
 ```
-Requires Node 18+ (native fetch). Provide a fetch ponyfill if targeting older runtimes.
+Runtime support:
+
+* Node 18+ (native fetch & File; Node 20+ recommended)
+* Modern browsers (Chromium, Firefox, Safari) – global `fetch` & `File` available
+
+For older Node versions supply a fetch ponyfill AND a `File` shim (or upgrade). For legacy browsers, add a fetch polyfill (e.g. `whatwg-fetch`).
 
 ## Quick Start (Zero‑Config – Recommended)
 Keep configuration out of application code. Let the factory read `CAMUNDA_*` variables from the environment (12‑factor style). This makes rotation, secret management, and environment promotion safer & simpler.
@@ -54,7 +59,7 @@ CAMUNDA_CLIENT_SECRET=***
 > * Observability clarity: configuration diffing is an ops concern, not an application code diff.
 
 ### Advanced: Programmatic Overrides
-Use only when you must supply or mutate configuration dynamically (e.g. multi‑tenant routing, tests, ephemeral preview environments). Keys mirror their `CAMUNDA_*` env names.
+Use only when you must supply or mutate configuration dynamically (e.g. multi‑tenant routing, tests, ephemeral preview environments) or in the browser. Keys mirror their `CAMUNDA_*` env names.
 
 ```ts
 const camunda = createCamundaClient({
@@ -312,6 +317,68 @@ Generated doc enumerating all supported environment variables (types, defaults, 
 ```
 ./docs/CONFIG_REFERENCE.md
 ```
+
+## Deploying Resources (File-only)
+The deployment endpoint requires each resource to have a filename (extension used to infer type: `.bpmn`, `.dmn`, `.form` / `.json`). Extensions influence server classification; incorrect or missing extensions may yield unexpected results. Pass an array of `File` objects (NOT plain `Blob`).
+
+### Browser
+```ts
+const bpmnXml = `<definitions id="process" xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL">...</definitions>`;
+const file = new File([bpmnXml], 'order-process.bpmn', { type: 'application/xml' });
+const result = await camunda.createDeployment({ resources: [file] });
+console.log(result.deployments.length);
+```
+
+From an existing Blob:
+```ts
+const blob: Blob = getBlob();
+const file = new File([blob], 'model.bpmn');
+await camunda.createDeployment({ resources: [file] });
+```
+
+### Node (Recommended Convenience)
+Use the built-in helper `deployResourcesFromFiles(...)` to read local files and create `File` objects automatically. It returns the enriched `ExtendedDeploymentResult` (adds typed arrays: `processes`, `decisions`, `decisionRequirements`, `forms`, `resources`).
+
+```ts
+const result = await camunda.deployResourcesFromFiles([
+  './bpmn/order-process.bpmn',
+  './dmn/discount.dmn',
+  './forms/order.form'
+]);
+
+console.log(result.processes.map(p => p.processDefinitionId));
+console.log(result.decisions.length);
+```
+
+With explicit tenant (overriding tenant from configuration):
+```ts
+await camunda.deployResourcesFromFiles(['./bpmn/order-process.bpmn'], { tenantId: 'tenant-a' });
+```
+
+Error handling:
+```ts
+try {
+  await camunda.deployResourcesFromFiles([]); // throws (empty array)
+} catch (e) {
+  console.error('Deployment failed:', e);
+}
+```
+
+Manual construction alternative (if you need custom logic):
+```ts
+import { File } from 'node:buffer';
+const bpmnXml = '<definitions id="process" xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"></definitions>';
+const file = new File([Buffer.from(bpmnXml)], 'order-process.bpmn', { type: 'application/xml' });
+await camunda.createDeployment({ resources: [file] });
+```
+
+Helper behavior:
+* Dynamically imports `node:fs/promises` & `node:path` (tree-shaken from browser bundles)
+* Validates Node environment (throws in browsers)
+* Lightweight MIME inference: `.bpmn|.dmn|.xml -> application/xml`, `.json|.form -> application/json`, fallback `application/octet-stream`
+* Rejects empty path list
+
+Empty arrays are rejected. Always use correct extensions so the server can classify each resource.
 
 ## Testing Patterns
 Create isolated clients per test file:

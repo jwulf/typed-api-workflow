@@ -22,7 +22,7 @@
     },
     "scripts": {
         "clean": "rimraf dist src/gen",
-    "generate": "npm run clean && npm run preprocess && npm run generate:sdk && npm run generate:class && npm run gate && vitest run --passWithNoTests --exclude tests-integration/**",
+    "generate": "npm run clean && npm run preprocess && npm run generate:sdk && tsx scripts/postprocess-deployment-schema.ts && npm run generate:class && npm run gate && vitest run --passWithNoTests --exclude tests-integration/**",
         "generate:class": "tsx scripts/generate-class-methods.ts",
         "gate": "tsx scripts/postprocess-gate-validation.ts",
         "generate:sdk": "openapi-ts -i ../../rest-api.domain.yaml -o src/gen",

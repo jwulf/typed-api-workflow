@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { parse } from 'yaml';
 
-interface OA3Parameter { in?: string; name?: string }
+interface OA3Parameter { in?: string; name?: string; required?: boolean }
 interface OA3Schema { oneOf?: any[]; anyOf?: any[]; $ref?: string }
 interface OA3MediaType { schema?: OA3Schema }
 interface OA3RequestBody { content?: Record<string, OA3MediaType> }
@@ -32,12 +32,20 @@ function main() {
   // Underlying docs
   const docs: Record<string,string> = {};
   if (fs.existsSync(SDK_GEN_PATH)) {
-  const sdk = fs.readFileSync(SDK_GEN_PATH,'utf8');
-  // Only capture operation JSDoc blocks immediately preceding an exported const function (avoid capturing other unrelated blocks)
-  const re = /\n\/\*\*([\s\S]*?)\*\/\nexport const (\w+)\s*=\s*</g; let m; while((m=re.exec(sdk))) docs[m[2]]='/**'+m[1]+'*/';
+    const sdk = fs.readFileSync(SDK_GEN_PATH,'utf8');
+    const re = /\n\/\*\*([\s\S]*?)\*\/\nexport const (\w+)\s*=\s*</g; let m; while((m=re.exec(sdk))) docs[m[2]]='/**'+m[1]+'*/';
+  }
+  // Collect available exported zod response schema names to avoid emitting invalid references
+  const availableResponses = new Set<string>();
+  const ZOD_GEN_PATH = path.join(ROOT, 'src/gen/zod.gen.ts');
+  if (fs.existsSync(ZOD_GEN_PATH)) {
+    const zsrc = fs.readFileSync(ZOD_GEN_PATH,'utf8');
+    const rResp = /export const (z[A-Z][A-Za-z0-9_]*)\s*=\s*/g; let mm; while((mm = rResp.exec(zsrc))) {
+      availableResponses.add(mm[1]);
+    }
   }
 
-  interface OpMeta { opId: string; hasBody: boolean; bodyOnly: boolean; summary?: string; description?: string; tags?: string[]; originalOpId: string; unionBodies: string[]; eventual: boolean; verb: string; pathParams: string[] }
+  interface OpMeta { opId: string; hasBody: boolean; bodyOnly: boolean; summary?: string; description?: string; tags?: string[]; originalOpId: string; unionBodies: string[]; eventual: boolean; verb: string; pathParams: string[]; queryParams: string[] }
   const ops: OpMeta[] = [];
   for (const item of Object.values(spec.paths||{})) {
     for (const [verb, raw] of Object.entries(item as any)) {
@@ -45,6 +53,7 @@ function main() {
       const originalId = op.operationId; const opId = sanitize(op.operationId);
   const params = (op.parameters||[]) as OA3Parameter[];
   const pathParams = params.filter(p=>p.in==='path' && !!p.name).map(p=>p.name!) as string[];
+  const queryParams = params.filter(p=>p.in==='query' && !!p.name).map(p=>p.name!) as string[];
   const hasPQ = params.some(p=> p.in==='path' || p.in==='query');
       const hasBody = !!op.requestBody && hasJsonLike(op.requestBody);
       const bodyOnly = !!(hasBody && !hasPQ);
@@ -66,7 +75,7 @@ function main() {
           }
         }
       }
-  ops.push({ opId, hasBody, bodyOnly, summary: op.summary, description: op.description, tags: op.tags, originalOpId: originalId, unionBodies: Array.from(new Set(unionBodies)), eventual, verb: verb.toLowerCase(), pathParams });
+  ops.push({ opId, hasBody, bodyOnly, summary: op.summary, description: op.description, tags: op.tags, originalOpId: originalId, unionBodies: Array.from(new Set(unionBodies)), eventual, verb: verb.toLowerCase(), pathParams, queryParams });
     }
   }
   ops.sort((a,b)=> a.opId.localeCompare(b.opId));
@@ -77,148 +86,163 @@ function main() {
   support.push('type _RawReturn<F> = F extends (...a:any)=>Promise<infer R> ? R : never;');
   support.push('type _DataOf<F> = Exclude<_RawReturn<F> extends { data: infer D } ? D : _RawReturn<F>, undefined>;');
   for (const o of ops) {
-  support.push(`type ${o.opId}Options = Parameters<typeof Sdk.${o.opId}>[0];`);
-  if (o.hasBody) support.push(`type ${o.opId}Body = (NonNullable<${o.opId}Options> extends { body?: infer B } ? B : never);`);
-  if (!o.hasBody && o.pathParams.length === 1) {
-    const pp = o.pathParams[0];
-    support.push(`type ${o.opId}PathParam = (NonNullable<${o.opId}Options> extends { path: { ${pp}: infer P } } ? P : any);`);
-  }
-  // Consistency types must reference the local runtime folder (same directory as this output file)
-  if (o.eventual) support.push(`/** Management of eventual consistency **/
+    support.push(`type ${o.opId}Options = Parameters<typeof Sdk.${o.opId}>[0];`);
+    if (o.hasBody) support.push(`type ${o.opId}Body = (NonNullable<${o.opId}Options> extends { body?: infer B } ? B : never);`);
+    // Path & query param extracted types (individual)
+    for (const pp of o.pathParams) support.push(`type ${o.opId}PathParam_${pp} = (NonNullable<${o.opId}Options> extends { path: { ${pp}: infer P } } ? P : any);`);
+    for (const qp of o.queryParams) support.push(`type ${o.opId}QueryParam_${qp} = (NonNullable<${o.opId}Options> extends { query: { ${qp}: infer Q } } ? Q : any);`);
+    // Build unified Input type (domain-only).
+    const pieces: string[] = [];
+    if (o.pathParams.length || o.queryParams.length || o.hasBody) {
+      if (o.hasBody) pieces.push(o.opId + 'Body');
+      const extras: string[] = [];
+      for (const pp of o.pathParams) extras.push(`${pp}: ${o.opId}PathParam_${pp}`);
+      for (const qp of o.queryParams) extras.push(`${qp}${o.bodyOnly ? '?' : ''}: ${o.opId}QueryParam_${qp}`); // query optional by default (cannot infer required easily without spec extension here)
+      if (extras.length) pieces.push(`{ ${extras.join('; ')} }`);
+      support.push(`type ${o.opId}Input = ${pieces.join(' & ')};`);
+    } else {
+      support.push(`type ${o.opId}Input = void;`);
+    }
+    if (o.eventual) support.push(`/** Management of eventual consistency **/
 type ${o.opId}Consistency = { 
 /** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
     consistency: ConsistencyOptions<_DataOf<typeof Sdk.${o.opId}>> 
 };`);
   }
 
+  // Extended deployment result (public) - built atop generated REST types
+  support.push('/** Extended deployment result with typed buckets for direct access to deployed artifacts. */');
+  support.push('export interface ExtendedDeploymentResult extends _DataOf<typeof Sdk.createDeployment> {');
+  support.push('  processes: Array<NonNullable<_DataOf<typeof Sdk.createDeployment>["deployments"][number]["processDefinition"]>>;');
+  support.push('  decisions: Array<NonNullable<_DataOf<typeof Sdk.createDeployment>["deployments"][number]["decisionDefinition"]>>;');
+  support.push('  decisionRequirements: Array<NonNullable<_DataOf<typeof Sdk.createDeployment>["deployments"][number]["decisionRequirements"]>>;');
+  support.push('  forms: Array<NonNullable<_DataOf<typeof Sdk.createDeployment>["deployments"][number]["form"]>>;');
+  support.push('  resources: Array<NonNullable<_DataOf<typeof Sdk.createDeployment>["deployments"][number]["resource"]>>;');
+  support.push('}');
+
   const methods: string[] = [];
   methods.push('  // Generated methods ('+ new Date().toISOString() +')');
+  // (createDeployment) enrichment handled inline per-call; types above exported
   for (const o of ops) {
-      let jsdoc = forwardJsDoc(o, docs);
-      if (jsdoc && o.eventual) {
-        jsdoc = jsdoc.replace(/\n \* @tags[^\n]*\n/, (m)=> m + ' * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.\n');
-        if(!/@consistency eventual/.test(jsdoc)) {
-          jsdoc = jsdoc.replace(/\*\/$/, ' * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.\n */');
-        }
-      }
-      if (jsdoc) methods.push(indent(jsdoc,2));
-
-  if (o.hasBody) {
-      if (o.unionBodies.length > 1) {
-        for (const variant of o.unionBodies) {
-  methods.push(o.eventual ? `  ${o.opId}(body: ${variant}, /** Management of eventual consistency **/ consistencyManagement: ${o.opId}Consistency): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;` : `  ${o.opId}(body: ${variant}): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;`);
-        }
-      } else {
-  methods.push(o.eventual ? `  ${o.opId}(body: ${o.opId}Body, /** Management of eventual consistency **/ consistencyManagement: ${o.opId}Consistency): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;` : `  ${o.opId}(body: ${o.opId}Body): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;`);
-      }
-      // Always provide options-shape overload
-  methods.push(o.eventual ? `  ${o.opId}(options: ${o.opId}Options, /** Management of eventual consistency **/ consistencyManagement: ${o.opId}Consistency): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;` : `  ${o.opId}(options: ${o.opId}Options): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;`);
-    } else {
-      // options overload
-      methods.push(o.eventual ? `  ${o.opId}(options: ${o.opId}Options | undefined, /** Management of eventual consistency **/ consistencyManagement: ${o.opId}Consistency): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;` : `  ${o.opId}(options?: ${o.opId}Options): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;`);
-      // raw single path param overload
-      if (o.pathParams.length === 1) {
-        const pp = o.pathParams[0];
-        methods.push(o.eventual ? `  ${o.opId}(${pp}: ${o.opId}PathParam, /** Management of eventual consistency **/ consistencyManagement: ${o.opId}Consistency): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;` : `  ${o.opId}(${pp}: ${o.opId}PathParam): CancelablePromise<_DataOf<typeof Sdk.${o.opId}>>;`);
+    let jsdoc = forwardJsDoc(o, docs);
+    if (jsdoc && o.eventual) {
+      jsdoc = jsdoc.replace(/\n \* @tags[^\n]*\n/, (m)=> m + ' * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.\n');
+      if(!/@consistency eventual/.test(jsdoc)) {
+        jsdoc = jsdoc.replace(/\*\/$/, ' * @consistency eventual - this endpoint is backed by data that is eventually consistent with the system state.\n */');
       }
     }
-
-  methods.push(`  ${o.opId}(arg: any${o.eventual ? ', /** Management of eventual consistency **/ consistencyManagement: '+o.opId+'Consistency' : ''}): CancelablePromise<any> {`);
+    if (jsdoc) {
+      // augment createDeployment doc with enrichment mention
+      if (o.opId === 'createDeployment') {
+        jsdoc = jsdoc.replace(/\* @tags Resource/, '* @tags Resource\n * @returns Enriched deployment result with typed arrays (processes, decisions, decisionRequirements, forms, resources).');
+      }
+      methods.push(indent(jsdoc,2));
+    }
+    // Method signature (single unified input)
+    const returnType = o.opId === 'createDeployment' ? 'ExtendedDeploymentResult' : `_DataOf<typeof Sdk.${o.opId}>`;
+    if (o.hasBody || o.pathParams.length || o.queryParams.length) {
+      methods.push(o.eventual ? `  ${o.opId}(input: ${o.opId}Input, /** Management of eventual consistency **/ consistencyManagement: ${o.opId}Consistency): CancelablePromise<${returnType}>;` : `  ${o.opId}(input: ${o.opId}Input): CancelablePromise<${returnType}>;`);
+    } else {
+      methods.push(o.eventual ? `  ${o.opId}(consistencyManagement: ${o.opId}Consistency): CancelablePromise<${returnType}>;` : `  ${o.opId}(): CancelablePromise<${returnType}>;`);
+    }
+    methods.push(`  ${o.opId}(${o.hasBody || o.pathParams.length || o.queryParams.length ? 'arg: any' : 'arg?: any'}${o.eventual ? ', /** Management of eventual consistency **/ consistencyManagement: '+o.opId+'Consistency' : ''}): CancelablePromise<any> {`);
     if (o.eventual) {
       methods.push('    if (!consistencyManagement) throw new Error("Missing consistencyManagement parameter for eventually consistent endpoint");');
       methods.push('    const useConsistency = consistencyManagement.consistency;');
     }
-  // (generator) removed stray lines from earlier patch attempt
-    methods.push('    return toCancelable(signal => {');
+  methods.push('    return toCancelable(async signal => {');
+    // Build envelope
+    const hasInputs = o.hasBody || o.pathParams.length || o.queryParams.length;
+    if (hasInputs) {
+      // Destructure and separate
+      const allParamNames = [...o.pathParams, ...o.queryParams];
       if (o.hasBody) {
-        // Options/object form (body inside object or other params)
-        methods.push("      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) {");
-        methods.push(`        const call = async () => {`);
-        methods.push(`          const opts: any = { ...arg, client: this._client, signal };`);
-  methods.push(`          if (opts.body !== undefined && this._validation.settings.req !== 'none') {`);
-  methods.push(`            const maybe = await this._validation.gateRequest('${o.originalOpId}', (Schemas as any).z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Data, opts.body);`);
-  methods.push(`            if (this._validation.settings.req === 'strict') opts.body = maybe;`);
-        methods.push(`          }`);
-  methods.push(`          const r = await Sdk.${o.opId}(opts);`);
-  methods.push(`          let data = (r as any)?.data;`);
-  methods.push(`          if (data === undefined) data = r;`);
-  methods.push(`          if (this._validation.settings.res !== 'none') {`);
-  methods.push(`            const _respKey = 'z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Response';`);
-  methods.push(`            const _schema = (Schemas as any)[_respKey];`);
-  methods.push(`            if (_schema) {`);
-  methods.push(`              const maybeR = await this._validation.gateResponse('${o.originalOpId}', _schema, data);`);
-  methods.push(`              if (this._validation.settings.res === 'strict') data = maybeR;`);
-  methods.push(`            }`);
-  methods.push(`          }`);
-        methods.push(`          return data;`);
-        methods.push(`        };`);
-        if (o.eventual) {
-          methods.push(`        const invoke = () => toCancelable(()=>call());`);
-          methods.push(`        if (useConsistency) return eventualPoll('${o.originalOpId}', ${o.verb === 'get'}, invoke, { ...useConsistency, logger: (this as any)._log });`);
-          methods.push('        return invoke();');
+        if (allParamNames.length) {
+          methods.push(`      const { ${allParamNames.join(', ')}, ..._body } = arg || {};`);
         } else {
-          methods.push('        return call();');
+          methods.push('      const _body = arg;');
         }
-        methods.push('      }');
-        // Bare body form
-        methods.push(`      const call = async () => {`);
-        methods.push(`        let bodyVal: any = arg;`);
-  methods.push(`        if (bodyVal !== undefined && this._validation.settings.req !== 'none') {`);
-  methods.push(`          const maybe = await this._validation.gateRequest('${o.originalOpId}', (Schemas as any).z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Data, bodyVal);`);
-  methods.push(`          if (this._validation.settings.req === 'strict') bodyVal = maybe;`);
-        methods.push(`        }`);
-  methods.push(`        const r = await Sdk.${o.opId}({ body: bodyVal, client: this._client, signal } as any);`);
-  methods.push(`        let data = (r as any)?.data;`);
-  methods.push(`        if (data === undefined) data = r;`);
-  methods.push(`        if (this._validation.settings.res !== 'none') {`);
-  methods.push(`          const _respKey = 'z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Response';`);
-  methods.push(`          const _schema = (Schemas as any)[_respKey];`);
-  methods.push(`          if (_schema) {`);
-  methods.push(`            const maybeR = await this._validation.gateResponse('${o.originalOpId}', _schema, data);`);
-  methods.push(`            if (this._validation.settings.res === 'strict') data = maybeR;`);
-  methods.push(`          }`);
-  methods.push(`        }`);
-        methods.push(`        return data;`);
-        methods.push(`      };`);
-        if (o.eventual) {
-          methods.push(`      const invoke = () => toCancelable(()=>call());`);
-          methods.push(`      if (useConsistency) return eventualPoll('${o.originalOpId}', ${o.verb === 'get'}, invoke, { ...useConsistency, logger: (this as any)._log });`);
-          methods.push('      return invoke();');
-        } else {
-          methods.push('      return call();');
-        }
-      } else {
-        // no body endpoint
-        if (o.pathParams.length === 1) {
-          const pp = o.pathParams[0];
-          methods.push(`      let opts: any;`);
-          methods.push(`      if (arg && typeof arg === 'object' && ('body' in arg || 'path' in arg || 'query' in arg || 'headers' in arg)) opts = arg || {}; else opts = { path: { ${pp}: arg } };`);
-        } else {
-          methods.push('      const opts = arg || {};');
-        }
-        methods.push(`      const call = async () => {`);
-        methods.push(`        const full = { ...opts, client: this._client, signal } as any;`);
-  methods.push(`        const r = await Sdk.${o.opId}(full);`);
-  methods.push(`        let data = (r as any)?.data;`);
-  methods.push(`        if (data === undefined) data = r;`);
-  methods.push(`        if (this._validation.settings.res !== 'none') {`);
-  methods.push(`          const _respKey = 'z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Response';`);
-  methods.push(`          const _schema = (Schemas as any)[_respKey];`);
-  methods.push(`          if (_schema) {`);
-  methods.push(`            const maybeR = await this._validation.gateResponse('${o.originalOpId}', _schema, data);`);
-  methods.push(`            if (this._validation.settings.res === 'strict') data = maybeR;`);
-  methods.push(`          }`);
-  methods.push(`        }`);
-        methods.push(`        return data;`);
-        methods.push(`      };`);
-        if (o.eventual) {
-          methods.push(`      const invoke = () => toCancelable(()=>call());`);
-          methods.push(`      if (useConsistency) return eventualPoll('${o.originalOpId}', ${o.verb === 'get'}, invoke, { ...useConsistency, logger: (this as any)._log });`);
-          methods.push('      return invoke();');
-        } else {
-          methods.push('      return call();');
-        }
+      } else if (allParamNames.length) {
+        methods.push(`      const { ${allParamNames.join(', ')} } = arg || {};`);
       }
+      methods.push('      let envelope: any = {};');
+      if (o.pathParams.length) methods.push(`      envelope.path = { ${o.pathParams.join(', ')} };`);
+      if (o.queryParams.length) methods.push(`      envelope.query = { ${o.queryParams.join(', ')} };`);
+      if (o.hasBody) methods.push('      envelope.body = _body;');
+      // Request validation against full envelope schema
+      methods.push(`      if (this._validation.settings.req !== 'none') {`);
+  methods.push(`        const maybe = await this._validation.gateRequest('${o.originalOpId}', Schemas.z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Data, envelope);`);
+      methods.push(`        if (this._validation.settings.req === 'strict') envelope = maybe;`);
+      methods.push('      }');
+      // Build options for SDK call
+      methods.push('      const opts: any = { client: this._client, signal };');
+      if (o.pathParams.length) methods.push('      if (envelope.path) opts.path = envelope.path;');
+      if (o.queryParams.length) methods.push('      if (envelope.query) opts.query = envelope.query;');
+      if (o.hasBody) methods.push('      if (envelope.body !== undefined) opts.body = envelope.body;');
+      methods.push(`      const call = async () => {`);
+      methods.push(`        const r = await Sdk.${o.opId}(opts);`);
+      methods.push('        let data = (r as any)?.data;');
+      methods.push('        if (data === undefined) data = r;');
+      if (o.opId === 'createDeployment') {
+        methods.push('        // Enrich deployment response');
+  methods.push('        const base = data as _DataOf<typeof Sdk.createDeployment>;');
+        methods.push('        const ext: ExtendedDeploymentResult = { ...base, processes: [], decisions: [], decisionRequirements: [], forms: [], resources: [] };');
+        methods.push('        for (const d of base.deployments) {');
+        methods.push('          if (d.processDefinition) ext.processes.push(d.processDefinition);');
+        methods.push('          if (d.decisionDefinition) ext.decisions.push(d.decisionDefinition);');
+        methods.push('          if (d.decisionRequirements) ext.decisionRequirements.push(d.decisionRequirements);');
+        methods.push('          if (d.form) ext.forms.push(d.form);');
+        methods.push('          if (d.resource) ext.resources.push(d.resource);');
+        methods.push('        }');
+        methods.push('        data = ext;');
+      }
+      // Response validation (guarded)
+        const respName = `z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Response`;
+        if (availableResponses.has(respName)) {
+          methods.push('        if (this._validation.settings.res !== \'none\') {');
+          methods.push(`          const _schema = Schemas.${respName};`);
+          methods.push('          if (_schema) {');
+          methods.push(`            const maybeR = await this._validation.gateResponse('${o.originalOpId}', _schema, data);`);
+          methods.push('            if (this._validation.settings.res === \'strict\') data = maybeR;');
+          methods.push('          }');
+          methods.push('        }');
+        }
+      methods.push('        return data;');
+      methods.push('      };');
+      if (o.eventual) {
+        methods.push('      const invoke = () => toCancelable(()=>call());');
+        methods.push(`      if (useConsistency) return eventualPoll('${o.originalOpId}', ${o.verb === 'get'}, invoke, { ...useConsistency, logger: (this as any)._log });`);
+        methods.push('      return invoke();');
+      } else {
+        methods.push('      return call();');
+      }
+    } else {
+      // No-input operation
+      methods.push('      const opts: any = { client: this._client, signal };');
+      methods.push('      const call = async () => {');
+      methods.push(`        const r = await Sdk.${o.opId}(opts as any);`);
+      methods.push('        let data = (r as any)?.data;');
+      methods.push('        if (data === undefined) data = r;');
+  const respName2 = `z${o.opId.charAt(0).toUpperCase()+o.opId.slice(1)}Response`;
+        if (availableResponses.has(respName2)) {
+          methods.push('        if (this._validation.settings.res !== \'none\') {');
+          methods.push(`          const _schema = Schemas.${respName2};`);
+          methods.push('          if (_schema) {');
+          methods.push(`            const maybeR = await this._validation.gateResponse('${o.originalOpId}', _schema, data);`);
+          methods.push('            if (this._validation.settings.res === \'strict\') data = maybeR;');
+          methods.push('          }');
+          methods.push('        }');
+        }
+      methods.push('        return data;');
+      methods.push('      };');
+      if (o.eventual) {
+        methods.push('      const invoke = () => toCancelable(()=>call());');
+        methods.push(`      if (useConsistency) return eventualPoll('${o.originalOpId}', true, invoke, { ...useConsistency, logger: (this as any)._log });`);
+        methods.push('      return invoke();');
+      } else {
+        methods.push('      return call();');
+      }
+    }
     methods.push('    });');
     methods.push('  }');
     methods.push('');
@@ -227,7 +251,9 @@ type ${o.opId}Consistency = {
   const banner = '// @generated from CamundaClient.template.ts – DO NOT EDIT DIRECTLY\n';
   const withTypes = tpl.slice(0, tS + MARK_TYPES_START.length) + '\n' + support.join('\n') + '\n' + tpl.slice(tE);
   const w2S = withTypes.indexOf(MARK_METHODS_START); const w2E = withTypes.indexOf(MARK_METHODS_END);
-  const finalSrc = banner + withTypes.slice(0, w2S + MARK_METHODS_START.length) + '\n' + methods.join('\n') + '\n' + withTypes.slice(w2E);
+  let finalSrc = banner + withTypes.slice(0, w2S + MARK_METHODS_START.length) + '\n' + methods.join('\n') + '\n' + withTypes.slice(w2E);
+  // Strip template-only @ts-ignore annotations (we keep them in template for DX, but don't ship them)
+  finalSrc = finalSrc.replace(/\n[^\n]*@ts-ignore[^\n]*\n/g, (m) => '\n');
   fs.writeFileSync(CLASS_FILE, finalSrc, 'utf8');
   console.log(`[class-gen] Wrote Camunda.ts with ${ops.length} methods`);
 }

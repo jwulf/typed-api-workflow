@@ -160,4 +160,54 @@ export class CamundaClient {
 
   // === AUTO-GENERATED CAMUNDA METHODS START ===
   // === AUTO-GENERATED CAMUNDA METHODS END ===
+
+  /**
+   * Node-only convenience: deploy resources from local filesystem paths.
+   * @param resourceFilenames Absolute or relative file paths to BPMN/DMN/form/resource files.
+   * @param options Optional: tenantId.
+   * @returns ExtendedDeploymentResult 
+   */
+  // @ts-ignore - ExtendedDeploymentResult is injected by code generation (CamundaClient.ts)
+  deployResourcesFromFiles(resourceFilenames: string[], options?: { tenantId?: string }): CancelablePromise<ExtendedDeploymentResult> {
+    return toCancelable(async _signal => {
+      if (!Array.isArray(resourceFilenames) || resourceFilenames.length === 0) {
+        throw new Error('resourceFilenames must be a non-empty string[]');
+      }
+      // Basic environment guard (avoid accidental browser usage)
+      if (typeof process === 'undefined' || !process.versions?.node) {
+        throw new Error('deployResourcesFromFiles is only available in Node.js environments');
+      }
+      // Dynamic imports so that bundlers can tree-shake for browser builds
+      const [{ readFile }, pathMod] = await Promise.all([
+        import('node:fs/promises'),
+        import('node:path')
+      ]);
+      // Best-effort MIME inference
+      const mimeFor = (filename: string): string => {
+        const ext = filename.toLowerCase().split('.').pop() || '';
+        switch (ext) {
+          case 'bpmn':
+          case 'dmn':
+          case 'xml': return 'application/xml';
+          case 'json':
+          case 'form': return 'application/json';
+          default: return 'application/octet-stream';
+        }
+      };
+      if (typeof File !== 'function') {
+        throw new Error('Global File constructor not available. Requires Node 18+ (fetch experimental) or Node 20+');
+      }
+      const files: File[] = [];
+      for (const p of resourceFilenames) {
+        if (typeof p !== 'string' || !p) throw new Error('Invalid resource filename encountered');
+        const data = await readFile(p);
+        const name = pathMod.basename(p);
+  files.push(new File([data as any], name, { type: mimeFor(name) }));
+      }
+  // @ts-ignore - createDeploymentInput type added during generation
+  const payload: createDeploymentInput = { resources: files, ...(options?.tenantId ? { tenantId: options.tenantId } : {}) } as any;
+  // @ts-ignore - createDeployment method injected by generator
+  return this.createDeployment(payload);
+    });
+  }
 }
