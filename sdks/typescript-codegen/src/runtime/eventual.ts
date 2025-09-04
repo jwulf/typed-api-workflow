@@ -36,6 +36,8 @@ export interface ConsistencyOptions<T> {
   onAttempt?: (info: { attempt: number; elapsedMs: number; remainingMs: number; status?: number; predicateResult?: boolean; nextDelayMs?: number }) => void;
   onComplete?: (info: { attempts: number; elapsedMs: number }) => void;
   abortSignal?: AbortSignal;
+  /** When true, log every 200 attempt result body (raw response) before predicate evaluation */
+  trace?: boolean;
 }
 
 // Internal union shape (reserved for potential future use when refactoring invoke handling)
@@ -50,7 +52,7 @@ function now() { return Date.now(); }
 export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () => CancelablePromise<T>, options: ConsistencyOptions<T> & { logger?: Logger; errorMode?: 'throw' | undefined }): CancelablePromise<T>;
 export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () => CancelablePromise<T>, options: ConsistencyOptions<T> & { logger?: Logger; errorMode: 'result' }): CancelablePromise<Result<T>>;
 export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () => CancelablePromise<T>, options: ConsistencyOptions<T> & { logger?: Logger; errorMode?: 'throw' | 'result' }): CancelablePromise<any> {
-  const { waitUpToMs, predicate, onAttempt, onComplete, abortSignal } = options;
+  const { waitUpToMs, predicate, onAttempt, onComplete, abortSignal, trace } = options;
   const elog = options.logger?.scope('eventual');
   const pollDefaultMs = hydrateConfig().config.eventual?.pollDefaultMs || 500;
   const userInterval = options.pollIntervalMs;
@@ -90,6 +92,13 @@ export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () 
       const req = invoke();
       (req as any).then(async (res: any) => {
         if (cancelled || outerSignal.aborted) return settleErr(new Error('Cancelled'));
+        if (trace) {
+          try {
+            // Use debug to avoid spamming higher log levels; serialize carefully.
+            const preview = typeof res === 'object' ? JSON.stringify(res).slice(0, 1000) : String(res);
+            elog?.debug?.(() => [`op=${operationId} attempt=${attempts} trace body=${preview}`]);
+          } catch { /* ignore serialization issues */ }
+        }
         let ok = true;
         try {
           if (predicate) ok = await predicate(res);
@@ -99,6 +108,9 @@ export function eventualPoll<T>(operationId: string, isGet: boolean, invoke: () 
         const remaining = waitUpToMs - elapsed;
         if (ok) {
           onAttempt?.({ attempt: attempts, elapsedMs: elapsed, remainingMs: Math.max(0, remaining), status: 200, predicateResult: ok, nextDelayMs: 0 });
+          if (trace) {
+            elog?.debug?.(() => [`op=${operationId} attempt=${attempts} status=200 predicate=true elapsed=${elapsed}ms totalAttempts=${attempts}`]);
+          }
           onComplete?.({ attempts, elapsedMs: elapsed });
           return settleOk(res);
         }

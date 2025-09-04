@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import createCamundaClient, { createCamundaResultClient } from '../dist';
+import createCamundaClient, { createCamundaResultClient, ProcessInstanceKey } from '../dist';
 import fs from 'fs';
 
-describe('acceptance', () => {
+describe('integration acceptance', () => {
     it.skip('can get the the current CamundaUser', async () => {
         const camunda = createCamundaClient()
         const res = await camunda.getAuthentication()
@@ -43,17 +43,18 @@ describe('acceptance', () => {
         expect(res.error).toBeDefined();
     });
 
-    it.only('can do all the things', { timeout: 20000 }, async () => {
+    it('can do all the things', { timeout: 20000 }, async () => {
         const camunda = createCamundaClient({});
         const res = await camunda.deployResourcesFromFiles(['./tests-integration/fixtures/test-process.bpmn']);
         const process = await camunda.createProcessInstance({
             processDefinitionKey: res.processes[0].processDefinitionKey,
         })
+        console.log('ProcessInstance', JSON.stringify(process, null, 2))
         const search = await camunda.searchProcessInstances({
             filter: {
                 processInstanceKey: process.processInstanceKey
             }
-        }, { consistency: { waitUpToMs: 20000, pollIntervalMs: 2000 } })
+        }, { consistency: { waitUpToMs: 15000, pollIntervalMs: 2000, trace: true } })
         expect(search.items.length).toBe(1);
     });
 });
