@@ -71,6 +71,20 @@ paths:
                 $ref: "#/components/schemas/TopologyResponse"
         "500":
           $ref: "#/components/responses/InternalServerError"
+
+  /status:
+    get:
+      tags:
+        - Cluster
+      operationId: getStatus
+      summary: Get cluster status
+      description: Checks the health status of the cluster by verifying if there's at least one partition with a healthy leader.
+      responses:
+        "204":
+          description: The cluster is UP and has at least one partition with a healthy leader.
+        "503":
+          description: The cluster is DOWN and does not have any partition with a healthy leader.
+
   /license:
     get:
       tags:
@@ -1986,11 +2000,11 @@ paths:
         parentProcessInstanceKey are ignored and overridden during this batch operation.
         This is done asynchronously, the progress can be tracked using the batchOperationKey from the response and the batch operation status endpoint (/batch-operations/{batchOperationKey}).
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ProcessInstanceFilter"
+              $ref: "#/components/schemas/ProcessInstanceCancellationBatchOperationRequest"
       responses:
         "200":
           description: The batch operation request was created.
@@ -2025,11 +2039,11 @@ paths:
         filters for state are ignored and overridden during this batch operation.
         This is done asynchronously, the progress can be tracked using the batchOperationKey from the response and the batch operation status endpoint (/batch-operations/{batchOperationKey}).
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ProcessInstanceFilter"
+              $ref: "#/components/schemas/ProcessInstanceIncidentResolutionBatchOperationRequest"
       responses:
         "200":
           description: The batch operation request was created.
@@ -4910,13 +4924,15 @@ paths:
           schema:
             type: string
             format: date
+            example: "2025-06-07T13:14:15Z"
         - name: endTime
           in: query
           required: true
-          description: The end date for usage metrics, including this date.
+          description: The end date for usage metrics, excluding this date.
           schema:
             type: string
             format: date
+            example: "2026-07-08T13:14:15Z"
         - name: tenantId
           in: query
           required: false
@@ -4938,6 +4954,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UsageMetricsResponse"
+              examples:
+                "Response without tenants":
+                  value:
+                    "processInstances": 5
+                    "decisionInstances": 23
+                    "activeTenants": 2
+                    "assignees": 3
+                    "tenants": {}
+                "Response with tenants":
+                  value:
+                    "processInstances": 5
+                    "decisionInstances": 23
+                    "activeTenants": 2
+                    "assignees": 3
+                    "tenants":
+                      "tenant1":
+                        "processInstances": 1
+                        "decisionInstances": 2
+                        "assignees": 1
+                      "tenant2":
+                        "processInstances": 4
+                        "decisionInstances": 21
+                        "assignees": 3
         "400":
           $ref: "#/components/responses/InvalidData"
         "401":
@@ -5817,6 +5856,9 @@ components:
         elementInstanceKey:
           type: string
           description: The key of the element instance.
+        processName:
+          type: string
+          description: The name of the process definition.
         processDefinitionKey:
           type: string
           description: The key of the process definition.
@@ -7349,6 +7391,8 @@ components:
           type: object
           additionalProperties:
             type: object
+            title: The tenant ID.
+            description: The usage metrics for the specific tenant.
             allOf:
               - $ref: "#/components/schemas/UsageMetricsResponseItem"
     UsageMetricsResponseItem:
@@ -10855,6 +10899,24 @@ components:
         errorMessage:
           description: the error message from the engine in case of a failed operation.
           type: string
+    ProcessInstanceCancellationBatchOperationRequest:
+      type: object
+      description: |
+        The process instance filter that defines which process instances should be canceled.
+      properties:
+        filter:
+          $ref: "#/components/schemas/ProcessInstanceFilter"
+      required:
+        - filter
+    ProcessInstanceIncidentResolutionBatchOperationRequest:
+      type: object
+      description: |
+        The process instance filter that defines which process instances should have their incidents resolved.
+      properties:
+        filter:
+          $ref: "#/components/schemas/ProcessInstanceFilter"
+      required:
+        - filter
     ProcessInstanceModificationBatchOperationRequest:
       type: object
       description: |
