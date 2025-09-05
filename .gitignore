@@ -6,6 +6,8 @@ dist
 # Ignore design docs
 sdks/typescript-codegen/design
 
+# Ignore response validation captures
+sdks/typescript-codegen/.camunda-sdk-captures
 #
 spec-tools/semantic-types-coverage/dist
 
