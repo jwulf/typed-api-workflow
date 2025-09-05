@@ -8276,7 +8276,7 @@ components:
       type: "object"
       properties:
         password:
-          description: "The password of the user."
+          description: "The password of the user. If blank, the password is unchanged."
           type: "string"
         name:
           description: "The name of the user."
