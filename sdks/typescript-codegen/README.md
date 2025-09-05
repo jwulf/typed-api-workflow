@@ -189,11 +189,82 @@ setTimeout(()=> p.cancel(), 100); // best‑effort cancel
 await p; // rejects with CancelError if aborted
 ```
 
+## Functional (fp-ts style) Surface (Opt-In Subpath)
+The main entry stays minimal. To opt in to a TaskEither-style facade & helper combinators import from the dedicated subpath:
+
+```ts
+import { createCamundaFpClient, retryTE, withTimeoutTE, eventuallyTE, isLeft } from '@camunda8/orchestration-cluster/fp';
+
+const fp = createCamundaFpClient();
+const deployTE = fp.deployResourcesFromFiles(['./bpmn/process.bpmn']);
+const deployed = await deployTE();
+if (isLeft(deployed)) throw deployed.left; // DomainError union
+
+// Chain with fp-ts (optional) – the returned thunks are structurally compatible with TaskEither
+// import { pipe } from 'fp-ts/function'; import * as TE from 'fp-ts/TaskEither';
+```
+
+Why a subpath?
+* Keeps base bundle lean for the 80% use case.
+* No hard dependency on `fp-ts` at runtime; only structural types.
+* Advanced users can compose with real `fp-ts` without pulling the effect model into the default import path.
+
+Exports available from `.../fp`:
+* `createCamundaFpClient` – typed facade (methods return `() => Promise<Either<DomainError,T>>`).
+* Type guards: `isLeft`, `isRight`.
+* Error / type aliases: `DomainError`, `TaskEither`, `Either`, `Left`, `Right`, `Fpify`.
+* Combinators: `retryTE`, `withTimeoutTE`, `eventuallyTE`.
+
+DomainError union currently includes:
+* `CamundaValidationError`
+* `EventualConsistencyTimeoutError`
+* HTTP-like error objects (status/body/message) produced by transport
+* Generic `Error`
+
+You can refine left-channel typing later by mapping HTTP status codes or discriminator fields.
+
 ## Eventual Consistency Polling
 Some endpoints accept consistency management options. Pass a `consistency` block (where supported) with `waitUpToMs` and optional `pollIntervalMs` (default 500). If the condition is not met within timeout an `EventualConsistencyTimeoutError` is thrown.
 
 To consume eventual polling in a non‑throwing fashion set the client error mode before invoking an eventually consistent method:
 At present the canonical client operates in throwing mode. Non‑throwing adaptation (Result / fp-ts) is achieved via the functional wrappers rather than mutating the base client.
+
+### Options
+`consistency` object fields (all optional except `waitUpToMs`):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `waitUpToMs` | `number` | Maximum total time to wait before failing. `0` disables polling and returns the first response immediately. |
+| `pollIntervalMs` | `number` | Base delay between attempts (minimum enforced at 10ms). Defaults to `500` or `CAMUNDA_SDK_EVENTUAL_POLL_DEFAULT_MS` if provided. |
+| `predicate` | `(result) => boolean | Promise<boolean>` | Custom success condition. If omitted, non-GET endpoints default to: first 2xx body whose `items` array (if present) is non-empty. |
+| `trace` | `boolean` | When true, logs each 200 response body (truncated ~1KB) before predicate evaluation and emits a success line with elapsed time when the predicate passes. Requires log level `debug` (or `trace`) to see output. |
+| `onAttempt` | `(info) => void` | Callback after each attempt: `{ attempt, elapsedMs, remainingMs, status, predicateResult, nextDelayMs }`. |
+| `onComplete` | `(info) => void` | Callback when predicate succeeds: `{ attempts, elapsedMs }`. Not called on timeout. |
+
+### Trace Logging
+Enable by setting `trace: true` inside `consistency`. Output appears under the `eventual` log scope at level `debug` so you must raise the SDK log level (e.g. `CAMUNDA_SDK_LOG_LEVEL=debug`).
+
+Emitted lines (examples):
+```
+[camunda-sdk][debug][eventual] op=searchJobs attempt=3 trace body={"items":[]}
+[camunda-sdk][debug][eventual] op=searchJobs attempt=5 status=200 predicate=true elapsed=742ms totalAttempts=5
+```
+Use this to understand convergence speed and data shape evolution during tests or to diagnose slow propagation.
+
+### Example
+```ts
+const jobs = await camunda.searchJobs({
+  filter: { type: 'payment' },
+  consistency: {
+    waitUpToMs: 5000,
+    pollIntervalMs: 200,
+    trace: true,
+    predicate: r => Array.isArray(r.items) && r.items.some(j => j.state === 'CREATED')
+  }
+});
+```
+
+On timeout an `EventualConsistencyTimeoutError` includes diagnostic fields: `{ attempts, elapsedMs, lastStatus, lastResponse, operationId }`.
 
 ## Logging
 Per‑client logger; no global singleton. The level defaults from `CAMUNDA_SDK_LOG_LEVEL` (default `error`).

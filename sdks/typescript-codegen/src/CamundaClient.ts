@@ -28,8 +28,8 @@ function deepFreeze<T>(obj: T): T {
 }
 
 // === AUTO-GENERATED CAMUNDA SUPPORT TYPES START ===
-// Generated 2025-09-05T00:35:01.070Z
-// Operations: 144
+// Generated 2025-09-05T01:27:26.159Z
+// Operations: 145
 type _RawReturn<F> = F extends (...a:any)=>Promise<infer R> ? R : never;
 type _DataOf<F> = Exclude<_RawReturn<F> extends { data: infer D } ? D : _RawReturn<F>, undefined>;
 type activateAdHocSubProcessActivitiesOptions = Parameters<typeof Sdk.activateAdHocSubProcessActivities>[0];
@@ -396,6 +396,8 @@ type getStartProcessFormConsistency = {
 /** Management of eventual consistency tolerance. Set waitUpToMs to 0 to ignore eventual consistency. pollInterval is 500ms by default. */
     consistency: ConsistencyOptions<_DataOf<typeof Sdk.getStartProcessForm>> 
 };
+type getStatusOptions = Parameters<typeof Sdk.getStatus>[0];
+type getStatusInput = void;
 type getTenantOptions = Parameters<typeof Sdk.getTenant>[0];
 type getTenantPathParam_tenantId = (NonNullable<getTenantOptions> extends { path: { tenantId: infer P } } ? P : any);
 type getTenantInput = { tenantId: getTenantPathParam_tenantId };
@@ -1040,7 +1042,7 @@ export class CamundaClient {
   withCorrelation<T>(id: string, fn: () => Promise<T> | T): Promise<T> { return _withCorrelation(id, fn); }
 
   // === AUTO-GENERATED CAMUNDA METHODS START ===
-  // Generated methods (2025-09-05T00:35:01.071Z)
+  // Generated methods (2025-09-05T01:27:26.160Z)
   /**
    * Activate activities within an ad-hoc sub-process
    * Activates selected activities within an ad-hoc sub-process identified by element ID.
@@ -3805,6 +3807,34 @@ export class CamundaClient {
       const invoke = () => toCancelable(()=>call());
       if (useConsistency) return eventualPoll('getStartProcessForm', true, invoke, { ...useConsistency, logger: (this as any)._log });
       return invoke();
+    });
+  }
+
+  /**
+   * Get cluster status
+   * Checks the health status of the cluster by verifying if there's at least one partition with a healthy leader.
+    *
+   * @operationId getStatus
+   * @tags Cluster
+   */
+  getStatus(): CancelablePromise<_DataOf<typeof Sdk.getStatus>>;
+  getStatus(arg?: any): CancelablePromise<any> {
+    return toCancelable(async signal => {
+      const opts: any = { client: this._client, signal };
+      const call = async () => {
+        const r = await Sdk.getStatus(opts as any);
+        let data = (r as any)?.data;
+        if (data === undefined) data = r;
+        if (this._validation.settings.res !== 'none') {
+          const _schema = Schemas.zGetStatusResponse;
+          if (_schema) {
+            const maybeR = await this._validation.gateResponse('getStatus', _schema, data);
+            if (this._validation.settings.res === 'strict') data = maybeR;
+          }
+        }
+        return data;
+      };
+      return call();
     });
   }
 

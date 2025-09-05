@@ -29,6 +29,34 @@ function toDomainError(err: any): DomainError {
   return { message: String(err) } as HttpError;
 }
 
+// Classification + folding helpers -------------------------------------------------
+export type DomainErrorTag = 'validation' | 'timeout' | 'http' | 'generic';
+
+export function classifyDomainError(err: DomainError): DomainErrorTag {
+  if (err instanceof CamundaValidationError) return 'validation';
+  if (err instanceof EventualConsistencyTimeoutError) return 'timeout';
+  // Heuristic: HttpError is plain object without stack OR has status property.
+  if (!(err instanceof Error) || (err as any).status !== undefined) return 'http';
+  return 'generic';
+}
+
+// Exhaustive fold over DomainError; forces caller to consider each class.
+export function foldDomainError<A>(handlers: {
+  validation: (e: CamundaValidationError) => A;
+  timeout: (e: EventualConsistencyTimeoutError) => A;
+  http: (e: HttpError) => A;
+  generic: (e: Error) => A;
+}): (err: DomainError) => A {
+  return (err: DomainError) => {
+    switch (classifyDomainError(err)) {
+      case 'validation': return handlers.validation(err as CamundaValidationError);
+      case 'timeout': return handlers.timeout(err as EventualConsistencyTimeoutError);
+      case 'http': return handlers.http(err as HttpError);
+      case 'generic': return handlers.generic(err as Error);
+    }
+  };
+}
+
 // Function keys & mapping helpers
 export type FnKeys<C> = { [K in keyof C]: C[K] extends (...a:any)=>any ? K : never }[keyof C];
 export type Fpify<C> = {
