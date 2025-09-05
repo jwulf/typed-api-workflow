@@ -5636,7 +5636,7 @@ components:
       properties:
         tenantId:
           type: "string"
-          description: "The unique ID for the tenant."
+          description: "The unique ID for the tenant. Must be 255 characters or less. Can contain letters, numbers, [`_`, `-`, `+`, `.`, `@`]."
           minLength: 1
           maxLength: 256
           pattern: "^[A-Za-z0-9_@.+-]+$"
@@ -10480,6 +10480,7 @@ components:
           description: "The correlation key of the message."
           type: "string"
           example: "customer-43421"
+          default: "\"\""
         timeToLive:
           description: "Timespan (in ms) to buffer the message on the broker."
           type: "integer"
@@ -10498,6 +10499,7 @@ components:
           nullable: true
       required:
         - "name"
+        - "correlationKey"
     MessagePublicationResult:
       description: "The message key of the published message."
       type: "object"
@@ -11626,7 +11628,7 @@ components:
       pattern: '^[A-Za-z][A-Za-z0-9_\-:.]{0,99}$'
       example: "business_key:1234"
     TagSet:
-      description: List of tags
+      description: List of tags. Tags need to start with a letter; then alphanumerics, `_`, `-`, `:`, or `.`; length ≤ 100.
       type: array
       items:
         $ref: '#/components/schemas/Tag'
