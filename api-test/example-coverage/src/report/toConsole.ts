@@ -2,9 +2,9 @@ import chalk from 'chalk';
 import { CoverageStats, FieldRecord } from '../types.js';
 
 export function printConsole(stats: CoverageStats, records: FieldRecord[], limit = 50) {
-  const missing = records.filter(r => !r.skip && !(r.hasExample || r.inheritedExample));
+  const missing = records.filter(r => !r.skip && !(r.hasExample || r.inheritedExample || r.synthetic));
   console.log(chalk.bold(`Example Coverage: ${stats.coveragePercent}% (${stats.covered}/${stats.total})`));
-  console.log(chalk.gray(`Direct: ${stats.breakdown.inheritance.direct}  Inherited: ${stats.breakdown.inheritance.inherited}`));
+  console.log(chalk.gray(`Direct: ${stats.breakdown.inheritance.direct}  Inherited: ${stats.breakdown.inheritance.inherited}  Synthetic: ${stats.breakdown.synthetic}`));
   console.log('By origin:');
   for (const [o, v] of Object.entries(stats.breakdown.origin)) {
     const pct = v.total === 0 ? 100 : ((v.covered / v.total) * 100).toFixed(1);

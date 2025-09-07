@@ -11,6 +11,9 @@ export interface FieldRecord {
   enum?: string[];
   suggestions?: string[];
   skip?: boolean;
+  // New enriched coverage reasoning
+  synthetic?: boolean; // covered via heuristic synthesis
+  coverageSources?: ("direct"|"inherited"|"synthetic")[]; // aggregated sources
 }
 
 export interface CoverageStats {
@@ -20,7 +23,8 @@ export interface CoverageStats {
   coveragePercent: number;
   breakdown: {
     origin: Record<string, { total: number; covered: number }>;
-    inheritance: { direct: number; inherited: number };
+  inheritance: { direct: number; inherited: number };
+  synthetic: number;
   };
 }
 

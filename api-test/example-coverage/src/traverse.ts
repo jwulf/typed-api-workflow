@@ -117,6 +117,8 @@ function traverse(
       inheritedExample,
       exampleSourceRef,
       refPointer: refPtrForLeaf,
+  enum: Array.isArray(schema.enum) ? schema.enum.map(String) : undefined,
+  coverageSources: hasExample ? ['direct'] : (inheritedExample ? ['inherited'] : []),
     });
   }
 }

@@ -2,6 +2,7 @@
 import { loadAndDeref } from './loadSpec.js';
 import { collectFromDoc } from './traverse.js';
 import { computeCoverage } from './coverage.js';
+import { applySyntheticCoverage } from './synthesize.js';
 import { printConsole } from './report/toConsole.js';
 import fs from 'fs/promises';
 import path from 'path';
@@ -24,12 +25,13 @@ async function main() {
 
   const { deref } = await loadAndDeref(specPath);
   const records = collectFromDoc(deref);
+  applySyntheticCoverage(records);
   const stats = computeCoverage(records);
 
   if (format === 'console') {
     printConsole(stats, records);
   } else if (format === 'json') {
-    const payload = { stats, missing: records.filter(r => !(r.hasExample || r.inheritedExample)).map(r => r.path) };
+  const payload = { stats, missing: records.filter(r => !(r.hasExample || r.inheritedExample || r.synthetic)).map(r => r.path) };
     if (out) {
       await fs.mkdir(path.dirname(out), { recursive: true });
       await fs.writeFile(out, JSON.stringify(payload, null, 2));
