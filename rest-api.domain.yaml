@@ -8266,9 +8266,6 @@ components:
         canLogout:
           description: "Flag for understanding if the user is able to perform logout."
           type: "boolean"
-        apiUser:
-          description: "Flag for understanding if the user is an API user."
-          type: "boolean"
     UserResult:
       type: "object"
       properties:
@@ -10538,6 +10535,7 @@ components:
           description: "The correlation key of the message."
           type: "string"
           example: "customer-43421"
+          default: ""
         variables:
           description: "The message variables as JSON document"
           additionalProperties: true
@@ -10573,7 +10571,7 @@ components:
           description: "The correlation key of the message."
           type: "string"
           example: "customer-43421"
-          default: "\"\""
+          default: ""
         timeToLive:
           description: "Timespan (in ms) to buffer the message on the broker."
           type: "integer"

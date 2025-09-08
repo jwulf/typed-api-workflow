@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-09-08 14:10:51
+# File generated at: 2025-09-09 09:02:03
 
 ---
 openapi: "3.0.3"
@@ -8049,9 +8049,6 @@ components:
         canLogout:
           description: "Flag for understanding if the user is able to perform logout."
           type: "boolean"
-        apiUser:
-          description: "Flag for understanding if the user is an API user."
-          type: "boolean"
     UserResult:
       type: "object"
       properties:
@@ -10316,6 +10313,7 @@ components:
           description: "The correlation key of the message."
           type: "string"
           example: "customer-43421"
+          default: ""
         variables:
           description: "The message variables as JSON document"
           additionalProperties: true
@@ -10347,7 +10345,7 @@ components:
           description: "The correlation key of the message."
           type: "string"
           example: "customer-43421"
-          default: "\"\""
+          default: ""
         timeToLive:
           description: "Timespan (in ms) to buffer the message on the broker."
           type: "integer"
