@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-09-08 12:46:17
+# File generated at: 2025-09-08 14:10:51
 
 ---
 openapi: "3.0.3"
@@ -10850,6 +10850,18 @@ components:
         mapping:
           TERMINATE_PROCESS_INSTANCE: "#/components/schemas/ProcessInstanceCreationTerminateInstruction"
       description: "Base type for all runtime instructions.\n"
+    ProcessInstanceCreationTerminateInstruction:
+      allOf:
+      - $ref: "#/components/schemas/ProcessInstanceCreationRuntimeInstruction"
+      - type: "object"
+        required:
+        - "afterElementId"
+        properties:
+          afterElementId:
+            description: "The model-defined id of an element."
+            type: "string"
+        description: "Terminates the process instance after a specific BPMN element\
+          \ is completed or terminated.\n"
     CreateProcessInstanceResult:
       required:
       - "processDefinitionId"
