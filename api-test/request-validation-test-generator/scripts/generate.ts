@@ -86,7 +86,7 @@ async function main() {
   let specCommit: string | undefined;
   const commitPath = path.join(path.dirname(specPath), 'spec-commit.txt');
   if (fs.existsSync(commitPath)) {
-    try { specCommit = (await fs.promises.readFile(commitPath, 'utf8')).trim(); } catch {}
+  try { specCommit = (await fs.promises.readFile(commitPath, 'utf8')).trim(); } catch { /* ignore missing commit marker */ }
   }
   const generationTimestamp = new Date().toISOString();
   const scenarios: ValidationScenario[] = [];
@@ -246,10 +246,14 @@ async function main() {
     (opScenarioKinds[s.operationId] ||= new Set()).add(s.type);
   }
   // Build feature-derived applicability
+  // Using loose typing for OpenAPI schema fragments; full typing not required for generation logic.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function analyzeBodyFeatures(body: any): Record<string, boolean> {
     const flags = { hasObject:false, hasEnums:false, hasOneOf:false, hasDiscriminator:false, hasAllOf:false, hasUniqueItems:false, hasMultipleOf:false, hasConstraints:false, hasFormats:false, hasNestedObject:false };
-    const seen = new Set<any>();
-    function walk(node:any, depth:number){
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const seen = new Set<any>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function walk(node: any, depth:number){
       if(!node || typeof node!=='object' || seen.has(node)) return; seen.add(node);
       if(Array.isArray(node.oneOf)) flags.hasOneOf = true;
       if(node.discriminator) flags.hasDiscriminator = true;
@@ -262,7 +266,7 @@ async function main() {
       const constraintKeys=['minLength','maxLength','minimum','maximum','exclusiveMinimum','exclusiveMaximum','minItems','maxItems','pattern'];
       if(constraintKeys.some(k=> node[k] !== undefined)) flags.hasConstraints = true;
       if(node.format) flags.hasFormats = true;
-      if(node.properties) for (const v of Object.values<any>(node.properties)) walk(v, depth+1);
+  if(node.properties) for (const v of Object.values(node.properties)) walk(v as any, depth+1); // eslint-disable-line @typescript-eslint/no-explicit-any
       if(node.items) walk(node.items, depth+1);
       if(Array.isArray(node.allOf)) for (const p of node.allOf) walk(p, depth);
       if(Array.isArray(node.oneOf)) for (const p of node.oneOf) walk(p, depth);
@@ -328,7 +332,10 @@ async function main() {
   const coveredOps = Object.keys(opScenarioKinds).length;
   const endpointCoveragePct = totalOps ? (coveredOps/totalOps*100) : 0;
   // Enhance coverage JSON
+  // Cast to mutable to enrich coverage object without creating a new interface hierarchy.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (coverage as any).endpointTotals = { totalOps, coveredOps, endpointCoveragePct: Number(endpointCoveragePct.toFixed(1)) };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (coverage as any).operations = (coverage as any).operations.map((oc: any) => {
     const appl = applicabilityPerOp[oc.operationId];
     return {
@@ -366,6 +373,7 @@ async function main() {
   const header = ['OperationId','Method','Path','Total','KindCov%','AppKindCov%','ApplicableKinds','PresentKinds', ...allKinds];
   let avgApplicablePct = 0;
   let opsWithApplicable = 0;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   for (const oc of (coverage as any).operations) {
     if (oc.applicableKindCount) { avgApplicablePct += oc.applicableKindCoveragePct; opsWithApplicable++; }
   }
@@ -373,6 +381,7 @@ async function main() {
   md.push(`Average applicable kind coverage (ops with applicability): ${avgAppPctStr}%`,'');
   md.push('| ' + header.join(' | ') + ' |');
   md.push('| ' + header.map(()=> '---').join(' | ') + ' |');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   for (const oc of (coverage as any).operations) {
     const row = [
       oc.operationId,
@@ -396,6 +405,7 @@ async function main() {
   md.push('', 'True Gaps Summary (applicable missing kinds aggregated):');
   interface KindGapStats { applicableOps: number; missingOps: number; sampleMissing: string[]; }
   const kindStats: Record<string, KindGapStats> = {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   for (const oc of (coverage as any).operations) {
     const appl: string[] = Array.from(applicabilityPerOp[oc.operationId].applicable);
     const missing: Set<string> = new Set(applicabilityPerOp[oc.operationId].missingApplicable);
@@ -427,6 +437,7 @@ async function main() {
   // Collapsible full per-operation detail
   md.push('', '<details><summary>Full per-operation True Gaps list</summary>');
   let anyFull = false;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   for (const oc of (coverage as any).operations) {
     const missingApp: string[] = applicabilityPerOp[oc.operationId].missingApplicable;
     if (missingApp.length) { md.push(`- ${oc.operationId}: ${missingApp.join(', ')}`); anyFull = true; }
@@ -434,7 +445,56 @@ async function main() {
   if (!anyFull) md.push('- None');
   md.push('</details>');
   md.push('', 'Applicable missing kinds are structurally possible for that operation and should be prioritized.');
-  await fs.promises.writeFile(path.join(opts.outDir, 'COVERAGE.md'), md.join('\n'));
+  // --- Formatting Normalization (Spotless-friendly) ---
+  function normalizeMarkdown(lines: string[]): string[] {
+    const out: string[] = [];
+    let blankStreak = 0;
+  for (const raw of lines) {
+      // Trim trailing whitespace (Spotless will do this; we preempt churn)
+      const line = raw.replace(/[ \t]+$/g, '');
+      if (line.trim() === '') {
+        blankStreak++;
+        if (blankStreak > 1) continue; // collapse multiple blank lines
+        out.push('');
+        continue;
+      }
+      blankStreak = 0;
+      out.push(line);
+    }
+    // Normalize tables: ensure single space padding around cell separators
+    const norm: string[] = [];
+    for (let i = 0; i < out.length; i++) {
+      const l = out[i];
+      // Detect a markdown table header row followed by a separator row
+      if (/^\|.+\|$/.test(l) && i + 1 < out.length && /^\|[ \-:|]+\|$/.test(out[i + 1])) {
+        // Collect table block until a blank line or non-row
+        const tableLines = [l];
+        let j = i + 1;
+        while (j < out.length && /^\|.*\|$/.test(out[j]) && out[j].trim() !== '') {
+          tableLines.push(out[j]);
+          j++;
+        }
+        // Normalize each table line
+        const rebuilt = tableLines.map((tl, idx) => {
+          const cells = tl.split('|').slice(1, -1).map(c => c.trim());
+            if (idx === 1) {
+              // separator line: rebuild with '---'
+              return '| ' + cells.map(() => '---').join(' | ') + ' |';
+            }
+            return '| ' + cells.join(' | ') + ' |';
+        });
+        norm.push(...rebuilt);
+        i = i + tableLines.length - 1;
+        continue;
+      }
+      norm.push(l);
+    }
+    return norm;
+  }
+  const normalized = normalizeMarkdown(md);
+  let finalText = normalized.join('\n');
+  if (!finalText.endsWith('\n')) finalText += '\n'; // ensure trailing newline
+  await fs.promises.writeFile(path.join(opts.outDir, 'COVERAGE.md'), finalText);
   console.log('[generate] Wrote manifest and', scenarios.length, 'scenarios');
   console.log('[generate] After dedupe:', deduped.length, 'scenarios');
   console.log('[generate] Coverage files written: COVERAGE.json, COVERAGE.md');

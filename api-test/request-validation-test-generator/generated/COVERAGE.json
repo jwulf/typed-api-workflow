@@ -1,25 +1,14 @@
 {
-  "generatedAt": "2025-09-07T19:19:36.656Z",
+  "generatedAt": "2025-09-08T02:40:57.041Z",
   "specCommit": "3445d1d86c2ad361858dc12e734eeb6197e426a5",
-  "totalScenarios": 736,
+  "totalScenarios": 99,
   "scenarioKinds": [
-    "additional-prop-general",
-    "constraint-violation",
-    "enum-violation",
-    "missing-body",
     "missing-required",
-    "missing-required-combo",
-    "oneof-ambiguous",
-    "oneof-cross-bleed",
-    "oneof-none-match",
-    "param-missing",
-    "param-type-mismatch",
     "type-mismatch",
-    "union",
-    "unique-items-violation"
+    "union"
   ],
   "generationOptions": {
-    "deep": true,
+    "deep": false,
     "maxMissing": null,
     "maxTypeMismatch": null,
     "onlyKinds": null,
@@ -31,38 +20,27 @@
       "method": "POST",
       "path": "/element-instances/ad-hoc-activities/{adHocSubProcessInstanceKey}/activation",
       "counts": {
-        "missing-required": 1,
-        "type-mismatch": 3,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 1
       },
-      "total": 6,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "missing-required",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 57.1,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 14.3,
       "applicableKindCount": 7,
-      "presentKindCount": 4,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "body-top-type-mismatch",
+        "missing-body",
         "nested-additional-prop",
-        "param-missing"
+        "param-missing",
+        "type-mismatch"
       ]
     },
     {
@@ -70,41 +48,30 @@
       "method": "POST",
       "path": "/jobs/activation",
       "counts": {
-        "missing-required": 3,
-        "missing-required-combo": 4,
-        "type-mismatch": 7,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 3
       },
-      "total": 16,
+      "total": 3,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "missing-required",
-        "missing-required-combo",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 35.7,
-      "applicableKindCoveragePct": 50,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 10,
       "applicableKindCount": 10,
-      "presentKindCount": 5,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "constraint-violation",
-        "format-invalid"
+        "format-invalid",
+        "missing-body",
+        "missing-required-combo",
+        "type-mismatch"
       ]
     },
     {
@@ -119,21 +86,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -154,21 +110,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -189,21 +134,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -224,21 +158,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -259,21 +182,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -294,21 +206,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -329,21 +230,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -364,21 +254,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -399,21 +278,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -434,64 +302,16 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
       "missingApplicableKinds": [
         "param-missing",
         "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "assignUserTask",
-      "method": "POST",
-      "path": "/user-tasks/{userTaskKey}/assignment",
-      "counts": {
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 3,
-      "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 21.4,
-      "applicableKindCoveragePct": 60,
-      "applicableKindCount": 5,
-      "presentKindCount": 3,
-      "missingApplicableKinds": [
-        "body-top-type-mismatch",
-        "param-missing"
       ]
     },
     {
@@ -506,21 +326,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -534,79 +343,30 @@
       "method": "POST",
       "path": "/signals/broadcast",
       "counts": {
-        "missing-required": 1,
-        "type-mismatch": 3,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 1
       },
-      "total": 6,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "missing-required",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 40,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 10,
       "applicableKindCount": 10,
-      "presentKindCount": 4,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "constraint-violation",
         "format-invalid",
-        "nested-additional-prop"
-      ]
-    },
-    {
-      "operationId": "cancelProcessInstance",
-      "method": "POST",
-      "path": "/process-instances/{processInstanceKey}/cancellation",
-      "counts": {
-        "type-mismatch": 3,
-        "constraint-violation": 3,
-        "missing-body": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "constraint-violation",
         "missing-body",
+        "nested-additional-prop",
         "type-mismatch"
-      ],
-      "missingKinds": [
-        "enum-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 66.7,
-      "applicableKindCount": 6,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "body-top-type-mismatch",
-        "param-missing"
       ]
     },
     {
@@ -614,127 +374,37 @@
       "method": "POST",
       "path": "/process-instances/cancellation",
       "counts": {
-        "missing-required": 1,
-        "constraint-violation": 2,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "unique-items-violation": 2,
-        "additional-prop-general": 1
+        "missing-required": 1
       },
-      "total": 8,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "missing-body",
-        "missing-required",
-        "type-mismatch",
-        "unique-items-violation"
+        "missing-required"
       ],
       "missingKinds": [
-        "enum-violation",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
+        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 42.9,
-      "applicableKindCoveragePct": 35.3,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 5.9,
       "applicableKindCount": 17,
-      "presentKindCount": 6,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
+        "constraint-violation",
         "enum-violation",
         "format-invalid",
+        "missing-body",
         "nested-additional-prop",
         "oneof-ambiguous",
         "oneof-cross-bleed",
         "oneof-multi-ambiguous",
         "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "completeJob",
-      "method": "POST",
-      "path": "/jobs/{jobKey}/completion",
-      "counts": {
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 3,
-      "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
+        "type-mismatch",
         "union",
         "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 21.4,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 9,
-      "presentKindCount": 3,
-      "missingApplicableKinds": [
-        "body-top-type-mismatch",
-        "discriminator-mismatch",
-        "discriminator-structure-mismatch",
-        "enum-violation",
-        "nested-additional-prop",
-        "param-missing"
-      ]
-    },
-    {
-      "operationId": "completeUserTask",
-      "method": "POST",
-      "path": "/user-tasks/{userTaskKey}/completion",
-      "counts": {
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 3,
-      "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 21.4,
-      "applicableKindCoveragePct": 50,
-      "applicableKindCount": 6,
-      "presentKindCount": 3,
-      "missingApplicableKinds": [
-        "body-top-type-mismatch",
-        "nested-additional-prop",
-        "param-missing"
       ]
     },
     {
@@ -742,78 +412,31 @@
       "method": "POST",
       "path": "/messages/correlation",
       "counts": {
-        "missing-required": 2,
-        "missing-required-combo": 1,
-        "type-mismatch": 5,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 2
       },
-      "total": 10,
+      "total": 2,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "missing-required",
-        "missing-required-combo",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 35.7,
-      "applicableKindCoveragePct": 45.5,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 9.1,
       "applicableKindCount": 11,
-      "presentKindCount": 5,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "constraint-violation",
         "format-invalid",
-        "nested-additional-prop"
-      ]
-    },
-    {
-      "operationId": "createAdminUser",
-      "method": "POST",
-      "path": "/setup/user",
-      "counts": {
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 3,
-      "kinds": [
-        "additional-prop-general",
         "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required",
         "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 21.4,
-      "applicableKindCoveragePct": 75,
-      "applicableKindCount": 4,
-      "presentKindCount": 3,
-      "missingApplicableKinds": [
-        "body-top-type-mismatch"
+        "nested-additional-prop",
+        "type-mismatch"
       ]
     },
     {
@@ -821,183 +444,86 @@
       "method": "POST",
       "path": "/authorizations",
       "counts": {
-        "missing-required": 9,
-        "missing-required-combo": 20,
-        "type-mismatch": 7,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 5
       },
-      "total": 38,
+      "total": 5,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "missing-required",
-        "missing-required-combo",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 35.7,
-      "applicableKindCoveragePct": 50,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 10,
       "applicableKindCount": 10,
-      "presentKindCount": 5,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "enum-violation",
-        "nested-additional-prop"
-      ]
-    },
-    {
-      "operationId": "createDocument",
-      "method": "POST",
-      "path": "/documents",
-      "counts": {
-        "param-type-mismatch": 2
-      },
-      "total": 2,
-      "kinds": [
-        "param-type-mismatch"
-      ],
-      "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
         "missing-body",
-        "missing-required",
         "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 7.1,
-      "applicableKindCoveragePct": 100,
-      "applicableKindCount": 1,
-      "presentKindCount": 1,
-      "missingApplicableKinds": []
+        "nested-additional-prop",
+        "type-mismatch"
+      ]
     },
     {
       "operationId": "createDocumentLink",
       "method": "POST",
       "path": "/documents/{documentId}/links",
       "counts": {
-        "type-mismatch": 2,
-        "param-missing": 1,
-        "param-type-mismatch": 2,
-        "missing-body": 1,
-        "additional-prop-general": 1
-      },
-      "total": 7,
-      "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "param-missing",
-        "param-type-mismatch",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 35.7,
-      "applicableKindCoveragePct": 83.3,
-      "applicableKindCount": 6,
-      "presentKindCount": 5,
-      "missingApplicableKinds": [
-        "body-top-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "createDocuments",
-      "method": "POST",
-      "path": "/documents/batch",
-      "counts": {
-        "param-type-mismatch": 1
+        "type-mismatch": 1
       },
       "total": 1,
       "kinds": [
-        "param-type-mismatch"
+        "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
-      "applicableKindCoveragePct": 100,
-      "applicableKindCount": 1,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 16.7,
+      "applicableKindCount": 6,
       "presentKindCount": 1,
-      "missingApplicableKinds": []
+      "missingApplicableKinds": [
+        "additional-prop-general",
+        "body-top-type-mismatch",
+        "missing-body",
+        "param-missing",
+        "param-type-mismatch"
+      ]
     },
     {
       "operationId": "createElementInstanceVariables",
       "method": "PUT",
       "path": "/element-instances/{elementInstanceKey}/variables",
       "counts": {
-        "missing-required": 2,
-        "type-mismatch": 3,
-        "constraint-violation": 3,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 1
       },
-      "total": 10,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "missing-body",
-        "missing-required",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "enum-violation",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 35.7,
-      "applicableKindCoveragePct": 62.5,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 12.5,
       "applicableKindCount": 8,
-      "presentKindCount": 5,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "body-top-type-mismatch",
+        "constraint-violation",
+        "missing-body",
         "nested-additional-prop",
-        "param-missing"
+        "param-missing",
+        "type-mismatch"
       ]
     },
     {
@@ -1005,37 +531,26 @@
       "method": "POST",
       "path": "/groups",
       "counts": {
-        "missing-required": 2,
-        "missing-required-combo": 1,
-        "type-mismatch": 5,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 2
       },
-      "total": 10,
+      "total": 2,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "missing-required",
-        "missing-required-combo",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 35.7,
-      "applicableKindCoveragePct": 83.3,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 16.7,
       "applicableKindCount": 6,
-      "presentKindCount": 5,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
-        "body-top-type-mismatch"
+        "additional-prop-general",
+        "body-top-type-mismatch",
+        "missing-body",
+        "missing-required-combo",
+        "type-mismatch"
       ]
     },
     {
@@ -1043,38 +558,27 @@
       "method": "POST",
       "path": "/mapping-rules",
       "counts": {
-        "missing-required": 5,
-        "type-mismatch": 9,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 1
       },
-      "total": 16,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "missing-required",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 57.1,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 14.3,
       "applicableKindCount": 7,
-      "presentKindCount": 4,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
-        "body-top-type-mismatch"
+        "body-top-type-mismatch",
+        "missing-body",
+        "type-mismatch"
       ]
     },
     {
@@ -1082,36 +586,20 @@
       "method": "POST",
       "path": "/process-instances",
       "counts": {
-        "union": 1,
-        "oneof-ambiguous": 1,
-        "oneof-none-match": 1,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "oneof-cross-bleed": 1
+        "union": 1
       },
-      "total": 6,
+      "total": 1,
       "kinds": [
-        "missing-body",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "type-mismatch",
         "union"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
         "missing-required",
-        "missing-required-combo",
-        "param-missing",
-        "param-type-mismatch",
-        "unique-items-violation"
+        "type-mismatch"
       ],
-      "rawKindCoveragePct": 42.9,
-      "applicableKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 5.6,
       "applicableKindCount": 18,
-      "presentKindCount": 6,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
         "additional-prop-general",
         "allof-conflict",
@@ -1122,8 +610,13 @@
         "discriminator-structure-mismatch",
         "enum-violation",
         "format-invalid",
+        "missing-body",
         "nested-additional-prop",
+        "oneof-ambiguous",
+        "oneof-cross-bleed",
         "oneof-multi-ambiguous",
+        "oneof-none-match",
+        "type-mismatch",
         "unique-items-violation"
       ]
     },
@@ -1132,37 +625,26 @@
       "method": "POST",
       "path": "/roles",
       "counts": {
-        "missing-required": 2,
-        "missing-required-combo": 1,
-        "type-mismatch": 5,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 2
       },
-      "total": 10,
+      "total": 2,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "missing-required",
-        "missing-required-combo",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 35.7,
-      "applicableKindCoveragePct": 83.3,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 16.7,
       "applicableKindCount": 6,
-      "presentKindCount": 5,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
-        "body-top-type-mismatch"
+        "additional-prop-general",
+        "body-top-type-mismatch",
+        "missing-body",
+        "missing-required-combo",
+        "type-mismatch"
       ]
     },
     {
@@ -1170,108 +652,27 @@
       "method": "POST",
       "path": "/tenants",
       "counts": {
-        "missing-required": 2,
-        "missing-required-combo": 1,
-        "type-mismatch": 5,
-        "constraint-violation": 4,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 2
       },
-      "total": 14,
+      "total": 2,
       "kinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "missing-body",
-        "missing-required",
-        "missing-required-combo",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "enum-violation",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 42.9,
-      "applicableKindCoveragePct": 85.7,
-      "applicableKindCount": 7,
-      "presentKindCount": 6,
-      "missingApplicableKinds": [
-        "body-top-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "createUser",
-      "method": "POST",
-      "path": "/users",
-      "counts": {
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 3,
-      "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 21.4,
-      "applicableKindCoveragePct": 75,
-      "applicableKindCount": 4,
-      "presentKindCount": 3,
-      "missingApplicableKinds": [
-        "body-top-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "deleteDocument",
-      "method": "DELETE",
-      "path": "/documents/{documentId}",
-      "counts": {
-        "param-type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "param-type-mismatch"
-      ],
-      "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
         "type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
-      "applicableKindCoveragePct": 50,
-      "applicableKindCount": 2,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 14.3,
+      "applicableKindCount": 7,
       "presentKindCount": 1,
       "missingApplicableKinds": [
-        "param-missing"
+        "additional-prop-general",
+        "body-top-type-mismatch",
+        "constraint-violation",
+        "missing-body",
+        "missing-required-combo",
+        "type-mismatch"
       ]
     },
     {
@@ -1286,21 +687,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -1321,65 +711,16 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
       "missingApplicableKinds": [
         "param-missing",
         "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "deleteResource",
-      "method": "POST",
-      "path": "/resources/{resourceKey}/deletion",
-      "counts": {
-        "type-mismatch": 3,
-        "constraint-violation": 3,
-        "missing-body": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "enum-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 66.7,
-      "applicableKindCount": 6,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "body-top-type-mismatch",
-        "param-missing"
       ]
     },
     {
@@ -1394,21 +735,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -1422,84 +752,34 @@
       "method": "POST",
       "path": "/decision-definitions/evaluation",
       "counts": {
-        "union": 1,
-        "oneof-ambiguous": 1,
-        "oneof-none-match": 1,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1,
-        "oneof-cross-bleed": 1
+        "union": 1
       },
-      "total": 7,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "type-mismatch",
         "union"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
         "missing-required",
-        "missing-required-combo",
-        "param-missing",
-        "param-type-mismatch",
-        "unique-items-violation"
+        "type-mismatch"
       ],
-      "rawKindCoveragePct": 50,
-      "applicableKindCoveragePct": 50,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 7.1,
       "applicableKindCount": 14,
-      "presentKindCount": 7,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "constraint-violation",
         "format-invalid",
-        "nested-additional-prop",
-        "oneof-multi-ambiguous"
-      ]
-    },
-    {
-      "operationId": "failJob",
-      "method": "POST",
-      "path": "/jobs/{jobKey}/failure",
-      "counts": {
-        "type-mismatch": 3,
-        "missing-body": 1,
-        "additional-prop-general": 1
-      },
-      "total": 5,
-      "kinds": [
-        "additional-prop-general",
         "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required",
-        "missing-required-combo",
+        "nested-additional-prop",
         "oneof-ambiguous",
         "oneof-cross-bleed",
+        "oneof-multi-ambiguous",
         "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 21.4,
-      "applicableKindCoveragePct": 42.9,
-      "applicableKindCount": 7,
-      "presentKindCount": 3,
-      "missingApplicableKinds": [
-        "body-top-type-mismatch",
-        "format-invalid",
-        "nested-additional-prop",
-        "param-missing"
+        "type-mismatch"
       ]
     },
     {
@@ -1507,34 +787,24 @@
       "method": "GET",
       "path": "/documents/{documentId}",
       "counts": {
-        "type-mismatch": 1,
-        "param-missing": 1,
-        "param-type-mismatch": 2
+        "type-mismatch": 1
       },
-      "total": 4,
+      "total": 1,
       "kinds": [
-        "param-missing",
-        "param-type-mismatch",
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 21.4,
-      "applicableKindCoveragePct": 100,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
-      "presentKindCount": 3,
-      "missingApplicableKinds": []
+      "presentKindCount": 1,
+      "missingApplicableKinds": [
+        "param-missing",
+        "param-type-mismatch"
+      ]
     },
     {
       "operationId": "getGroup",
@@ -1548,21 +818,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -1583,76 +842,16 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
       "missingApplicableKinds": [
         "param-missing",
         "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "getProcessDefinitionStatistics",
-      "method": "POST",
-      "path": "/process-definitions/{processDefinitionKey}/statistics/element-instances",
-      "counts": {
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "unique-items-violation": 2,
-        "additional-prop-general": 1
-      },
-      "total": 5,
-      "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "type-mismatch",
-        "unique-items-violation"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 23.5,
-      "applicableKindCount": 17,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "enum-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "union"
       ]
     },
     {
@@ -1667,21 +866,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -1695,77 +883,56 @@
       "method": "GET",
       "path": "/system/usage-metrics",
       "counts": {
-        "type-mismatch": 2,
-        "param-missing": 2,
-        "param-type-mismatch": 3
+        "type-mismatch": 2
       },
-      "total": 7,
+      "total": 2,
       "kinds": [
-        "param-missing",
-        "param-type-mismatch",
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 21.4,
-      "applicableKindCoveragePct": 100,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
-      "presentKindCount": 3,
-      "missingApplicableKinds": []
+      "presentKindCount": 1,
+      "missingApplicableKinds": [
+        "param-missing",
+        "param-type-mismatch"
+      ]
     },
     {
       "operationId": "migrateProcessInstance",
       "method": "POST",
       "path": "/process-instances/{processInstanceKey}/migration",
       "counts": {
-        "missing-required": 4,
-        "missing-required-combo": 1,
-        "type-mismatch": 7,
-        "constraint-violation": 3,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 2
       },
-      "total": 17,
+      "total": 2,
       "kinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "missing-body",
-        "missing-required",
-        "missing-required-combo",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "enum-violation",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 42.9,
-      "applicableKindCoveragePct": 50,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 8.3,
       "applicableKindCount": 12,
-      "presentKindCount": 6,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
+        "constraint-violation",
         "format-invalid",
+        "missing-body",
+        "missing-required-combo",
         "nested-additional-prop",
-        "param-missing"
+        "param-missing",
+        "type-mismatch"
       ]
     },
     {
@@ -1773,96 +940,38 @@
       "method": "POST",
       "path": "/process-instances/migration",
       "counts": {
-        "missing-required": 6,
-        "missing-required-combo": 1,
-        "type-mismatch": 5,
-        "constraint-violation": 2,
-        "missing-body": 1,
-        "unique-items-violation": 2,
-        "additional-prop-general": 1
+        "missing-required": 2
       },
-      "total": 18,
+      "total": 2,
       "kinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "missing-body",
-        "missing-required",
-        "missing-required-combo",
-        "type-mismatch",
-        "unique-items-violation"
+        "missing-required"
       ],
       "missingKinds": [
-        "enum-violation",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
+        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 50,
-      "applicableKindCoveragePct": 38.9,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 5.6,
       "applicableKindCount": 18,
-      "presentKindCount": 7,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
+        "constraint-violation",
         "enum-violation",
         "format-invalid",
+        "missing-body",
+        "missing-required-combo",
         "nested-additional-prop",
         "oneof-ambiguous",
         "oneof-cross-bleed",
         "oneof-multi-ambiguous",
         "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "modifyProcessInstance",
-      "method": "POST",
-      "path": "/process-instances/{processInstanceKey}/modification",
-      "counts": {
-        "type-mismatch": 3,
-        "constraint-violation": 3,
-        "missing-body": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "enum-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
+        "type-mismatch",
         "union",
         "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "union"
       ]
     },
     {
@@ -1870,49 +979,38 @@
       "method": "POST",
       "path": "/process-instances/modification",
       "counts": {
-        "missing-required": 4,
-        "missing-required-combo": 1,
-        "type-mismatch": 5,
-        "constraint-violation": 2,
-        "missing-body": 1,
-        "unique-items-violation": 2,
-        "additional-prop-general": 1
+        "missing-required": 2
       },
-      "total": 16,
+      "total": 2,
       "kinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "missing-body",
-        "missing-required",
-        "missing-required-combo",
-        "type-mismatch",
-        "unique-items-violation"
+        "missing-required"
       ],
       "missingKinds": [
-        "enum-violation",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
+        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 50,
-      "applicableKindCoveragePct": 38.9,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 5.6,
       "applicableKindCount": 18,
-      "presentKindCount": 7,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
+        "constraint-violation",
         "enum-violation",
         "format-invalid",
+        "missing-body",
+        "missing-required-combo",
         "nested-additional-prop",
         "oneof-ambiguous",
         "oneof-cross-bleed",
         "oneof-multi-ambiguous",
         "oneof-none-match",
-        "union"
+        "type-mismatch",
+        "union",
+        "unique-items-violation"
       ]
     },
     {
@@ -1920,36 +1018,25 @@
       "method": "PUT",
       "path": "/clock",
       "counts": {
-        "missing-required": 1,
-        "type-mismatch": 3,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 1
       },
-      "total": 6,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "missing-required",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 80,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 20,
       "applicableKindCount": 5,
-      "presentKindCount": 4,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
-        "body-top-type-mismatch"
+        "additional-prop-general",
+        "body-top-type-mismatch",
+        "missing-body",
+        "type-mismatch"
       ]
     },
     {
@@ -1957,80 +1044,31 @@
       "method": "POST",
       "path": "/messages/publication",
       "counts": {
-        "missing-required": 2,
-        "missing-required-combo": 1,
-        "type-mismatch": 5,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 2
       },
-      "total": 10,
+      "total": 2,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "missing-required",
-        "missing-required-combo",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 35.7,
-      "applicableKindCoveragePct": 45.5,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 9.1,
       "applicableKindCount": 11,
-      "presentKindCount": 5,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "constraint-violation",
         "format-invalid",
-        "nested-additional-prop"
-      ]
-    },
-    {
-      "operationId": "resolveIncident",
-      "method": "POST",
-      "path": "/incidents/{incidentKey}/resolution",
-      "counts": {
-        "type-mismatch": 3,
-        "constraint-violation": 3,
-        "missing-body": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "constraint-violation",
         "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "enum-violation",
-        "missing-required",
         "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 66.7,
-      "applicableKindCount": 6,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "body-top-type-mismatch",
-        "param-missing"
+        "nested-additional-prop",
+        "type-mismatch"
       ]
     },
     {
@@ -2038,189 +1076,37 @@
       "method": "POST",
       "path": "/process-instances/incident-resolution",
       "counts": {
-        "missing-required": 1,
-        "constraint-violation": 2,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "unique-items-violation": 2,
-        "additional-prop-general": 1
+        "missing-required": 1
       },
-      "total": 8,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "missing-body",
-        "missing-required",
+        "missing-required"
+      ],
+      "missingKinds": [
         "type-mismatch",
-        "unique-items-violation"
-      ],
-      "missingKinds": [
-        "enum-violation",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 42.9,
-      "applicableKindCoveragePct": 35.3,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 5.9,
       "applicableKindCount": 17,
-      "presentKindCount": 6,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
+        "constraint-violation",
         "enum-violation",
         "format-invalid",
+        "missing-body",
         "nested-additional-prop",
         "oneof-ambiguous",
         "oneof-cross-bleed",
         "oneof-multi-ambiguous",
         "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchAuthorizations",
-      "method": "POST",
-      "path": "/authorizations/search",
-      "counts": {
-        "enum-violation": 5,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
+        "type-mismatch",
         "union",
         "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchBatchOperationItems",
-      "method": "POST",
-      "path": "/batch-operation-items/search",
-      "counts": {
-        "enum-violation": 5,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchBatchOperations",
-      "method": "POST",
-      "path": "/batch-operations/search",
-      "counts": {
-        "enum-violation": 5,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "union"
       ]
     },
     {
@@ -2228,40 +1114,29 @@
       "method": "POST",
       "path": "/groups/{groupId}/clients/search",
       "counts": {
-        "type-mismatch": 2,
-        "enum-violation": 5,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "type-mismatch": 1
       },
-      "total": 9,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
         "type-mismatch"
       ],
       "missingKinds": [
-        "constraint-violation",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 23.5,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 5.9,
       "applicableKindCount": 17,
-      "presentKindCount": 4,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "constraint-violation",
+        "enum-violation",
         "format-invalid",
+        "missing-body",
         "nested-additional-prop",
         "oneof-ambiguous",
         "oneof-cross-bleed",
@@ -2277,378 +1152,36 @@
       "method": "POST",
       "path": "/roles/{roleId}/clients/search",
       "counts": {
-        "type-mismatch": 2,
-        "enum-violation": 5,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "type-mismatch": 1
       },
-      "total": 9,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
         "type-mismatch"
       ],
       "missingKinds": [
-        "constraint-violation",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 23.5,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 5.9,
       "applicableKindCount": 17,
-      "presentKindCount": 4,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchClientsForTenant",
-      "method": "POST",
-      "path": "/tenants/{tenantId}/clients/search",
-      "counts": {
-        "enum-violation": 5,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
         "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 25,
-      "applicableKindCount": 16,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "constraint-violation",
+        "enum-violation",
         "format-invalid",
+        "missing-body",
         "nested-additional-prop",
         "oneof-ambiguous",
         "oneof-cross-bleed",
         "oneof-multi-ambiguous",
         "oneof-none-match",
         "param-missing",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchDecisionDefinitions",
-      "method": "POST",
-      "path": "/decision-definitions/search",
-      "counts": {
-        "enum-violation": 5,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
         "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchDecisionInstances",
-      "method": "POST",
-      "path": "/decision-instances/search",
-      "counts": {
-        "enum-violation": 9,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 12,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchDecisionRequirements",
-      "method": "POST",
-      "path": "/decision-requirements/search",
-      "counts": {
-        "enum-violation": 5,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchElementInstances",
-      "method": "POST",
-      "path": "/element-instances/search",
-      "counts": {
-        "enum-violation": 7,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 10,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchGroupIdsForTenant",
-      "method": "POST",
-      "path": "/tenants/{tenantId}/groups/search",
-      "counts": {
-        "enum-violation": 5,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 25,
-      "applicableKindCount": 16,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchGroups",
-      "method": "POST",
-      "path": "/groups/search",
-      "counts": {
-        "enum-violation": 4,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 7,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
         "union"
       ]
     },
@@ -2657,188 +1190,36 @@
       "method": "POST",
       "path": "/roles/{roleId}/groups/search",
       "counts": {
-        "type-mismatch": 2,
-        "enum-violation": 5,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "type-mismatch": 1
       },
-      "total": 9,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
         "type-mismatch"
       ],
       "missingKinds": [
-        "constraint-violation",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 23.5,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 5.9,
       "applicableKindCount": 17,
-      "presentKindCount": 4,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchIncidents",
-      "method": "POST",
-      "path": "/incidents/search",
-      "counts": {
-        "enum-violation": 9,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 12,
-      "kinds": [
         "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "constraint-violation",
+        "enum-violation",
         "format-invalid",
+        "missing-body",
         "nested-additional-prop",
         "oneof-ambiguous",
         "oneof-cross-bleed",
         "oneof-multi-ambiguous",
         "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchJobs",
-      "method": "POST",
-      "path": "/jobs/search",
-      "counts": {
-        "enum-violation": 4,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 7,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
         "param-missing",
         "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchMappingRule",
-      "method": "POST",
-      "path": "/mapping-rules/search",
-      "counts": {
-        "enum-violation": 5,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
         "union"
       ]
     },
@@ -2847,40 +1228,29 @@
       "method": "POST",
       "path": "/groups/{groupId}/mapping-rules/search",
       "counts": {
-        "type-mismatch": 2,
-        "enum-violation": 5,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "type-mismatch": 1
       },
-      "total": 9,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
         "type-mismatch"
       ],
       "missingKinds": [
-        "constraint-violation",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 23.5,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 5.9,
       "applicableKindCount": 17,
-      "presentKindCount": 4,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "constraint-violation",
+        "enum-violation",
         "format-invalid",
+        "missing-body",
         "nested-additional-prop",
         "oneof-ambiguous",
         "oneof-cross-bleed",
@@ -2896,332 +1266,36 @@
       "method": "POST",
       "path": "/roles/{roleId}/mapping-rules/search",
       "counts": {
-        "type-mismatch": 2,
-        "enum-violation": 5,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "type-mismatch": 1
       },
-      "total": 9,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
         "type-mismatch"
       ],
       "missingKinds": [
-        "constraint-violation",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 23.5,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 5.9,
       "applicableKindCount": 17,
-      "presentKindCount": 4,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchMappingsForTenant",
-      "method": "POST",
-      "path": "/tenants/{tenantId}/mapping-rules/search",
-      "counts": {
-        "enum-violation": 5,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
         "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 25,
-      "applicableKindCount": 16,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "constraint-violation",
+        "enum-violation",
         "format-invalid",
+        "missing-body",
         "nested-additional-prop",
         "oneof-ambiguous",
         "oneof-cross-bleed",
         "oneof-multi-ambiguous",
         "oneof-none-match",
         "param-missing",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchMessageSubscriptions",
-      "method": "POST",
-      "path": "/message-subscriptions/search",
-      "counts": {
-        "enum-violation": 5,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
         "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchProcessDefinitions",
-      "method": "POST",
-      "path": "/process-definitions/search",
-      "counts": {
-        "enum-violation": 5,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchProcessInstanceIncidents",
-      "method": "POST",
-      "path": "/process-instances/{processInstanceKey}/incidents/search",
-      "counts": {
-        "enum-violation": 5,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 25,
-      "applicableKindCount": 16,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchProcessInstances",
-      "method": "POST",
-      "path": "/process-instances/search",
-      "counts": {
-        "enum-violation": 5,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "unique-items-violation": 2,
-        "additional-prop-general": 1
-      },
-      "total": 10,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch",
-        "unique-items-violation"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ],
-      "rawKindCoveragePct": 35.7,
-      "applicableKindCoveragePct": 31.3,
-      "applicableKindCount": 16,
-      "presentKindCount": 5,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchRoles",
-      "method": "POST",
-      "path": "/roles/search",
-      "counts": {
-        "enum-violation": 4,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 7,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
         "union"
       ]
     },
@@ -3230,189 +1304,36 @@
       "method": "POST",
       "path": "/groups/{groupId}/roles/search",
       "counts": {
-        "type-mismatch": 2,
-        "enum-violation": 4,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "type-mismatch": 1
       },
-      "total": 8,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
         "type-mismatch"
       ],
       "missingKinds": [
-        "constraint-violation",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 23.5,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 5.9,
       "applicableKindCount": 17,
-      "presentKindCount": 4,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchRolesForTenant",
-      "method": "POST",
-      "path": "/tenants/{tenantId}/roles/search",
-      "counts": {
-        "enum-violation": 4,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 7,
-      "kinds": [
         "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 25,
-      "applicableKindCount": 16,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "constraint-violation",
+        "enum-violation",
         "format-invalid",
+        "missing-body",
         "nested-additional-prop",
         "oneof-ambiguous",
         "oneof-cross-bleed",
         "oneof-multi-ambiguous",
         "oneof-none-match",
         "param-missing",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchTenants",
-      "method": "POST",
-      "path": "/tenants/search",
-      "counts": {
-        "enum-violation": 4,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 7,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
         "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchUsers",
-      "method": "POST",
-      "path": "/users/search",
-      "counts": {
-        "enum-violation": 4,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 7,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
         "union"
       ]
     },
@@ -3421,40 +1342,29 @@
       "method": "POST",
       "path": "/groups/{groupId}/users/search",
       "counts": {
-        "type-mismatch": 2,
-        "enum-violation": 4,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "type-mismatch": 1
       },
-      "total": 8,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
         "type-mismatch"
       ],
       "missingKinds": [
-        "constraint-violation",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 23.5,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 5.9,
       "applicableKindCount": 17,
-      "presentKindCount": 4,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "constraint-violation",
+        "enum-violation",
         "format-invalid",
+        "missing-body",
         "nested-additional-prop",
         "oneof-ambiguous",
         "oneof-cross-bleed",
@@ -3470,237 +1380,36 @@
       "method": "POST",
       "path": "/roles/{roleId}/users/search",
       "counts": {
-        "type-mismatch": 2,
-        "enum-violation": 4,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "type-mismatch": 1
       },
-      "total": 8,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
         "type-mismatch"
       ],
       "missingKinds": [
-        "constraint-violation",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 23.5,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 5.9,
       "applicableKindCount": 17,
-      "presentKindCount": 4,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchUsersForTenant",
-      "method": "POST",
-      "path": "/tenants/{tenantId}/users/search",
-      "counts": {
-        "enum-violation": 4,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 7,
-      "kinds": [
         "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 25,
-      "applicableKindCount": 16,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "constraint-violation",
+        "enum-violation",
         "format-invalid",
+        "missing-body",
         "nested-additional-prop",
         "oneof-ambiguous",
         "oneof-cross-bleed",
         "oneof-multi-ambiguous",
         "oneof-none-match",
         "param-missing",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchUserTasks",
-      "method": "POST",
-      "path": "/user-tasks/search",
-      "counts": {
-        "enum-violation": 5,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 8,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
         "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchUserTaskVariables",
-      "method": "POST",
-      "path": "/user-tasks/{userTaskKey}/variables/search",
-      "counts": {
-        "enum-violation": 4,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 7,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 25,
-      "applicableKindCount": 16,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchVariables",
-      "method": "POST",
-      "path": "/variables/search",
-      "counts": {
-        "enum-violation": 4,
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 7,
-      "kinds": [
-        "additional-prop-general",
-        "enum-violation",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 26.7,
-      "applicableKindCount": 15,
-      "presentKindCount": 4,
-      "missingApplicableKinds": [
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
         "union"
       ]
     },
@@ -3709,38 +1418,27 @@
       "method": "POST",
       "path": "/jobs/{jobKey}/error",
       "counts": {
-        "missing-required": 1,
-        "type-mismatch": 3,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 1
       },
-      "total": 6,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "missing-required",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 57.1,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 14.3,
       "applicableKindCount": 7,
-      "presentKindCount": 4,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "body-top-type-mismatch",
+        "missing-body",
         "nested-additional-prop",
-        "param-missing"
+        "param-missing",
+        "type-mismatch"
       ]
     },
     {
@@ -3755,21 +1453,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -3790,21 +1477,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -3825,21 +1501,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -3860,21 +1525,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -3895,21 +1549,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -3930,21 +1573,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -3965,21 +1597,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -4000,21 +1621,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -4035,21 +1645,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -4070,21 +1669,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -4105,21 +1693,10 @@
         "type-mismatch"
       ],
       "missingKinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "enum-violation",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 7.1,
+      "rawKindCoveragePct": 33.3,
       "applicableKindCoveragePct": 33.3,
       "applicableKindCount": 3,
       "presentKindCount": 1,
@@ -4133,42 +1710,31 @@
       "method": "PUT",
       "path": "/authorizations/{authorizationKey}",
       "counts": {
-        "missing-required": 9,
-        "missing-required-combo": 20,
-        "type-mismatch": 7,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 5
       },
-      "total": 38,
+      "total": 5,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "missing-required",
-        "missing-required-combo",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 35.7,
-      "applicableKindCoveragePct": 45.5,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 9.1,
       "applicableKindCount": 11,
-      "presentKindCount": 5,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
         "enum-violation",
+        "missing-body",
+        "missing-required-combo",
         "nested-additional-prop",
-        "param-missing"
+        "param-missing",
+        "type-mismatch"
       ]
     },
     {
@@ -4177,36 +1743,25 @@
       "path": "/groups/{groupId}",
       "counts": {
         "missing-required": 2,
-        "missing-required-combo": 1,
-        "type-mismatch": 6,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "type-mismatch": 1
       },
-      "total": 11,
+      "total": 3,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
         "type-mismatch"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 35.7,
-      "applicableKindCoveragePct": 62.5,
+      "rawKindCoveragePct": 66.7,
+      "applicableKindCoveragePct": 25,
       "applicableKindCount": 8,
-      "presentKindCount": 5,
+      "presentKindCount": 2,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "body-top-type-mismatch",
+        "missing-body",
+        "missing-required-combo",
         "param-missing",
         "param-type-mismatch"
       ]
@@ -4216,40 +1771,29 @@
       "method": "PATCH",
       "path": "/jobs/{jobKey}",
       "counts": {
-        "missing-required": 2,
-        "type-mismatch": 5,
-        "constraint-violation": 3,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 1
       },
-      "total": 12,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "constraint-violation",
-        "missing-body",
-        "missing-required",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "enum-violation",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 35.7,
-      "applicableKindCoveragePct": 55.6,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 11.1,
       "applicableKindCount": 9,
-      "presentKindCount": 5,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "body-top-type-mismatch",
+        "constraint-violation",
         "format-invalid",
+        "missing-body",
         "nested-additional-prop",
-        "param-missing"
+        "param-missing",
+        "type-mismatch"
       ]
     },
     {
@@ -4257,38 +1801,26 @@
       "method": "PUT",
       "path": "/mapping-rules/{mappingRuleId}",
       "counts": {
-        "missing-required": 3,
-        "type-mismatch": 8,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "type-mismatch": 1
       },
-      "total": 13,
+      "total": 1,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "missing-required",
         "type-mismatch"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "missing-required",
+        "union"
       ],
-      "rawKindCoveragePct": 28.6,
-      "applicableKindCoveragePct": 44.4,
-      "applicableKindCount": 9,
-      "presentKindCount": 4,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 12.5,
+      "applicableKindCount": 8,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "allof-conflict",
         "allof-missing-required",
         "body-top-type-mismatch",
+        "missing-body",
         "param-missing",
         "param-type-mismatch"
       ]
@@ -4299,36 +1831,25 @@
       "path": "/roles/{roleId}",
       "counts": {
         "missing-required": 2,
-        "missing-required-combo": 1,
-        "type-mismatch": 6,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "type-mismatch": 1
       },
-      "total": 11,
+      "total": 3,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
         "missing-required",
-        "missing-required-combo",
         "type-mismatch"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "union"
       ],
-      "rawKindCoveragePct": 35.7,
-      "applicableKindCoveragePct": 62.5,
+      "rawKindCoveragePct": 66.7,
+      "applicableKindCoveragePct": 25,
       "applicableKindCount": 8,
-      "presentKindCount": 5,
+      "presentKindCount": 2,
       "missingApplicableKinds": [
+        "additional-prop-general",
         "body-top-type-mismatch",
+        "missing-body",
+        "missing-required-combo",
         "param-missing",
         "param-type-mismatch"
       ]
@@ -4338,121 +1859,33 @@
       "method": "PUT",
       "path": "/tenants/{tenantId}",
       "counts": {
-        "missing-required": 2,
-        "missing-required-combo": 1,
-        "type-mismatch": 5,
-        "missing-body": 1,
-        "additional-prop-general": 1
+        "missing-required": 2
       },
-      "total": 10,
+      "total": 2,
       "kinds": [
-        "additional-prop-general",
-        "missing-body",
-        "missing-required",
-        "missing-required-combo",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
+        "type-mismatch",
+        "union"
       ],
-      "rawKindCoveragePct": 35.7,
-      "applicableKindCoveragePct": 71.4,
+      "rawKindCoveragePct": 33.3,
+      "applicableKindCoveragePct": 14.3,
       "applicableKindCount": 7,
-      "presentKindCount": 5,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
-        "body-top-type-mismatch",
-        "param-missing"
-      ]
-    },
-    {
-      "operationId": "updateUser",
-      "method": "PUT",
-      "path": "/users/{username}",
-      "counts": {
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 3,
-      "kinds": [
         "additional-prop-general",
-        "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required",
-        "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 21.4,
-      "applicableKindCoveragePct": 60,
-      "applicableKindCount": 5,
-      "presentKindCount": 3,
-      "missingApplicableKinds": [
         "body-top-type-mismatch",
-        "param-missing"
-      ]
-    },
-    {
-      "operationId": "updateUserTask",
-      "method": "PATCH",
-      "path": "/user-tasks/{userTaskKey}",
-      "counts": {
-        "missing-body": 1,
-        "type-mismatch": 1,
-        "additional-prop-general": 1
-      },
-      "total": 3,
-      "kinds": [
-        "additional-prop-general",
         "missing-body",
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "constraint-violation",
-        "enum-violation",
-        "missing-required",
         "missing-required-combo",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-none-match",
         "param-missing",
-        "param-type-mismatch",
-        "union",
-        "unique-items-violation"
-      ],
-      "rawKindCoveragePct": 21.4,
-      "applicableKindCoveragePct": 37.5,
-      "applicableKindCount": 8,
-      "presentKindCount": 3,
-      "missingApplicableKinds": [
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "format-invalid",
-        "nested-additional-prop",
-        "param-missing"
+        "type-mismatch"
       ]
     }
   ],
   "endpointTotals": {
     "totalOps": 145,
-    "coveredOps": 107,
-    "endpointCoveragePct": 73.8
+    "coveredOps": 65,
+    "endpointCoveragePct": 44.8
   }
 }

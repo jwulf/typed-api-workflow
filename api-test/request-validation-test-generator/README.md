@@ -123,6 +123,7 @@ Each emitted spec includes:
 * Dedupe may hide certain exotic overlapping oneOf shapes (acceptable trade-off).
 * Non-JSON bodies (multipart/form-data, binary) skipped intentionally.
 * No response semantic validation (focus is request -> 400 correctness).
+* Coverage markdown output is normalized (trailing whitespace trimmed, tables compacted) to align with Spotless markdown formatting.
 
 ### Extending with New Scenario Classes
 
