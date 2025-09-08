@@ -3,6 +3,9 @@ sdks/generated
 sdks/typescript-codegen/src/gen
 dist
 
+# Ignore vacuum binary
+vacuum-bin
+
 # Ignore design docs
 sdks/typescript-codegen/design
 
