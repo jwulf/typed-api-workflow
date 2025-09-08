@@ -32,6 +32,7 @@ function buildFile(scenarios: ValidationScenario[], depth: number, specCommit?: 
   const lines: string[] = [];
   lines.push(LICENSE_HEADER.trimEnd());
   const meta: string[] = [];
+  meta.push(''); // ESLint requires a new line after the license header
   meta.push('/*');
   meta.push(' * GENERATED FILE - DO NOT EDIT MANUALLY');
   meta.push(` * Generated At: ${ts || new Date().toISOString()}`);
@@ -71,7 +72,11 @@ function renderScenario(s: ValidationScenario, title: string): string {
   const urlCall = `buildUrl(${JSON.stringify(s.path.replace(/\{([^}]+)}/g, '{$1}'))}, ${paramsLit})`;
   if (s.requestBody) {
     const body = JSON.stringify(s.requestBody, null, 2);
-    lines.push(`    const requestBody = ${body};`);
+    if (body === "[]") {
+      lines.push(`    const requestBody: string[] = ${body};`);
+    } else {
+      lines.push(`    const requestBody = ${body};`);
+    }
   }
   const headersExpr = s.headersAuth ? 'jsonHeaders()' : '{}';
   const dataPart = s.requestBody ? ',\n      data: requestBody' : '';
@@ -80,9 +85,10 @@ function renderScenario(s: ValidationScenario, title: string): string {
   lines.push(`        headers: ${headersExpr}${dataPart}`);
   lines.push('      }');
   lines.push('    );');
-  lines.push(`    if (res.status() !== ${s.expectedStatus}) {`);
-  lines.push('      try { console.error(await res.text()); } catch {}');
-  lines.push('    }');
+  lines.push(' // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes. ');
+  lines.push(` //   if (res.status() !== ${s.expectedStatus}) {`);
+  lines.push(' //     try { console.error(await res.text()); } catch {}');
+  lines.push(' //   }');
   lines.push(`    expect(res.status()).toBe(${s.expectedStatus});`);
   lines.push('  });');
   return lines.join('\n');
