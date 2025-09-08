@@ -43,6 +43,49 @@ public class CamundaKeyFlattener {
         JsonNode root = mapper.readTree(input);
         Set<String> camundaKeyDescendants = new HashSet<>();
 
+        // -------- Tracing Configuration --------
+        // Enable with: -Dtrace.enabled=true (or env TRACE_ENABLED=true)
+        // Schemas (comma list) with: -Dtrace.schemas=SchemaA,SchemaB (or env TRACE_SCHEMAS)
+        boolean traceEnabled = Boolean.parseBoolean(
+                System.getProperty("trace.enabled",
+                        Optional.ofNullable(System.getenv("TRACE_ENABLED")).orElse("false"))
+        );
+        Set<String> traceSchemas = new LinkedHashSet<>();
+        String traceSchemasRaw = System.getProperty("trace.schemas", System.getenv("TRACE_SCHEMAS"));
+        if (traceSchemasRaw != null && !traceSchemasRaw.isBlank()) {
+            for (String part : traceSchemasRaw.split(",")) {
+                String trimmed = part.trim();
+                if (!trimmed.isEmpty()) traceSchemas.add(trimmed);
+            }
+        }
+        // Backward-compat default (if enabled but no list provided) trace the terminate instruction schema
+        if (traceEnabled && traceSchemas.isEmpty()) {
+            traceSchemas.add("ProcessInstanceCreationTerminateInstruction");
+        }
+
+        java.util.function.BiConsumer<String, JsonNode> trace = (phase, r) -> {
+            if (!traceEnabled) return; // no-op when disabled
+            JsonNode schemasNode = r.at("/components/schemas");
+            int schemaCount = (schemasNode != null && schemasNode.isObject()) ? schemasNode.size() : -1;
+            for (String targetName : traceSchemas) {
+                JsonNode target = r.at("/components/schemas/" + targetName);
+                String status = target.isMissingNode() ? "MISSING" : "present";
+                System.out.println("[TRACE] phase=" + phase + " schemaCount=" + schemaCount + " target=" + targetName + " status=" + status);
+                if (!target.isMissingNode()) {
+                    if (target.isObject()) {
+                        Iterator<String> f = target.fieldNames();
+                        List<String> names = new ArrayList<>();
+                        while (f.hasNext()) { names.add(f.next()); }
+                        System.out.println("[TRACE]   fields=" + names);
+                    } else if (target.isArray()) {
+                        System.out.println("[TRACE]   (array node length=" + target.size() + ")");
+                    }
+                }
+            }
+        };
+
+        trace.accept("initial-load", root);
+
         // Step 1: Find all descendants of CamundaKey
         JsonNode schemas = root.at("/components/schemas");
         if (schemas != null && schemas.isObject()) {
@@ -55,21 +98,49 @@ public class CamundaKeyFlattener {
         }
 
         System.out.println("Found CamundaKey descendants: " + camundaKeyDescendants);
+        if (traceEnabled) {
+            for (String t : traceSchemas) {
+                if (camundaKeyDescendants.contains(t)) {
+                    System.out.println("[TRACE][WARNING] Traced schema '" + t + "' classified as CamundaKey descendant.");
+                }
+            }
+        }
+
+        // --- Forced inclusions for known key schemas that lost classification after stricter detection ---
+        // BatchOperationKey inherits CamundaKey via nested composite structure not followed by the narrowed algorithm.
+        // To avoid broad recursion (which previously misclassified non-key instruction schemas), we explicitly include it.
+        List<String> forced = List.of("BatchOperationKey");
+        JsonNode schemasForForce = root.at("/components/schemas");
+        for (String f : forced) {
+            if (schemasForForce.has(f)) {
+                if (camundaKeyDescendants.add(f) && traceEnabled) {
+                    System.out.println("[TRACE] forced-include=" + f + " as CamundaKey descendant");
+                }
+            }
+        }
+        if (traceEnabled && !forced.isEmpty()) {
+            System.out.println("[TRACE] descendants-after-forced=" + camundaKeyDescendants);
+        }
+        trace.accept("after-descendant-scan", root);
 
         // Step 2: Flatten union schemas marked with x-polymorphic-schema
         flattenUnionSchemas(schemas);
+        trace.accept("after-flatten-unions", root);
 
         // Step 3: Rewrite descendants as simple string type
         for (String keyName : camundaKeyDescendants) {
             ObjectNode schemaNode = (ObjectNode) schemas.get(keyName);
             retainDescriptionAndReplaceWithString(schemaNode);
         }
+        trace.accept("after-rewrite-descendants", root);
 
         // Step 4: Replace references and types throughout the spec
         replaceRefs(root, camundaKeyDescendants, new HashSet<>(), root.at("/components/schemas"));
+        trace.accept("after-replace-refs", root);
 
         // Step 4.5: Fix Advanced Key Filter descriptions
         fixAdvancedKeyFilterDescriptions(root.at("/components/schemas"));
+        trace.accept("after-fix-advanced-key-filter-descriptions", root);
 
         // Step 4.75: Remove the (now redundant) CamundaKey descendant schemas entirely so spec matches low-res style
         JsonNode schemasNode = root.at("/components/schemas");
@@ -81,24 +152,127 @@ public class CamundaKeyFlattener {
                 }
             }
         }
+        trace.accept("after-remove-descendants", root);
 
         // Step 5: Inject metadata
         injectMetadata(root);
+        trace.accept("after-inject-metadata", root);
 
         // Step 6: Sanitize domain-only operational metadata (remove from generated spec)
         removeOperationMetadata(root);
+        trace.accept("after-remove-operation-metadata", root);
 
         // Step 6.5: Re-apply legacy int64 formats for backward compatibility (temporary shim)
         reapplyRemovedInt64Formats(mapper, root);
+        trace.accept("after-reapply-int64", root);
+
+    // Step 6.6: Re-introduce inline path parameter numeric patterns to avoid ambiguity with literal sibling paths
+    // flattenInlinePathParametersFromSchemas(root, camundaKeyDescendants);
 
         // Step 7: Write with dynamic header comment
         String headerComment = generateHeaderComment();
+        trace.accept("pre-write", root);
         try (FileWriter writer = new FileWriter(output)) {
             writer.write(headerComment);
             mapper.writeValue(writer, root);
         }
 
         System.out.println("Finished writing to " + OUTPUT_FILE);
+        trace.accept("post-write", root);
+    }
+
+    /**
+     * Inline path parameter pattern restoration.
+     * Scenario: After flattening CamundaKey descendants to plain string types we lost the
+     * numeric (LongKey) constraint on path parameters such as {decisionDefinitionKey}.
+     * Without an explicit numeric pattern, these parameters can become ambiguous with
+     * sibling literal path segments (e.g. /decision-definitions/evaluation vs /decision-definitions/{decisionDefinitionKey})
+     * causing the linter (Vacuum ambiguous-path rule) to flag collisions.
+     *
+     * This pass walks all path parameters. If a parameter name corresponds to a former
+     * CamundaKey descendant (schema name ending with Key -> param camelCase first letter lowercased)
+     * we (re)attach an inline schema containing a strict numeric pattern ^[0-9]+$.
+     * Special case: BatchOperationKey can also be a UUID; we allow either numeric long or UUID.
+     * We do not overwrite an existing pattern if already present so manual / earlier enrichment
+     * remains authoritative.
+     */
+    public static void flattenInlinePathParametersFromSchemas(JsonNode root, Set<String> camundaKeyDescendants) {
+        if (root == null || !root.isObject()) return;
+        JsonNode paths = root.get("paths");
+        if (paths == null || !paths.isObject()) return;
+
+        // Build mapping from parameter name -> schema type name
+        Map<String, String> paramNameToSchema = new HashMap<>();
+        for (String schemaName : camundaKeyDescendants) {
+            if (!schemaName.endsWith("Key")) continue; // only path style keys
+            String paramName = schemaName.substring(0, 1).toLowerCase() + schemaName.substring(1); // e.g. ProcessInstanceKey -> processInstanceKey
+            paramNameToSchema.put(paramName, schemaName);
+        }
+
+        // Pattern constants
+        final String NUMERIC_PATTERN = "^[0-9]+$"; // positive longs (actual engine-generated keys)
+        final String BATCH_KEY_PATTERN = "^(?:[0-9]+|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$"; // long or UUID
+
+        // Iterate all paths & operations
+        for (Iterator<String> pit = paths.fieldNames(); pit.hasNext(); ) {
+            String pName = pit.next();
+            JsonNode pathItem = paths.get(pName);
+            if (pathItem == null || !pathItem.isObject()) continue;
+            ObjectNode pathObj = (ObjectNode) pathItem;
+
+            // Path-level parameters (rare in this spec) also considered
+            if (pathObj.has("parameters") && pathObj.get("parameters").isArray()) {
+                applyParamPatterns((ArrayNode) pathObj.get("parameters"), paramNameToSchema, NUMERIC_PATTERN, BATCH_KEY_PATTERN);
+            }
+
+            for (String method : Arrays.asList("get","post","put","patch","delete","head","options","trace")) {
+                JsonNode op = pathObj.get(method);
+                if (op != null && op.isObject()) {
+                    ObjectNode opObj = (ObjectNode) op;
+                    JsonNode params = opObj.get("parameters");
+                    if (params != null && params.isArray()) {
+                        applyParamPatterns((ArrayNode) params, paramNameToSchema, NUMERIC_PATTERN, BATCH_KEY_PATTERN);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void applyParamPatterns(ArrayNode params, Map<String, String> paramNameToSchema, String numericPattern, String batchPattern) {
+        for (JsonNode paramNode : params) {
+            if (!(paramNode instanceof ObjectNode)) continue;
+            ObjectNode param = (ObjectNode) paramNode;
+            if (!param.has("in") || !"path".equals(param.get("in").asText())) continue;
+            String name = param.has("name") ? param.get("name").asText() : null;
+            if (name == null) continue;
+            if (!paramNameToSchema.containsKey(name)) continue; // not a known key param
+
+            // Ensure schema object exists
+            ObjectNode schema;
+            if (!param.has("schema") || !param.get("schema").isObject()) {
+                schema = param.putObject("schema");
+                schema.put("type", "string");
+            } else {
+                schema = (ObjectNode) param.get("schema");
+                if (!schema.has("type")) schema.put("type", "string");
+            }
+
+            // Skip if pattern already present (honor prior constraints)
+            if (schema.has("pattern")) continue;
+
+            String schemaType = paramNameToSchema.get(name);
+            if ("BatchOperationKey".equals(schemaType)) {
+                schema.put("pattern", batchPattern);
+                if (!schema.has("description")) {
+                    schema.put("description", "System-generated batch operation key (numeric long or UUID)");
+                }
+            } else {
+                schema.put("pattern", numericPattern);
+                if (!schema.has("description")) {
+                    schema.put("description", "System-generated key (numeric long)");
+                }
+            }
+        }
     }
 
     /**
@@ -518,30 +692,25 @@ public class CamundaKeyFlattener {
 
         JsonNode schema = schemas.get(name);
         if (schema == null) return false;
-
+        // Only consider direct inheritance via composite keywords; DO NOT traverse arbitrary nested property graphs.
         for (String composite : List.of("allOf", "oneOf", "anyOf")) {
             JsonNode items = schema.get(composite);
-            if (items != null && items.isArray()) {
-                for (JsonNode item : items) {
-                    if (item.has("$ref")) {
-                        String ref = item.get("$ref").asText();
-                        String refName = ref.substring(ref.lastIndexOf("/") + 1);
-                        if (refName.equals("CamundaKey")) {
-                            return true;
-                        }
-                        if (isDescendantOfCamundaKey(refName, schemas, visited)) {
-                            return true;
-                        }
-                    } else {
-                        // Recursively inspect nested composite structures (e.g., oneOf variant containing allOf with CamundaKey)
-                        if (containsNestedCamundaKeyRef(item, schemas, visited)) {
-                            return true;
-                        }
-                    }
+            if (items == null || !items.isArray()) continue;
+            for (JsonNode item : items) {
+                if (!item.has("$ref")) continue; // Only follow explicit refs in composite array
+                String ref = item.get("$ref").asText();
+                if (!ref.startsWith("#/components/schemas/")) continue;
+                String refName = ref.substring(ref.lastIndexOf("/") + 1);
+                if ("CamundaKey".equals(refName)) {
+                    return true; // Direct inheritance
+                }
+                // Recurse ONLY along composite inheritance chains
+                if (isDescendantOfCamundaKey(refName, schemas, visited)) {
+                    return true;
                 }
             }
         }
-        return false;
+        return false; // Not a descendant
     }
 
     /**
