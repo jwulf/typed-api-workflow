@@ -1,9 +1,20 @@
 import { describe, it, expect } from 'vitest';
-import createCamundaClient, { createCamundaResultClient, ProcessInstanceKey } from '../dist';
+import createCamundaClient, { createCamundaResultClient } from '../dist';
 import fs from 'fs';
+import { extractJobTypesFromBpmnFile } from '../test-support/bpmn';
 
 describe('integration acceptance', () => {
-    it.skip('can get the the current CamundaUser', async () => {
+    it('can get the Topology', async () => {
+        const camunda = createCamundaClient()
+        const topology = await camunda.getTopology()
+        console.log(JSON.stringify(topology, null, 2))
+    })
+    it('can get the License', async () => {
+        const camunda = createCamundaClient()
+        const license = await camunda.getLicense()
+        console.log(JSON.stringify(license, null, 2))   
+    })
+    it('can get the the current CamundaUser', async () => {
         const camunda = createCamundaClient()
         const res = await camunda.getAuthentication()
         console.log(JSON.stringify(res, null, 2))
@@ -56,5 +67,25 @@ describe('integration acceptance', () => {
             }
         }, { consistency: { waitUpToMs: 15000, pollIntervalMs: 2000, trace: true } })
         expect(search.items.length).toBe(1);
+        await camunda.cancelProcessInstance({ processInstanceKey: process.processInstanceKey });
+    });
+
+    it.only('can do activate jobs', { timeout: 20000 }, async () => {
+        const camunda = createCamundaClient({});
+        const filepath = './tests-integration/fixtures/test-process.bpmn'
+        const res = await camunda.deployResourcesFromFiles([filepath]);
+        const jobTypes = extractJobTypesFromBpmnFile(filepath);
+        const process = await camunda.createProcessInstance({
+            processDefinitionKey: res.processes[0].processDefinitionKey,
+        })
+        console.log('ProcessInstance', JSON.stringify(process, null, 2))
+        const jobsResponse = await camunda.activateJobs({
+            maxJobsToActivate: 1,
+            type: jobTypes[0],
+            timeout: 30000
+        });
+        console.log(JSON.stringify(jobsResponse, null, 2))
+        expect(jobsResponse.jobs.length).toBe(1);
+        await camunda.cancelProcessInstance({ processInstanceKey: process.processInstanceKey });
     });
 });
