@@ -28,7 +28,7 @@ function deepFreeze<T>(obj: T): T {
 }
 
 // === AUTO-GENERATED CAMUNDA SUPPORT TYPES START ===
-// Generated 2025-09-05T01:27:26.159Z
+// Generated 2025-09-08T23:36:40.191Z
 // Operations: 145
 type _RawReturn<F> = F extends (...a:any)=>Promise<infer R> ? R : never;
 type _DataOf<F> = Exclude<_RawReturn<F> extends { data: infer D } ? D : _RawReturn<F>, undefined>;
@@ -1042,7 +1042,7 @@ export class CamundaClient {
   withCorrelation<T>(id: string, fn: () => Promise<T> | T): Promise<T> { return _withCorrelation(id, fn); }
 
   // === AUTO-GENERATED CAMUNDA METHODS START ===
-  // Generated methods (2025-09-05T01:27:26.160Z)
+  // Generated methods (2025-09-08T23:36:40.192Z)
   /**
    * Activate activities within an ad-hoc sub-process
    * Activates selected activities within an ad-hoc sub-process identified by element ID.
@@ -1071,6 +1071,10 @@ export class CamundaClient {
         const r = await Sdk.activateAdHocSubProcessActivities(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zActivateAdHocSubProcessActivitiesResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zActivateAdHocSubProcessActivitiesResponse;
           if (_schema) {
@@ -1108,6 +1112,10 @@ export class CamundaClient {
         const r = await Sdk.activateJobs(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zActivateJobsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zActivateJobsResponse;
           if (_schema) {
@@ -1144,6 +1152,10 @@ export class CamundaClient {
         const r = await Sdk.assignClientToGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zAssignClientToGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zAssignClientToGroupResponse;
           if (_schema) {
@@ -1180,6 +1192,10 @@ export class CamundaClient {
         const r = await Sdk.assignClientToTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zAssignClientToTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zAssignClientToTenantResponse;
           if (_schema) {
@@ -1216,6 +1232,10 @@ export class CamundaClient {
         const r = await Sdk.assignGroupToTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zAssignGroupToTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zAssignGroupToTenantResponse;
           if (_schema) {
@@ -1253,6 +1273,10 @@ export class CamundaClient {
         const r = await Sdk.assignMappingRuleToGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zAssignMappingRuleToGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zAssignMappingRuleToGroupResponse;
           if (_schema) {
@@ -1289,6 +1313,10 @@ export class CamundaClient {
         const r = await Sdk.assignMappingRuleToTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zAssignMappingRuleToTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zAssignMappingRuleToTenantResponse;
           if (_schema) {
@@ -1326,6 +1354,10 @@ export class CamundaClient {
         const r = await Sdk.assignRoleToClient(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zAssignRoleToClientResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zAssignRoleToClientResponse;
           if (_schema) {
@@ -1362,6 +1394,10 @@ export class CamundaClient {
         const r = await Sdk.assignRoleToGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zAssignRoleToGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zAssignRoleToGroupResponse;
           if (_schema) {
@@ -1399,6 +1435,10 @@ export class CamundaClient {
         const r = await Sdk.assignRoleToMappingRule(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zAssignRoleToMappingRuleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zAssignRoleToMappingRuleResponse;
           if (_schema) {
@@ -1435,6 +1475,10 @@ export class CamundaClient {
         const r = await Sdk.assignRoleToTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zAssignRoleToTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zAssignRoleToTenantResponse;
           if (_schema) {
@@ -1471,6 +1515,10 @@ export class CamundaClient {
         const r = await Sdk.assignRoleToUser(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zAssignRoleToUserResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zAssignRoleToUserResponse;
           if (_schema) {
@@ -1509,6 +1557,10 @@ export class CamundaClient {
         const r = await Sdk.assignUserTask(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zAssignUserTaskResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zAssignUserTaskResponse;
           if (_schema) {
@@ -1545,6 +1597,10 @@ export class CamundaClient {
         const r = await Sdk.assignUserToGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zAssignUserToGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zAssignUserToGroupResponse;
           if (_schema) {
@@ -1581,6 +1637,10 @@ export class CamundaClient {
         const r = await Sdk.assignUserToTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zAssignUserToTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zAssignUserToTenantResponse;
           if (_schema) {
@@ -1617,6 +1677,10 @@ export class CamundaClient {
         const r = await Sdk.broadcastSignal(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zBroadcastSignalResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zBroadcastSignalResponse;
           if (_schema) {
@@ -1660,6 +1724,10 @@ export class CamundaClient {
         const r = await Sdk.cancelBatchOperation(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCancelBatchOperationResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCancelBatchOperationResponse;
           if (_schema) {
@@ -1700,6 +1768,10 @@ export class CamundaClient {
         const r = await Sdk.cancelProcessInstance(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCancelProcessInstanceResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCancelProcessInstanceResponse;
           if (_schema) {
@@ -1743,6 +1815,10 @@ export class CamundaClient {
         const r = await Sdk.cancelProcessInstancesBatchOperation(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCancelProcessInstancesBatchOperationResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCancelProcessInstancesBatchOperationResponse;
           if (_schema) {
@@ -1784,6 +1860,10 @@ export class CamundaClient {
         const r = await Sdk.completeJob(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCompleteJobResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCompleteJobResponse;
           if (_schema) {
@@ -1822,6 +1902,10 @@ export class CamundaClient {
         const r = await Sdk.completeUserTask(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCompleteUserTaskResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCompleteUserTaskResponse;
           if (_schema) {
@@ -1862,6 +1946,10 @@ export class CamundaClient {
         const r = await Sdk.correlateMessage(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCorrelateMessageResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCorrelateMessageResponse;
           if (_schema) {
@@ -1901,6 +1989,10 @@ export class CamundaClient {
         const r = await Sdk.createAdminUser(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCreateAdminUserResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCreateAdminUserResponse;
           if (_schema) {
@@ -1939,6 +2031,10 @@ export class CamundaClient {
         const r = await Sdk.createAuthorization(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCreateAuthorizationResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCreateAuthorizationResponse;
           if (_schema) {
@@ -1978,6 +2074,10 @@ export class CamundaClient {
         const r = await Sdk.createDeployment(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCreateDeploymentResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         // Enrich deployment response
         const base = data as _DataOf<typeof Sdk.createDeployment>;
         const ext: ExtendedDeploymentResult = { ...base, processes: [], decisions: [], decisionRequirements: [], forms: [], resources: [] };
@@ -2030,6 +2130,10 @@ export class CamundaClient {
         const r = await Sdk.createDocument(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCreateDocumentResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCreateDocumentResponse;
           if (_schema) {
@@ -2073,6 +2177,10 @@ export class CamundaClient {
         const r = await Sdk.createDocumentLink(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCreateDocumentLinkResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCreateDocumentLinkResponse;
           if (_schema) {
@@ -2136,6 +2244,10 @@ export class CamundaClient {
         const r = await Sdk.createDocuments(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCreateDocumentsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCreateDocumentsResponse;
           if (_schema) {
@@ -2176,6 +2288,10 @@ export class CamundaClient {
         const r = await Sdk.createElementInstanceVariables(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCreateElementInstanceVariablesResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCreateElementInstanceVariablesResponse;
           if (_schema) {
@@ -2213,6 +2329,10 @@ export class CamundaClient {
         const r = await Sdk.createGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCreateGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCreateGroupResponse;
           if (_schema) {
@@ -2250,6 +2370,10 @@ export class CamundaClient {
         const r = await Sdk.createMappingRule(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCreateMappingRuleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCreateMappingRuleResponse;
           if (_schema) {
@@ -2292,6 +2416,10 @@ export class CamundaClient {
         const r = await Sdk.createProcessInstance(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCreateProcessInstanceResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCreateProcessInstanceResponse;
           if (_schema) {
@@ -2329,6 +2457,10 @@ export class CamundaClient {
         const r = await Sdk.createRole(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCreateRoleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCreateRoleResponse;
           if (_schema) {
@@ -2365,6 +2497,10 @@ export class CamundaClient {
         const r = await Sdk.createTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCreateTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCreateTenantResponse;
           if (_schema) {
@@ -2404,6 +2540,10 @@ export class CamundaClient {
         const r = await Sdk.createUser(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zCreateUserResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zCreateUserResponse;
           if (_schema) {
@@ -2442,6 +2582,10 @@ export class CamundaClient {
         const r = await Sdk.deleteAuthorization(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zDeleteAuthorizationResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zDeleteAuthorizationResponse;
           if (_schema) {
@@ -2483,6 +2627,10 @@ export class CamundaClient {
         const r = await Sdk.deleteDocument(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zDeleteDocumentResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         return data;
       };
       return call();
@@ -2513,6 +2661,10 @@ export class CamundaClient {
         const r = await Sdk.deleteGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zDeleteGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zDeleteGroupResponse;
           if (_schema) {
@@ -2550,6 +2702,10 @@ export class CamundaClient {
         const r = await Sdk.deleteMappingRule(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zDeleteMappingRuleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zDeleteMappingRuleResponse;
           if (_schema) {
@@ -2591,6 +2747,10 @@ export class CamundaClient {
         const r = await Sdk.deleteResource(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zDeleteResourceResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         return data;
       };
       return call();
@@ -2621,6 +2781,10 @@ export class CamundaClient {
         const r = await Sdk.deleteRole(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zDeleteRoleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zDeleteRoleResponse;
           if (_schema) {
@@ -2657,6 +2821,10 @@ export class CamundaClient {
         const r = await Sdk.deleteTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zDeleteTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zDeleteTenantResponse;
           if (_schema) {
@@ -2697,6 +2865,10 @@ export class CamundaClient {
         const r = await Sdk.deleteUser(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zDeleteUserResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zDeleteUserResponse;
           if (_schema) {
@@ -2739,6 +2911,10 @@ export class CamundaClient {
         const r = await Sdk.evaluateDecision(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zEvaluateDecisionResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zEvaluateDecisionResponse;
           if (_schema) {
@@ -2778,6 +2954,10 @@ export class CamundaClient {
         const r = await Sdk.failJob(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zFailJobResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zFailJobResponse;
           if (_schema) {
@@ -2806,6 +2986,10 @@ export class CamundaClient {
         const r = await Sdk.getAuthentication(opts as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetAuthenticationResponse';
+        if ( (Schemas as any)[_respSchemaName]?._def?.typeName === "ZodVoid") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetAuthenticationResponse;
           if (_schema) {
@@ -2845,6 +3029,10 @@ export class CamundaClient {
         const r = await Sdk.getAuthorization(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetAuthorizationResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetAuthorizationResponse;
           if (_schema) {
@@ -2886,6 +3074,10 @@ export class CamundaClient {
         const r = await Sdk.getBatchOperation(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetBatchOperationResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetBatchOperationResponse;
           if (_schema) {
@@ -2928,6 +3120,10 @@ export class CamundaClient {
         const r = await Sdk.getDecisionDefinition(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetDecisionDefinitionResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetDecisionDefinitionResponse;
           if (_schema) {
@@ -2970,6 +3166,10 @@ export class CamundaClient {
         const r = await Sdk.getDecisionDefinitionXml(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetDecisionDefinitionXmlResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetDecisionDefinitionXmlResponse;
           if (_schema) {
@@ -3012,6 +3212,10 @@ export class CamundaClient {
         const r = await Sdk.getDecisionInstance(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetDecisionInstanceResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetDecisionInstanceResponse;
           if (_schema) {
@@ -3054,6 +3258,10 @@ export class CamundaClient {
         const r = await Sdk.getDecisionRequirements(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetDecisionRequirementsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetDecisionRequirementsResponse;
           if (_schema) {
@@ -3096,6 +3304,10 @@ export class CamundaClient {
         const r = await Sdk.getDecisionRequirementsXml(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetDecisionRequirementsXmlResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetDecisionRequirementsXmlResponse;
           if (_schema) {
@@ -3139,6 +3351,10 @@ export class CamundaClient {
         const r = await Sdk.getDocument(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetDocumentResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetDocumentResponse;
           if (_schema) {
@@ -3179,6 +3395,10 @@ export class CamundaClient {
         const r = await Sdk.getElementInstance(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetElementInstanceResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetElementInstanceResponse;
           if (_schema) {
@@ -3221,6 +3441,10 @@ export class CamundaClient {
         const r = await Sdk.getGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetGroupResponse;
           if (_schema) {
@@ -3263,6 +3487,10 @@ export class CamundaClient {
         const r = await Sdk.getIncident(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetIncidentResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetIncidentResponse;
           if (_schema) {
@@ -3293,6 +3521,10 @@ export class CamundaClient {
         const r = await Sdk.getLicense(opts as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetLicenseResponse';
+        if ( (Schemas as any)[_respSchemaName]?._def?.typeName === "ZodVoid") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetLicenseResponse;
           if (_schema) {
@@ -3333,6 +3565,10 @@ export class CamundaClient {
         const r = await Sdk.getMappingRule(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetMappingRuleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetMappingRuleResponse;
           if (_schema) {
@@ -3375,6 +3611,10 @@ export class CamundaClient {
         const r = await Sdk.getProcessDefinition(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetProcessDefinitionResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetProcessDefinitionResponse;
           if (_schema) {
@@ -3419,6 +3659,10 @@ export class CamundaClient {
         const r = await Sdk.getProcessDefinitionStatistics(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetProcessDefinitionStatisticsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetProcessDefinitionStatisticsResponse;
           if (_schema) {
@@ -3461,6 +3705,10 @@ export class CamundaClient {
         const r = await Sdk.getProcessDefinitionXml(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetProcessDefinitionXmlResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetProcessDefinitionXmlResponse;
           if (_schema) {
@@ -3503,6 +3751,10 @@ export class CamundaClient {
         const r = await Sdk.getProcessInstance(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetProcessInstanceResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetProcessInstanceResponse;
           if (_schema) {
@@ -3545,6 +3797,10 @@ export class CamundaClient {
         const r = await Sdk.getProcessInstanceCallHierarchy(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetProcessInstanceCallHierarchyResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetProcessInstanceCallHierarchyResponse;
           if (_schema) {
@@ -3587,6 +3843,10 @@ export class CamundaClient {
         const r = await Sdk.getProcessInstanceSequenceFlows(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetProcessInstanceSequenceFlowsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetProcessInstanceSequenceFlowsResponse;
           if (_schema) {
@@ -3629,6 +3889,10 @@ export class CamundaClient {
         const r = await Sdk.getProcessInstanceStatistics(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetProcessInstanceStatisticsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetProcessInstanceStatisticsResponse;
           if (_schema) {
@@ -3671,6 +3935,10 @@ export class CamundaClient {
         const r = await Sdk.getResource(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetResourceResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetResourceResponse;
           if (_schema) {
@@ -3711,6 +3979,10 @@ export class CamundaClient {
         const r = await Sdk.getResourceContent(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetResourceContentResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetResourceContentResponse;
           if (_schema) {
@@ -3751,6 +4023,10 @@ export class CamundaClient {
         const r = await Sdk.getRole(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetRoleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetRoleResponse;
           if (_schema) {
@@ -3795,6 +4071,10 @@ export class CamundaClient {
         const r = await Sdk.getStartProcessForm(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetStartProcessFormResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetStartProcessFormResponse;
           if (_schema) {
@@ -3825,6 +4105,10 @@ export class CamundaClient {
         const r = await Sdk.getStatus(opts as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetStatusResponse';
+        if ( (Schemas as any)[_respSchemaName]?._def?.typeName === "ZodVoid") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetStatusResponse;
           if (_schema) {
@@ -3864,6 +4148,10 @@ export class CamundaClient {
         const r = await Sdk.getTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetTenantResponse;
           if (_schema) {
@@ -3894,6 +4182,10 @@ export class CamundaClient {
         const r = await Sdk.getTopology(opts as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetTopologyResponse';
+        if ( (Schemas as any)[_respSchemaName]?._def?.typeName === "ZodVoid") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetTopologyResponse;
           if (_schema) {
@@ -3933,6 +4225,10 @@ export class CamundaClient {
         const r = await Sdk.getUsageMetrics(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetUsageMetricsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetUsageMetricsResponse;
           if (_schema) {
@@ -3975,6 +4271,10 @@ export class CamundaClient {
         const r = await Sdk.getUser(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetUserResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetUserResponse;
           if (_schema) {
@@ -4017,6 +4317,10 @@ export class CamundaClient {
         const r = await Sdk.getUserTask(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetUserTaskResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetUserTaskResponse;
           if (_schema) {
@@ -4061,6 +4365,10 @@ export class CamundaClient {
         const r = await Sdk.getUserTaskForm(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetUserTaskFormResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetUserTaskFormResponse;
           if (_schema) {
@@ -4103,6 +4411,10 @@ export class CamundaClient {
         const r = await Sdk.getVariable(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zGetVariableResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zGetVariableResponse;
           if (_schema) {
@@ -4150,6 +4462,10 @@ export class CamundaClient {
         const r = await Sdk.migrateProcessInstance(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zMigrateProcessInstanceResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zMigrateProcessInstanceResponse;
           if (_schema) {
@@ -4193,6 +4509,10 @@ export class CamundaClient {
         const r = await Sdk.migrateProcessInstancesBatchOperation(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zMigrateProcessInstancesBatchOperationResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zMigrateProcessInstancesBatchOperationResponse;
           if (_schema) {
@@ -4239,6 +4559,10 @@ export class CamundaClient {
         const r = await Sdk.modifyProcessInstance(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zModifyProcessInstanceResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zModifyProcessInstanceResponse;
           if (_schema) {
@@ -4284,6 +4608,10 @@ export class CamundaClient {
         const r = await Sdk.modifyProcessInstancesBatchOperation(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zModifyProcessInstancesBatchOperationResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zModifyProcessInstancesBatchOperationResponse;
           if (_schema) {
@@ -4328,6 +4656,10 @@ export class CamundaClient {
         const r = await Sdk.pinClock(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zPinClockResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zPinClockResponse;
           if (_schema) {
@@ -4369,6 +4701,10 @@ export class CamundaClient {
         const r = await Sdk.publishMessage(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zPublishMessageResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zPublishMessageResponse;
           if (_schema) {
@@ -4403,6 +4739,10 @@ export class CamundaClient {
         const r = await Sdk.resetClock(opts as any);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zResetClockResponse';
+        if ( (Schemas as any)[_respSchemaName]?._def?.typeName === "ZodVoid") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zResetClockResponse;
           if (_schema) {
@@ -4442,6 +4782,10 @@ export class CamundaClient {
         const r = await Sdk.resolveIncident(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zResolveIncidentResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zResolveIncidentResponse;
           if (_schema) {
@@ -4485,6 +4829,10 @@ export class CamundaClient {
         const r = await Sdk.resolveIncidentsBatchOperation(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zResolveIncidentsBatchOperationResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zResolveIncidentsBatchOperationResponse;
           if (_schema) {
@@ -4530,6 +4878,10 @@ export class CamundaClient {
         const r = await Sdk.resumeBatchOperation(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zResumeBatchOperationResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zResumeBatchOperationResponse;
           if (_schema) {
@@ -4572,6 +4924,10 @@ export class CamundaClient {
         const r = await Sdk.searchAuthorizations(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchAuthorizationsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchAuthorizationsResponse;
           if (_schema) {
@@ -4613,6 +4969,10 @@ export class CamundaClient {
         const r = await Sdk.searchBatchOperationItems(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchBatchOperationItemsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchBatchOperationItemsResponse;
           if (_schema) {
@@ -4654,6 +5014,10 @@ export class CamundaClient {
         const r = await Sdk.searchBatchOperations(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchBatchOperationsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchBatchOperationsResponse;
           if (_schema) {
@@ -4698,6 +5062,10 @@ export class CamundaClient {
         const r = await Sdk.searchClientsForGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchClientsForGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchClientsForGroupResponse;
           if (_schema) {
@@ -4742,6 +5110,10 @@ export class CamundaClient {
         const r = await Sdk.searchClientsForRole(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchClientsForRoleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchClientsForRoleResponse;
           if (_schema) {
@@ -4785,6 +5157,10 @@ export class CamundaClient {
         const r = await Sdk.searchClientsForTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchClientsForTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchClientsForTenantResponse;
           if (_schema) {
@@ -4827,6 +5203,10 @@ export class CamundaClient {
         const r = await Sdk.searchDecisionDefinitions(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchDecisionDefinitionsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchDecisionDefinitionsResponse;
           if (_schema) {
@@ -4869,6 +5249,10 @@ export class CamundaClient {
         const r = await Sdk.searchDecisionInstances(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchDecisionInstancesResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchDecisionInstancesResponse;
           if (_schema) {
@@ -4911,6 +5295,10 @@ export class CamundaClient {
         const r = await Sdk.searchDecisionRequirements(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchDecisionRequirementsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchDecisionRequirementsResponse;
           if (_schema) {
@@ -4953,6 +5341,10 @@ export class CamundaClient {
         const r = await Sdk.searchElementInstances(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchElementInstancesResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchElementInstancesResponse;
           if (_schema) {
@@ -4996,6 +5388,10 @@ export class CamundaClient {
         const r = await Sdk.searchGroupIdsForTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchGroupIdsForTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchGroupIdsForTenantResponse;
           if (_schema) {
@@ -5038,6 +5434,10 @@ export class CamundaClient {
         const r = await Sdk.searchGroups(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchGroupsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchGroupsResponse;
           if (_schema) {
@@ -5082,6 +5482,10 @@ export class CamundaClient {
         const r = await Sdk.searchGroupsForRole(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchGroupsForRoleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchGroupsForRoleResponse;
           if (_schema) {
@@ -5124,6 +5528,10 @@ export class CamundaClient {
         const r = await Sdk.searchIncidents(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchIncidentsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchIncidentsResponse;
           if (_schema) {
@@ -5165,6 +5573,10 @@ export class CamundaClient {
         const r = await Sdk.searchJobs(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchJobsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchJobsResponse;
           if (_schema) {
@@ -5207,6 +5619,10 @@ export class CamundaClient {
         const r = await Sdk.searchMappingRule(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchMappingRuleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchMappingRuleResponse;
           if (_schema) {
@@ -5251,6 +5667,10 @@ export class CamundaClient {
         const r = await Sdk.searchMappingRulesForGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchMappingRulesForGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchMappingRulesForGroupResponse;
           if (_schema) {
@@ -5295,6 +5715,10 @@ export class CamundaClient {
         const r = await Sdk.searchMappingRulesForRole(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchMappingRulesForRoleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchMappingRulesForRoleResponse;
           if (_schema) {
@@ -5338,6 +5762,10 @@ export class CamundaClient {
         const r = await Sdk.searchMappingsForTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchMappingsForTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchMappingsForTenantResponse;
           if (_schema) {
@@ -5380,6 +5808,10 @@ export class CamundaClient {
         const r = await Sdk.searchMessageSubscriptions(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchMessageSubscriptionsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchMessageSubscriptionsResponse;
           if (_schema) {
@@ -5422,6 +5854,10 @@ export class CamundaClient {
         const r = await Sdk.searchProcessDefinitions(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchProcessDefinitionsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchProcessDefinitionsResponse;
           if (_schema) {
@@ -5466,6 +5902,10 @@ export class CamundaClient {
         const r = await Sdk.searchProcessInstanceIncidents(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchProcessInstanceIncidentsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchProcessInstanceIncidentsResponse;
           if (_schema) {
@@ -5508,6 +5948,10 @@ export class CamundaClient {
         const r = await Sdk.searchProcessInstances(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchProcessInstancesResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchProcessInstancesResponse;
           if (_schema) {
@@ -5550,6 +5994,10 @@ export class CamundaClient {
         const r = await Sdk.searchRoles(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchRolesResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchRolesResponse;
           if (_schema) {
@@ -5594,6 +6042,10 @@ export class CamundaClient {
         const r = await Sdk.searchRolesForGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchRolesForGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchRolesForGroupResponse;
           if (_schema) {
@@ -5637,6 +6089,10 @@ export class CamundaClient {
         const r = await Sdk.searchRolesForTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchRolesForTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchRolesForTenantResponse;
           if (_schema) {
@@ -5678,6 +6134,10 @@ export class CamundaClient {
         const r = await Sdk.searchTenants(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchTenantsResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchTenantsResponse;
           if (_schema) {
@@ -5720,6 +6180,10 @@ export class CamundaClient {
         const r = await Sdk.searchUsers(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchUsersResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchUsersResponse;
           if (_schema) {
@@ -5764,6 +6228,10 @@ export class CamundaClient {
         const r = await Sdk.searchUsersForGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchUsersForGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchUsersForGroupResponse;
           if (_schema) {
@@ -5808,6 +6276,10 @@ export class CamundaClient {
         const r = await Sdk.searchUsersForRole(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchUsersForRoleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchUsersForRoleResponse;
           if (_schema) {
@@ -5851,6 +6323,10 @@ export class CamundaClient {
         const r = await Sdk.searchUsersForTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchUsersForTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchUsersForTenantResponse;
           if (_schema) {
@@ -5893,6 +6369,10 @@ export class CamundaClient {
         const r = await Sdk.searchUserTasks(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchUserTasksResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchUserTasksResponse;
           if (_schema) {
@@ -5937,6 +6417,10 @@ export class CamundaClient {
         const r = await Sdk.searchUserTaskVariables(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchUserTaskVariablesResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchUserTaskVariablesResponse;
           if (_schema) {
@@ -5979,6 +6463,10 @@ export class CamundaClient {
         const r = await Sdk.searchVariables(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSearchVariablesResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSearchVariablesResponse;
           if (_schema) {
@@ -6024,6 +6512,10 @@ export class CamundaClient {
         const r = await Sdk.suspendBatchOperation(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zSuspendBatchOperationResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zSuspendBatchOperationResponse;
           if (_schema) {
@@ -6065,6 +6557,10 @@ export class CamundaClient {
         const r = await Sdk.throwJobError(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zThrowJobErrorResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zThrowJobErrorResponse;
           if (_schema) {
@@ -6102,6 +6598,10 @@ export class CamundaClient {
         const r = await Sdk.unassignClientFromGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUnassignClientFromGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUnassignClientFromGroupResponse;
           if (_schema) {
@@ -6138,6 +6638,10 @@ export class CamundaClient {
         const r = await Sdk.unassignClientFromTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUnassignClientFromTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUnassignClientFromTenantResponse;
           if (_schema) {
@@ -6174,6 +6678,10 @@ export class CamundaClient {
         const r = await Sdk.unassignGroupFromTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUnassignGroupFromTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUnassignGroupFromTenantResponse;
           if (_schema) {
@@ -6211,6 +6719,10 @@ export class CamundaClient {
         const r = await Sdk.unassignMappingRuleFromGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUnassignMappingRuleFromGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUnassignMappingRuleFromGroupResponse;
           if (_schema) {
@@ -6247,6 +6759,10 @@ export class CamundaClient {
         const r = await Sdk.unassignMappingRuleFromTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUnassignMappingRuleFromTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUnassignMappingRuleFromTenantResponse;
           if (_schema) {
@@ -6283,6 +6799,10 @@ export class CamundaClient {
         const r = await Sdk.unassignRoleFromClient(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUnassignRoleFromClientResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUnassignRoleFromClientResponse;
           if (_schema) {
@@ -6319,6 +6839,10 @@ export class CamundaClient {
         const r = await Sdk.unassignRoleFromGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUnassignRoleFromGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUnassignRoleFromGroupResponse;
           if (_schema) {
@@ -6356,6 +6880,10 @@ export class CamundaClient {
         const r = await Sdk.unassignRoleFromMappingRule(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUnassignRoleFromMappingRuleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUnassignRoleFromMappingRuleResponse;
           if (_schema) {
@@ -6392,6 +6920,10 @@ export class CamundaClient {
         const r = await Sdk.unassignRoleFromTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUnassignRoleFromTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUnassignRoleFromTenantResponse;
           if (_schema) {
@@ -6429,6 +6961,10 @@ export class CamundaClient {
         const r = await Sdk.unassignRoleFromUser(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUnassignRoleFromUserResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUnassignRoleFromUserResponse;
           if (_schema) {
@@ -6466,6 +7002,10 @@ export class CamundaClient {
         const r = await Sdk.unassignUserFromGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUnassignUserFromGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUnassignUserFromGroupResponse;
           if (_schema) {
@@ -6502,6 +7042,10 @@ export class CamundaClient {
         const r = await Sdk.unassignUserFromTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUnassignUserFromTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUnassignUserFromTenantResponse;
           if (_schema) {
@@ -6538,6 +7082,10 @@ export class CamundaClient {
         const r = await Sdk.unassignUserTask(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUnassignUserTaskResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUnassignUserTaskResponse;
           if (_schema) {
@@ -6576,6 +7124,10 @@ export class CamundaClient {
         const r = await Sdk.updateAuthorization(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUpdateAuthorizationResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUpdateAuthorizationResponse;
           if (_schema) {
@@ -6615,6 +7167,10 @@ export class CamundaClient {
         const r = await Sdk.updateGroup(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUpdateGroupResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUpdateGroupResponse;
           if (_schema) {
@@ -6653,6 +7209,10 @@ export class CamundaClient {
         const r = await Sdk.updateJob(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUpdateJobResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUpdateJobResponse;
           if (_schema) {
@@ -6692,6 +7252,10 @@ export class CamundaClient {
         const r = await Sdk.updateMappingRule(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUpdateMappingRuleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUpdateMappingRuleResponse;
           if (_schema) {
@@ -6731,6 +7295,10 @@ export class CamundaClient {
         const r = await Sdk.updateRole(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUpdateRoleResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUpdateRoleResponse;
           if (_schema) {
@@ -6769,6 +7337,10 @@ export class CamundaClient {
         const r = await Sdk.updateTenant(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUpdateTenantResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUpdateTenantResponse;
           if (_schema) {
@@ -6811,6 +7383,10 @@ export class CamundaClient {
         const r = await Sdk.updateUser(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUpdateUserResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUpdateUserResponse;
           if (_schema) {
@@ -6851,6 +7427,10 @@ export class CamundaClient {
         const r = await Sdk.updateUserTask(opts);
         let data = (r as any)?.data;
         if (data === undefined) data = r;
+        const _respSchemaName = 'zUpdateUserTaskResponse';
+        if ((Schemas as any)[_respSchemaName]?.type === "void") {
+          data = undefined;
+        }
         if (this._validation.settings.res !== 'none') {
           const _schema = Schemas.zUpdateUserTaskResponse;
           if (_schema) {

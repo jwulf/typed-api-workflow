@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import createCamundaClient, { createCamundaResultClient } from '../dist';
+import createCamundaClient, { createCamundaResultClient, Tag } from '../dist';
 import fs from 'fs';
 import { extractJobTypesFromBpmnFile } from '../test-support/bpmn';
 
@@ -72,11 +72,13 @@ describe('integration acceptance', () => {
 
     it.only('can do activate jobs', { timeout: 20000 }, async () => {
         const camunda = createCamundaClient({});
+        const _tag = Tag.assumeExists("example")
         const filepath = './tests-integration/fixtures/test-process.bpmn'
         const res = await camunda.deployResourcesFromFiles([filepath]);
         const jobTypes = extractJobTypesFromBpmnFile(filepath);
         const process = await camunda.createProcessInstance({
             processDefinitionKey: res.processes[0].processDefinitionKey,
+            tags: [_tag]
         })
         console.log('ProcessInstance', JSON.stringify(process, null, 2))
         const jobsResponse = await camunda.activateJobs({
@@ -86,6 +88,18 @@ describe('integration acceptance', () => {
         });
         console.log(JSON.stringify(jobsResponse, null, 2))
         expect(jobsResponse.jobs.length).toBe(1);
-        await camunda.cancelProcessInstance({ processInstanceKey: process.processInstanceKey });
+
+        const tag = jobsResponse.jobs[0].tags![0]
+
+        console.log('Tag', tag)
+        const processes = await camunda.searchProcessInstances({
+            filter: {
+                processDefinitionKey: process.processDefinitionKey,
+                state: 'ACTIVE'
+            }
+        }, {consistency: {  waitUpToMs: 20000, predicate: res => res.items.some(item => item.processInstanceKey === process.processInstanceKey)}});
+        await Promise.all(processes.items.map(item => 
+            camunda.cancelProcessInstance({ processInstanceKey: item.processInstanceKey })
+        ));
     });
 });
