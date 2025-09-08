@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-09-05 13:57:30
+# File generated at: 2025-09-08 12:46:17
 
 ---
 openapi: "3.0.3"
@@ -2512,7 +2512,8 @@ paths:
           \ a unique identifier for this decision requirements."
         schema:
           type: "string"
-          description: "System-generated key for a decision definition."
+          description: "System-generated key for a deployed decision requirements\
+            \ definition."
       responses:
         "200":
           description: "The decision requirements is successfully returned.\n"
@@ -5704,8 +5705,8 @@ components:
           allOf:
           - $ref: "#/components/schemas/IntegerFilterProperty"
         elementId:
+          description: "The model-defined id of an element."
           type: "string"
-          description: "The element ID of the user task."
         name:
           type: "string"
           description: "The task name. This only works for data created with 8.8 and\
@@ -5831,8 +5832,8 @@ components:
           description: "The assignee of the user task."
           type: "string"
         elementId:
+          description: "The model-defined id of an element."
           type: "string"
-          description: "The element ID of the user task."
         candidateGroups:
           type: "array"
           description: "The candidate groups for this user task."
@@ -6891,9 +6892,8 @@ components:
             \ definitions that are deployed are useful."
           type: "string"
         elementId:
+          description: "The model-defined id of an element."
           type: "string"
-          description: "The element ID for this sequence flow, as provided in the\
-            \ BPMN process."
         tenantId:
           type: "string"
           description: "The unique identifier of the tenant."
@@ -6928,7 +6928,7 @@ components:
       type: "object"
       properties:
         elementId:
-          description: "The element ID for which the results are aggregated."
+          description: "The model-defined id of an element."
           type: "string"
         active:
           description: "The total number of active instances of the element."
@@ -7034,8 +7034,8 @@ components:
           - "SEND_TASK"
           - "UNKNOWN"
         elementId:
+          description: "The model-defined id of an element."
           type: "string"
-          description: "The element ID for this element instance."
         elementName:
           type: "string"
           description: "The element name. This only works for data created with 8.8\
@@ -7113,7 +7113,7 @@ components:
           type: "string"
           format: "date-time"
         elementId:
-          description: "The element ID for this element instance."
+          description: "The model-defined id of an element."
           type: "string"
         elementName:
           description: "The element name for this element instance."
@@ -7190,7 +7190,7 @@ components:
       type: "object"
       properties:
         elementId:
-          description: "The ID of the element that should be activated."
+          description: "The model-defined id of an element."
           type: "string"
         variables:
           description: "Variables to be set when activating the element."
@@ -7328,8 +7328,8 @@ components:
           type: "string"
           description: "Error message which describes the error in more detail."
         elementId:
+          description: "The model-defined id of an element."
           type: "string"
-          description: "The element ID associated to this incident."
         creationTime:
           type: "string"
           description: "Date of incident creation."
@@ -7397,7 +7397,7 @@ components:
           description: "System-generated key for a process instance."
           type: "string"
         elementId:
-          description: "The element ID associated with this message subscription."
+          description: "The model-defined id of an element."
           type: "string"
         elementInstanceKey:
           description: "System-generated key for a element instance."
@@ -7513,7 +7513,6 @@ components:
       enum:
       - "CREATED"
       - "MIGRATED"
-      - "CORRELATED"
     AdvancedMessageSubscriptionTypeFilter:
       title: "Advanced filter"
       description: "Advanced MessageSubscriptionTypeEnum filter"
@@ -7568,8 +7567,8 @@ components:
           type: "string"
           description: "Error message which describes the error in more detail."
         elementId:
+          description: "The model-defined id of an element."
           type: "string"
-          description: "The element ID associated to this incident."
         creationTime:
           type: "string"
           description: "Date of incident creation."
@@ -8014,6 +8013,8 @@ components:
         authorizedComponents:
           description: "The web components the user is authorized to use."
           type: "array"
+          example:
+          - "*"
           items:
             type: "string"
         tenants:
@@ -8024,19 +8025,25 @@ components:
         groups:
           description: "The groups assigned to the user."
           type: "array"
+          example:
+          - "customer-service"
           items:
             type: "string"
         roles:
           description: "The roles assigned to the user."
           type: "array"
+          example:
+          - "frontline-support"
           items:
             type: "string"
         salesPlanType:
           description: "The plan of the user."
           type: "string"
+          example: ""
         c8Links:
           description: "The links to the components in the C8 stack."
           type: "object"
+          example: {}
           additionalProperties:
             type: "string"
         canLogout:
@@ -8073,7 +8080,7 @@ components:
       type: "object"
       properties:
         password:
-          description: "The password of the user."
+          description: "The password of the user. If blank, the password is unchanged."
           type: "string"
         name:
           description: "The name of the user."
@@ -8710,20 +8717,25 @@ components:
           description: "The number of brokers in the cluster."
           type: "integer"
           format: "int32"
+          example: 3
         partitionsCount:
           description: "The number of partitions are spread across the cluster."
           type: "integer"
           format: "int32"
+          example: 3
         replicationFactor:
           description: "The configured replication factor for this cluster."
           type: "integer"
           format: "int32"
+          example: 3
         gatewayVersion:
           description: "The version of the Zeebe Gateway."
           type: "string"
+          example: "8.8.0"
         lastCompletedChangeId:
           description: "ID of the last completed change"
           type: "string"
+          example: "-1"
     LicenseResponse:
       description: "The response of a license request."
       type: "object"
@@ -8735,10 +8747,11 @@ components:
         validLicense:
           description: "True if the Camunda license is valid, false if otherwise"
           type: "boolean"
-          nullable: false
+          example: true
         licenseType:
           description: "Will return the license type property of the Camunda license"
           type: "string"
+          example: "saas"
         isCommercial:
           description: "Will be false when a license contains a non-commerical=true\
             \ property"
@@ -8762,13 +8775,16 @@ components:
           description: "The unique (within a cluster) node ID for the broker."
           type: "integer"
           format: "int32"
+          example: 0
         host:
           description: "The hostname for reaching the broker."
           type: "string"
+          example: "zeebe-0.zeebe-broker-service.b7fd7aa3-b973-4128-8789-74cd2318992c-zeebe.svc.cluster.local"
         port:
           description: "The port for reaching the broker."
           type: "integer"
           format: "int32"
+          example: 26501
         partitions:
           description: "A list of partitions managed or replicated on this broker."
           type: "array"
@@ -8777,6 +8793,7 @@ components:
         version:
           description: "The broker version."
           type: "string"
+          example: "8.8.0"
     Partition:
       description: "Provides information on a partition within a broker node."
       type: "object"
@@ -8789,9 +8806,11 @@ components:
           description: "The unique ID of this partition."
           type: "integer"
           format: "int32"
+          example: 1
         role:
           description: "Describes the Raft role of the broker for a given partition."
           type: "string"
+          example: "leader"
           enum:
           - "leader"
           - "follower"
@@ -8799,6 +8818,7 @@ components:
         health:
           description: "Describes the current health of the partition."
           type: "string"
+          example: "healthy"
           enum:
           - "healthy"
           - "unhealthy"
@@ -8914,26 +8934,32 @@ components:
           description: "The job type, as defined in the BPMN process (e.g. <zeebe:taskDefinition\
             \ type=\"payment-service\" />).\n"
           type: "string"
+          example: "create-new-user-record"
         worker:
           description: "The name of the worker activating the jobs, mostly used for\
             \ logging purposes."
           type: "string"
-          nullable: true
+          example: "worker-324"
         timeout:
           description: "A job returned after this call will not be activated by another\
             \ call until the timeout (in ms) has been reached.\n"
           type: "integer"
+          example: 20000
           format: "int64"
         maxJobsToActivate:
           description: "The maximum jobs to activate by this request."
           type: "integer"
           format: "int32"
+          example: 5
         fetchVariable:
           description: "A list of variables to fetch as the job variables; if empty,\
             \ all visible variables at the time of activation for the scope of the\
             \ job will be returned.\n"
           type: "array"
-          nullable: true
+          example:
+          - "firstName"
+          - "lastName"
+          - "email"
           items:
             type: "string"
         requestTimeout:
@@ -8943,7 +8969,7 @@ components:
             \ and the request is completed immediately, even when no job is activated.\n"
           type: "integer"
           default: 0
-          nullable: true
+          example: 60000
           format: "int64"
         tenantIds:
           description: "A list of IDs of tenants for which to activate jobs."
@@ -8951,7 +8977,6 @@ components:
           items:
             type: "string"
             description: "The unique identifier of the tenant."
-          nullable: true
       required:
       - "type"
       - "timeout"
@@ -8990,38 +9015,50 @@ components:
         type:
           description: "The type of the job (should match what was requested)."
           type: "string"
+          example: "create-new-user-record"
         processDefinitionId:
           description: "Id of a process definition, from the model. Only ids of process\
             \ definitions that are deployed are useful."
+          example: "new-customer-flow"
           type: "string"
         processDefinitionVersion:
           description: "The version of the job's process definition."
           type: "integer"
           format: "int32"
+          example: 1
         elementId:
-          description: "The associated task element ID."
+          description: "The model-defined id of an element."
+          x-semantic-provider: true
           type: "string"
         customHeaders:
           description: "A set of custom headers defined during modelling; returned\
             \ as a serialized JSON document."
           type: "object"
           additionalProperties: true
+          example: {}
         worker:
           description: "The name of the worker which activated this job."
           type: "string"
+          example: "worker-324"
         retries:
           description: "The amount of retries left to this job (should always be positive)."
           type: "integer"
           format: "int32"
+          example: 3
         deadline:
           description: "When the job can be activated again, sent as a UNIX epoch\
             \ timestamp."
           type: "integer"
+          example: 1757280974277
           format: "int64"
         variables:
           description: "All variables visible to the task scope, computed at activation\
             \ time."
           type: "object"
+          example:
+            firstName: "John"
+            lastName: "Doe"
+            email: "johndoe@acme.com"
           additionalProperties: true
         tenantId:
           type: "string"
@@ -9263,7 +9300,7 @@ components:
       type: "object"
       properties:
         elementId:
-          description: "The ID of the element to activate."
+          description: "The model-defined id of an element."
           type: "string"
         variables:
           description: "JSON document that will create the variables on the scope\
@@ -9483,7 +9520,7 @@ components:
           type: "string"
           nullable: true
         elementId:
-          description: "The element ID associated with the job."
+          description: "The model-defined id of an element."
           type: "string"
         elementInstanceKey:
           description: "System-generated key for a element instance."
@@ -9553,12 +9590,14 @@ components:
       - "TIMED_OUT"
     JobKindEnum:
       description: "The job kind."
+      example: "BPMN_ELEMENT"
       enum:
       - "BPMN_ELEMENT"
       - "EXECUTION_LISTENER"
       - "TASK_LISTENER"
       - "AD_HOC_SUB_PROCESS"
     JobListenerEventTypeEnum:
+      example: "UNSPECIFIED"
       description: "The listener event type of the job."
       enum:
       - "ASSIGNING"
@@ -10648,6 +10687,7 @@ components:
             \ awaitCompletion is set to true.\nIf empty, all visible variables in\
             \ the root scope will be returned.\n"
           type: "array"
+          example: []
           items:
             type: "string"
         requestTimeout:
@@ -10655,6 +10695,7 @@ components:
             \ By default or\nwhen set to 0, the generic request timeout configured\
             \ in the cluster is applied.\n"
           type: "integer"
+          default: 0
           format: "int64"
         tags:
           $ref: "#/components/schemas/TagSet"
@@ -10715,6 +10756,7 @@ components:
             \ awaitCompletion is set to true.\nIf empty, all visible variables in\
             \ the root scope will be returned.\n"
           type: "array"
+          example: []
           items:
             type: "string"
         requestTimeout:
@@ -10722,6 +10764,7 @@ components:
             \ By default or\nwhen set to 0, the generic request timeout configured\
             \ in the cluster is applied.\n"
           type: "integer"
+          default: 0
         tags:
           $ref: "#/components/schemas/TagSet"
     ProcessInstanceCreationInstructionByKey:
@@ -10771,6 +10814,7 @@ components:
             \ awaitCompletion is set to true.\nIf empty, all visible variables in\
             \ the root scope will be returned.\n"
           type: "array"
+          example: []
           items:
             type: "string"
         requestTimeout:
@@ -10778,6 +10822,7 @@ components:
             \ By default or\nwhen set to 0, the generic request timeout configured\
             \ in the cluster is applied.\n"
           type: "integer"
+          default: 0
           format: "int64"
         tags:
           $ref: "#/components/schemas/TagSet"
@@ -10785,10 +10830,7 @@ components:
       type: "object"
       properties:
         elementId:
-          description: "Future extensions might include:\n  - different types of start\
-            \ instructions\n  - ability to set local variables for different flow\
-            \ scopes\n\nFor now, however, the start instruction is implicitly a \"\
-            startBeforeElement\" instruction\n"
+          description: "The model-defined id of an element."
           type: "string"
     RuntimeInstructionType:
       type: "string"
@@ -10808,19 +10850,6 @@ components:
         mapping:
           TERMINATE_PROCESS_INSTANCE: "#/components/schemas/ProcessInstanceCreationTerminateInstruction"
       description: "Base type for all runtime instructions.\n"
-    ProcessInstanceCreationTerminateInstruction:
-      allOf:
-      - $ref: "#/components/schemas/ProcessInstanceCreationRuntimeInstruction"
-      - type: "object"
-        required:
-        - "afterElementId"
-        properties:
-          afterElementId:
-            description: "The ID of the element that, once completed or terminated,\
-              \ will cause the process to be terminated.\n"
-            type: "string"
-        description: "Terminates the process instance after a specific BPMN element\
-          \ is completed or terminated.\n"
     CreateProcessInstanceResult:
       required:
       - "processDefinitionId"
@@ -10910,10 +10939,10 @@ components:
         \ source process definition to the target process definition.\n"
       properties:
         sourceElementId:
-          description: "The element ID to migrate from."
+          description: "The model-defined id of an element."
           type: "string"
         targetElementId:
-          description: "The element ID to migrate into."
+          description: "The model-defined id of an element."
           type: "string"
       required:
       - "sourceElementId"
@@ -10939,7 +10968,7 @@ components:
       type: "object"
       properties:
         elementId:
-          description: "The ID of the element that should be activated."
+          description: "The model-defined id of an element."
           type: "string"
         variableInstructions:
           description: "Instructions describing which variables should be created."
@@ -11472,10 +11501,10 @@ components:
       type: "object"
       properties:
         sourceElementId:
-          description: "The ID of the element that should be terminated."
+          description: "The model-defined id of an element."
           type: "string"
         targetElementId:
-          description: "The ID of the element that should be activated."
+          description: "The model-defined id of an element."
           type: "string"
       required:
       - "sourceElementId"
@@ -11484,6 +11513,10 @@ components:
       description: "List of tags. Tags need to start with a letter; then alphanumerics,\
         \ `_`, `-`, `:`, or `.`; length ≤ 100."
       type: "array"
+      format: "string<Tag>[]"
+      example:
+      - "high-touch"
+      - "remediation"
       items:
         type: "string"
         description: "A tag. Needs to start with a letter; then alphanumerics, `_`,\
