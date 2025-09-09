@@ -3,7 +3,7 @@
 # All descendants of CamundaKey have been replaced with simple string types.
 # This is for backward-compatibility with loosely typed components within the system.
 # Canonical source: zeebe/gateway-protocol/src/main/proto/rest-api.yaml
-# File generated at: 2025-09-09 09:02:03
+# File generated at: 2025-09-09 13:46:14
 
 ---
 openapi: "3.0.3"
@@ -10672,7 +10672,12 @@ components:
             \ be subject to change\nin future releases.\n"
           type: "array"
           items:
-            $ref: "#/components/schemas/ProcessInstanceCreationRuntimeInstruction"
+            oneOf:
+            - $ref: "#/components/schemas/ProcessInstanceCreationTerminateInstruction"
+            discriminator:
+              propertyName: "type"
+              mapping:
+                TERMINATE_PROCESS_INSTANCE: "#/components/schemas/ProcessInstanceCreationTerminateInstruction"
         awaitCompletion:
           description: "Wait for the process instance to complete. If the process\
             \ instance completion does\nnot occur within the requestTimeout, the request\
@@ -10741,7 +10746,12 @@ components:
             \ be subject to change\nin future releases.\n"
           type: "array"
           items:
-            $ref: "#/components/schemas/ProcessInstanceCreationRuntimeInstruction"
+            oneOf:
+            - $ref: "#/components/schemas/ProcessInstanceCreationTerminateInstruction"
+            discriminator:
+              propertyName: "type"
+              mapping:
+                TERMINATE_PROCESS_INSTANCE: "#/components/schemas/ProcessInstanceCreationTerminateInstruction"
         awaitCompletion:
           description: "Wait for the process instance to complete. If the process\
             \ instance completion does\nnot occur within the requestTimeout, the request\
@@ -10799,7 +10809,12 @@ components:
             \ be subject to change\nin future releases.\n"
           type: "array"
           items:
-            $ref: "#/components/schemas/ProcessInstanceCreationRuntimeInstruction"
+            oneOf:
+            - $ref: "#/components/schemas/ProcessInstanceCreationTerminateInstruction"
+            discriminator:
+              propertyName: "type"
+              mapping:
+                TERMINATE_PROCESS_INSTANCE: "#/components/schemas/ProcessInstanceCreationTerminateInstruction"
         awaitCompletion:
           description: "Wait for the process instance to complete. If the process\
             \ instance completion does\nnot occur within the requestTimeout, the request\
@@ -10826,6 +10841,8 @@ components:
           $ref: "#/components/schemas/TagSet"
     ProcessInstanceCreationStartInstruction:
       type: "object"
+      required:
+      - "elementId"
       properties:
         elementId:
           description: "The model-defined id of an element."
@@ -10857,6 +10874,7 @@ components:
         properties:
           afterElementId:
             description: "The model-defined id of an element."
+            example: "Activity_106kosb"
             type: "string"
         description: "Terminates the process instance after a specific BPMN element\
           \ is completed or terminated.\n"
