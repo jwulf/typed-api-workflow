@@ -11,6 +11,11 @@ export function generateTypeMismatch(ops: OperationModel[], opts: Opts): Validat
     for (const param of op.parameters) {
       if (opts.capPerOperation && count >= opts.capPerOperation) break;
       if (!param.schema || !param.required) continue; // focus on required
+      // Guard: only generate generic type-mismatch for path params.
+      // Query/header param mismatches are handled by generateParamTypeMismatch to avoid duplicates.
+      if (param.in !== 'path') continue;
+  // No meaningful negative for bare string path params (runtime treats all path segments as strings).
+  if (param.schema?.type === 'string') continue;
       const wrong = buildWrongType(param.schema);
       if (wrong === undefined) continue;
       const params: Record<string,string> | undefined = buildParams(op.path);
@@ -38,6 +43,7 @@ export function generateTypeMismatch(ops: OperationModel[], opts: Opts): Validat
   return out;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildWrongType(schema: any): any {
   const t = schema.type;
   switch (t) {
@@ -62,8 +68,10 @@ function buildParams(path: string): Record<string,string> | undefined {
   return params;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildMinimalBody(op: OperationModel): any | undefined {
   if (!op.requestBodySchema || op.requestBodySchema.type !== 'object' || !Array.isArray(op.requiredProps)) return undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const body: Record<string, any> = {};
   for (const p of op.requiredProps) {
     const schema = op.requestBodySchema.properties?.[p];
@@ -72,6 +80,7 @@ function buildMinimalBody(op: OperationModel): any | undefined {
   return body;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function schemaValue(schema: any): any {
   if (!schema) return 'x';
   if (schema.enum && schema.enum.length) return schema.enum[0];

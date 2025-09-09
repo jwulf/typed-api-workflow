@@ -1,13 +1,12 @@
 {
-  "generatedAt": "2025-09-08T02:40:57.040Z",
+  "generatedAt": "2025-09-08T04:26:59.481Z",
   "counts": {
     "missing-required": 44,
-    "type-mismatch": 53,
     "union": 2
   },
-  "specCommit": "3445d1d86c2ad361858dc12e734eeb6197e426a5",
-  "generationTimestamp": "2025-09-08T02:40:57.021Z",
-  "total": 99,
+  "specCommit": "177fb9193d6c4d0ab558734d76c501bbac1f2454",
+  "generationTimestamp": "2025-09-08T04:26:59.464Z",
+  "total": 46,
   "options": {
     "deep": false,
     "maxMissing": null,

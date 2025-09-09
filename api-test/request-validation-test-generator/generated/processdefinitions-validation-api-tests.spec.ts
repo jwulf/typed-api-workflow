@@ -5,13 +5,14 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
+
 /*
  * GENERATED FILE - DO NOT EDIT MANUALLY
- * Generated At: 2025-09-07T19:19:36.458Z
- * Spec Commit: 3445d1d86c2ad361858dc12e734eeb6197e426a5
+ * Generated At: 2025-09-08T04:05:10.896Z
+ * Spec Commit: 177fb9193d6c4d0ab558734d76c501bbac1f2454
  */
-import { test, expect } from '@playwright/test';
-import { jsonHeaders, buildUrl } from '../../../../utils/http';
+import {test, expect} from '@playwright/test';
+import {jsonHeaders, buildUrl} from '../../../../utils/http';
 
 test.describe('Processdefinitions Validation API Tests', () => {
   test('getProcessDefinitionStatistics - Additional prop __extraField', async ({
@@ -23,56 +24,53 @@ test.describe('Processdefinitions Validation API Tests', () => {
     const res = await request.post(
       buildUrl(
         '/process-definitions/{processDefinitionKey}/statistics/element-instances',
-        { processDefinitionKey: 'x' },
+        {processDefinitionKey: 'x'},
       ),
       {
         headers: jsonHeaders(),
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('getProcessDefinitionStatistics - Body wrong top-level type', async ({
     request,
   }) => {
-    const requestBody = [];
+    const requestBody: string[] = [];
     const res = await request.post(
       buildUrl(
         '/process-definitions/{processDefinitionKey}/statistics/element-instances',
-        { processDefinitionKey: 'x' },
+        {processDefinitionKey: 'x'},
       ),
       {
         headers: jsonHeaders(),
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('getProcessDefinitionStatistics - Missing body', async ({ request }) => {
+  test('getProcessDefinitionStatistics - Missing body', async ({request}) => {
     const res = await request.post(
       buildUrl(
         '/process-definitions/{processDefinitionKey}/statistics/element-instances',
-        { processDefinitionKey: 'x' },
+        {processDefinitionKey: 'x'},
       ),
       {
         headers: jsonHeaders(),
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('getProcessDefinitionStatistics - uniqueItems violation filter.$or.0.tags', async ({
@@ -90,18 +88,17 @@ test.describe('Processdefinitions Validation API Tests', () => {
     const res = await request.post(
       buildUrl(
         '/process-definitions/{processDefinitionKey}/statistics/element-instances',
-        { processDefinitionKey: 'x' },
+        {processDefinitionKey: 'x'},
       ),
       {
         headers: jsonHeaders(),
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('getProcessDefinitionStatistics - uniqueItems violation filter.tags', async ({
@@ -115,18 +112,17 @@ test.describe('Processdefinitions Validation API Tests', () => {
     const res = await request.post(
       buildUrl(
         '/process-definitions/{processDefinitionKey}/statistics/element-instances',
-        { processDefinitionKey: 'x' },
+        {processDefinitionKey: 'x'},
       ),
       {
         headers: jsonHeaders(),
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchProcessDefinitions - Additional prop __extraField', async ({
@@ -142,17 +138,16 @@ test.describe('Processdefinitions Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchProcessDefinitions - Body wrong top-level type', async ({
     request,
   }) => {
-    const requestBody = [];
+    const requestBody: string[] = [];
     const res = await request.post(
       buildUrl('/process-definitions/search', undefined),
       {
@@ -160,11 +155,10 @@ test.describe('Processdefinitions Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchProcessDefinitions - Enum violation sort.0.field (#1)', async ({
@@ -187,11 +181,10 @@ test.describe('Processdefinitions Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchProcessDefinitions - Enum violation sort.0.field (#2)', async ({
@@ -214,11 +207,10 @@ test.describe('Processdefinitions Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchProcessDefinitions - Enum violation sort.0.field (#3)', async ({
@@ -241,11 +233,10 @@ test.describe('Processdefinitions Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchProcessDefinitions - Enum violation sort.0.order (#1)', async ({
@@ -268,11 +259,10 @@ test.describe('Processdefinitions Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchProcessDefinitions - Enum violation sort.0.order (#2)', async ({
@@ -295,25 +285,23 @@ test.describe('Processdefinitions Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('searchProcessDefinitions - Missing body', async ({ request }) => {
+  test('searchProcessDefinitions - Missing body', async ({request}) => {
     const res = await request.post(
       buildUrl('/process-definitions/search', undefined),
       {
         headers: jsonHeaders(),
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
 });

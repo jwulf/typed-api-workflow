@@ -5,13 +5,14 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
+
 /*
  * GENERATED FILE - DO NOT EDIT MANUALLY
- * Generated At: 2025-09-08T02:40:57.021Z
- * Spec Commit: 3445d1d86c2ad361858dc12e734eeb6197e426a5
+ * Generated At: 2025-09-08T04:26:59.464Z
+ * Spec Commit: 177fb9193d6c4d0ab558734d76c501bbac1f2454
  */
-import { test, expect } from '@playwright/test';
-import { jsonHeaders, buildUrl } from '../../../../utils/http';
+import {test, expect} from '@playwright/test';
+import {jsonHeaders, buildUrl} from '../../../../utils/http';
 
 test.describe('Processinstances Validation API Tests', () => {
   test('cancelProcessInstancesBatchOperation - Missing filter', async ({
@@ -25,14 +26,13 @@ test.describe('Processinstances Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('createProcessInstance - oneOf violation', async ({ request }) => {
+  test('createProcessInstance - oneOf violation', async ({request}) => {
     const requestBody = {
       processDefinitionId: 'x',
       processDefinitionKey: 'x',
@@ -41,11 +41,10 @@ test.describe('Processinstances Validation API Tests', () => {
       headers: jsonHeaders(),
       data: requestBody,
     });
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('migrateProcessInstance - Missing mappingInstructions', async ({
@@ -63,11 +62,10 @@ test.describe('Processinstances Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('migrateProcessInstance - Missing targetProcessDefinitionKey', async ({
@@ -85,11 +83,10 @@ test.describe('Processinstances Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('migrateProcessInstancesBatchOperation - Missing filter', async ({
@@ -105,11 +102,10 @@ test.describe('Processinstances Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('migrateProcessInstancesBatchOperation - Missing migrationPlan', async ({
@@ -125,11 +121,10 @@ test.describe('Processinstances Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('modifyProcessInstancesBatchOperation - Missing filter', async ({
@@ -145,11 +140,10 @@ test.describe('Processinstances Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('modifyProcessInstancesBatchOperation - Missing moveInstructions', async ({
@@ -165,16 +159,13 @@ test.describe('Processinstances Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('resolveIncidentsBatchOperation - Missing filter', async ({
-    request,
-  }) => {
+  test('resolveIncidentsBatchOperation - Missing filter', async ({request}) => {
     const requestBody = {};
     const res = await request.post(
       buildUrl('/process-instances/incident-resolution', undefined),
@@ -183,11 +174,10 @@ test.describe('Processinstances Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
 });

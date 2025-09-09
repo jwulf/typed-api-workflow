@@ -5,116 +5,107 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
+
 /*
  * GENERATED FILE - DO NOT EDIT MANUALLY
- * Generated At: 2025-09-07T19:19:36.458Z
- * Spec Commit: 3445d1d86c2ad361858dc12e734eeb6197e426a5
+ * Generated At: 2025-09-08T04:05:10.896Z
+ * Spec Commit: 177fb9193d6c4d0ab558734d76c501bbac1f2454
  */
-import { test, expect } from '@playwright/test';
-import { jsonHeaders, buildUrl } from '../../../../utils/http';
+import {test, expect} from '@playwright/test';
+import {jsonHeaders, buildUrl} from '../../../../utils/http';
 
 test.describe('Usertasks Validation API Tests', () => {
-  test('assignUserTask - Additional prop __extraField', async ({ request }) => {
+  test('assignUserTask - Additional prop __extraField', async ({request}) => {
     const requestBody = {
       __extraField: 'unexpected',
     };
     const res = await request.post(
-      buildUrl('/user-tasks/{userTaskKey}/assignment', { userTaskKey: 'x' }),
+      buildUrl('/user-tasks/{userTaskKey}/assignment', {userTaskKey: 'x'}),
       {
         headers: jsonHeaders(),
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('assignUserTask - Body wrong top-level type', async ({ request }) => {
-    const requestBody = [];
+  test('assignUserTask - Body wrong top-level type', async ({request}) => {
+    const requestBody: string[] = [];
     const res = await request.post(
-      buildUrl('/user-tasks/{userTaskKey}/assignment', { userTaskKey: 'x' }),
+      buildUrl('/user-tasks/{userTaskKey}/assignment', {userTaskKey: 'x'}),
       {
         headers: jsonHeaders(),
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('assignUserTask - Missing body', async ({ request }) => {
+  test('assignUserTask - Missing body', async ({request}) => {
     const res = await request.post(
-      buildUrl('/user-tasks/{userTaskKey}/assignment', { userTaskKey: 'x' }),
+      buildUrl('/user-tasks/{userTaskKey}/assignment', {userTaskKey: 'x'}),
       {
         headers: jsonHeaders(),
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('completeUserTask - Additional prop __extraField', async ({
-    request,
-  }) => {
+  test('completeUserTask - Additional prop __extraField', async ({request}) => {
     const requestBody = {
       __extraField: 'unexpected',
     };
     const res = await request.post(
-      buildUrl('/user-tasks/{userTaskKey}/completion', { userTaskKey: 'x' }),
+      buildUrl('/user-tasks/{userTaskKey}/completion', {userTaskKey: 'x'}),
       {
         headers: jsonHeaders(),
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('completeUserTask - Body wrong top-level type', async ({ request }) => {
-    const requestBody = [];
+  test('completeUserTask - Body wrong top-level type', async ({request}) => {
+    const requestBody: string[] = [];
     const res = await request.post(
-      buildUrl('/user-tasks/{userTaskKey}/completion', { userTaskKey: 'x' }),
+      buildUrl('/user-tasks/{userTaskKey}/completion', {userTaskKey: 'x'}),
       {
         headers: jsonHeaders(),
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('completeUserTask - Missing body', async ({ request }) => {
+  test('completeUserTask - Missing body', async ({request}) => {
     const res = await request.post(
-      buildUrl('/user-tasks/{userTaskKey}/completion', { userTaskKey: 'x' }),
+      buildUrl('/user-tasks/{userTaskKey}/completion', {userTaskKey: 'x'}),
       {
         headers: jsonHeaders(),
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('searchUserTasks - Additional prop __extraField', async ({
-    request,
-  }) => {
+  test('searchUserTasks - Additional prop __extraField', async ({request}) => {
     const requestBody = {
       __extraField: 'unexpected',
     };
@@ -122,24 +113,22 @@ test.describe('Usertasks Validation API Tests', () => {
       headers: jsonHeaders(),
       data: requestBody,
     });
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('searchUserTasks - Body wrong top-level type', async ({ request }) => {
-    const requestBody = [];
+  test('searchUserTasks - Body wrong top-level type', async ({request}) => {
+    const requestBody: string[] = [];
     const res = await request.post(buildUrl('/user-tasks/search', undefined), {
       headers: jsonHeaders(),
       data: requestBody,
     });
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchUserTasks - Enum violation sort.0.field (#1)', async ({
@@ -159,11 +148,10 @@ test.describe('Usertasks Validation API Tests', () => {
       headers: jsonHeaders(),
       data: requestBody,
     });
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchUserTasks - Enum violation sort.0.field (#2)', async ({
@@ -183,11 +171,10 @@ test.describe('Usertasks Validation API Tests', () => {
       headers: jsonHeaders(),
       data: requestBody,
     });
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchUserTasks - Enum violation sort.0.field (#3)', async ({
@@ -207,11 +194,10 @@ test.describe('Usertasks Validation API Tests', () => {
       headers: jsonHeaders(),
       data: requestBody,
     });
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchUserTasks - Enum violation sort.0.order (#1)', async ({
@@ -231,11 +217,10 @@ test.describe('Usertasks Validation API Tests', () => {
       headers: jsonHeaders(),
       data: requestBody,
     });
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchUserTasks - Enum violation sort.0.order (#2)', async ({
@@ -255,22 +240,20 @@ test.describe('Usertasks Validation API Tests', () => {
       headers: jsonHeaders(),
       data: requestBody,
     });
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('searchUserTasks - Missing body', async ({ request }) => {
+  test('searchUserTasks - Missing body', async ({request}) => {
     const res = await request.post(buildUrl('/user-tasks/search', undefined), {
       headers: jsonHeaders(),
     });
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchUserTaskVariables - Additional prop __extraField', async ({
@@ -288,17 +271,16 @@ test.describe('Usertasks Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchUserTaskVariables - Body wrong top-level type', async ({
     request,
   }) => {
-    const requestBody = [];
+    const requestBody: string[] = [];
     const res = await request.post(
       buildUrl('/user-tasks/{userTaskKey}/variables/search', {
         userTaskKey: 'x',
@@ -308,11 +290,10 @@ test.describe('Usertasks Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchUserTaskVariables - Enum violation sort.0.field (#1)', async ({
@@ -337,11 +318,10 @@ test.describe('Usertasks Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchUserTaskVariables - Enum violation sort.0.field (#2)', async ({
@@ -366,11 +346,10 @@ test.describe('Usertasks Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchUserTaskVariables - Enum violation sort.0.order (#1)', async ({
@@ -395,11 +374,10 @@ test.describe('Usertasks Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
   test('searchUserTaskVariables - Enum violation sort.0.order (#2)', async ({
@@ -424,14 +402,13 @@ test.describe('Usertasks Validation API Tests', () => {
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('searchUserTaskVariables - Missing body', async ({ request }) => {
+  test('searchUserTaskVariables - Missing body', async ({request}) => {
     const res = await request.post(
       buildUrl('/user-tasks/{userTaskKey}/variables/search', {
         userTaskKey: 'x',
@@ -440,59 +417,55 @@ test.describe('Usertasks Validation API Tests', () => {
         headers: jsonHeaders(),
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('updateUserTask - Additional prop __extraField', async ({ request }) => {
+  test('updateUserTask - Additional prop __extraField', async ({request}) => {
     const requestBody = {
       __extraField: 'unexpected',
     };
     const res = await request.patch(
-      buildUrl('/user-tasks/{userTaskKey}', { userTaskKey: 'x' }),
+      buildUrl('/user-tasks/{userTaskKey}', {userTaskKey: 'x'}),
       {
         headers: jsonHeaders(),
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('updateUserTask - Body wrong top-level type', async ({ request }) => {
-    const requestBody = [];
+  test('updateUserTask - Body wrong top-level type', async ({request}) => {
+    const requestBody: string[] = [];
     const res = await request.patch(
-      buildUrl('/user-tasks/{userTaskKey}', { userTaskKey: 'x' }),
+      buildUrl('/user-tasks/{userTaskKey}', {userTaskKey: 'x'}),
       {
         headers: jsonHeaders(),
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('updateUserTask - Missing body', async ({ request }) => {
+  test('updateUserTask - Missing body', async ({request}) => {
     const res = await request.patch(
-      buildUrl('/user-tasks/{userTaskKey}', { userTaskKey: 'x' }),
+      buildUrl('/user-tasks/{userTaskKey}', {userTaskKey: 'x'}),
       {
         headers: jsonHeaders(),
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
 });

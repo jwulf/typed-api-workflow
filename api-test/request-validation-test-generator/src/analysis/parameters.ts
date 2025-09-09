@@ -1,7 +1,22 @@
-import { OperationModel, ValidationScenario } from '../model/types.js';
+import { OperationModel, ValidationScenario, ParameterModel } from '../model/types.js';
 import { makeId } from './common.js';
 
 interface Opts { onlyOperations?: Set<string>; capPerOperation?: number; }
+
+function collectQueryParams(op: OperationModel): ParameterModel[] {
+  return op.parameters.filter(p => p.in === 'query');
+}
+
+function buildQueryParamMap(op: OperationModel): Record<string,string> {
+  const q: Record<string,string> = {};
+  for (const p of collectQueryParams(op)) {
+    const t = p.schema?.type;
+    if (t === 'integer' || t === 'number') q[p.name] = '1';
+    else if (t === 'boolean') q[p.name] = 'true';
+    else q[p.name] = 'x';
+  }
+  return q;
+}
 
 export function generateParamMissing(ops: OperationModel[], opts: Opts): ValidationScenario[] {
   const out: ValidationScenario[] = [];
@@ -12,6 +27,14 @@ export function generateParamMissing(ops: OperationModel[], opts: Opts): Validat
       if (!p.required) continue;
       if (p.in === 'path') continue; // can't "omit" path param without changing path shape
       if (opts.capPerOperation && produced >= (opts.capPerOperation)) break;
+      let params: Record<string,string> | undefined;
+      if (p.in === 'query') {
+        const allQ = buildQueryParamMap(op);
+        delete allQ[p.name];
+        params = Object.keys(allQ).length ? allQ : undefined;
+      } else {
+        params = buildParams(op.path, {});
+      }
       out.push({
         id: makeId([op.operationId, 'paramMissing', p.in, p.name]),
         operationId: op.operationId,
@@ -19,7 +42,7 @@ export function generateParamMissing(ops: OperationModel[], opts: Opts): Validat
         path: op.path,
         type: 'param-missing',
         target: `${p.in}.${p.name}`,
-        params: buildParams(op.path, { omit: p.in === 'query' ? p.name : undefined }),
+        params,
         expectedStatus: 400,
         description: `Missing required ${p.in} parameter ${p.name}`,
         headersAuth: true,
@@ -42,6 +65,26 @@ export function generateParamTypeMismatch(ops: OperationModel[], opts: Opts): Va
       if (opts.capPerOperation && produced >= (opts.capPerOperation)) break;
       const wrong = wrongTypeValue(p.schema.type);
       if (wrong === undefined) continue;
+      // Start with all required query params (so we don't unintentionally create identical empty queries)
+      let params: Record<string,string> | undefined;
+      if (p.in === 'query') {
+        const allQ = buildQueryParamMap(op);
+        // Overwrite the specific param with wrong typed value (stringified to keep buildUrl logic simple)
+        if (p.schema?.type === 'boolean') {
+          allQ[p.name] = 'notBoolean';
+        } else if (p.schema?.type === 'integer' || p.schema?.type === 'number') {
+          allQ[p.name] = 'NaNValue';
+        } else if (p.schema?.type === 'string') {
+          allQ[p.name] = '12345'; // number-as-string
+        } else if (p.schema?.type === 'array') {
+          allQ[p.name] = 'notArray';
+        } else if (p.schema?.type === 'object') {
+          allQ[p.name] = 'notObject';
+        }
+        params = allQ;
+      } else {
+        params = buildParams(op.path, {}); // no query mutation for non-query params
+      }
       out.push({
         id: makeId([op.operationId, 'paramType', p.in, p.name]),
         operationId: op.operationId,
@@ -49,7 +92,7 @@ export function generateParamTypeMismatch(ops: OperationModel[], opts: Opts): Va
         path: op.path,
         type: 'param-type-mismatch',
         target: `${p.in}.${p.name}`,
-        params: buildParams(op.path, { extraQuery: p.in === 'query' ? { [p.name]: String(wrong) } : undefined }),
+        params,
         expectedStatus: 400,
         description: `Type mismatch for ${p.in} parameter ${p.name}`,
         headersAuth: true,
@@ -94,6 +137,7 @@ export function generateParamEnumViolation(ops: OperationModel[], opts: Opts): V
   return out;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function wrongTypeValue(type: string): any {
   switch (type) {
     case 'integer':

@@ -5,16 +5,17 @@
  * Licensed under the Camunda License 1.0. You may not use this file
  * except in compliance with the Camunda License 1.0.
  */
+
 /*
  * GENERATED FILE - DO NOT EDIT MANUALLY
- * Generated At: 2025-09-08T02:40:57.021Z
- * Spec Commit: 3445d1d86c2ad361858dc12e734eeb6197e426a5
+ * Generated At: 2025-09-08T04:26:59.464Z
+ * Spec Commit: 177fb9193d6c4d0ab558734d76c501bbac1f2454
  */
-import { test, expect } from '@playwright/test';
-import { jsonHeaders, buildUrl } from '../../../../utils/http';
+import {test, expect} from '@playwright/test';
+import {jsonHeaders, buildUrl} from '../../../../utils/http';
 
 test.describe('Jobs Validation API Tests', () => {
-  test('activateJobs - Missing maxJobsToActivate', async ({ request }) => {
+  test('activateJobs - Missing maxJobsToActivate', async ({request}) => {
     const requestBody = {
       type: 'x',
       timeout: 1,
@@ -23,14 +24,13 @@ test.describe('Jobs Validation API Tests', () => {
       headers: jsonHeaders(),
       data: requestBody,
     });
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('activateJobs - Missing timeout', async ({ request }) => {
+  test('activateJobs - Missing timeout', async ({request}) => {
     const requestBody = {
       type: 'x',
       maxJobsToActivate: 1,
@@ -39,14 +39,13 @@ test.describe('Jobs Validation API Tests', () => {
       headers: jsonHeaders(),
       data: requestBody,
     });
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('activateJobs - Missing type', async ({ request }) => {
+  test('activateJobs - Missing type', async ({request}) => {
     const requestBody = {
       timeout: 1,
       maxJobsToActivate: 1,
@@ -55,43 +54,37 @@ test.describe('Jobs Validation API Tests', () => {
       headers: jsonHeaders(),
       data: requestBody,
     });
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('throwJobError - Missing errorCode', async ({ request }) => {
+  test('throwJobError - Missing errorCode', async ({request}) => {
     const requestBody = {};
     const res = await request.post(
-      buildUrl('/jobs/{jobKey}/error', { jobKey: 'x' }),
+      buildUrl('/jobs/{jobKey}/error', {jobKey: 'x'}),
       {
         headers: jsonHeaders(),
         data: requestBody,
       },
     );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
-  test('updateJob - Missing changeset', async ({ request }) => {
+  test('updateJob - Missing changeset', async ({request}) => {
     const requestBody = {};
-    const res = await request.patch(
-      buildUrl('/jobs/{jobKey}', { jobKey: 'x' }),
-      {
-        headers: jsonHeaders(),
-        data: requestBody,
-      },
-    );
-    if (res.status() !== 400) {
-      try {
-        console.error(await res.text());
-      } catch {}
-    }
+    const res = await request.patch(buildUrl('/jobs/{jobKey}', {jobKey: 'x'}), {
+      headers: jsonHeaders(),
+      data: requestBody,
+    });
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
     expect(res.status()).toBe(400);
   });
 });

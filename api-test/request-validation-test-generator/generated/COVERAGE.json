@@ -1,10 +1,9 @@
 {
-  "generatedAt": "2025-09-08T02:40:57.041Z",
-  "specCommit": "3445d1d86c2ad361858dc12e734eeb6197e426a5",
-  "totalScenarios": 99,
+  "generatedAt": "2025-09-08T04:26:59.482Z",
+  "specCommit": "177fb9193d6c4d0ab558734d76c501bbac1f2454",
+  "totalScenarios": 46,
   "scenarioKinds": [
     "missing-required",
-    "type-mismatch",
     "union"
   ],
   "generationOptions": {
@@ -27,16 +26,18 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 14.3,
-      "applicableKindCount": 7,
+      "rawKindCoveragePct": 50,
+      "applicableKindCoveragePct": 10,
+      "applicableKindCount": 10,
       "presentKindCount": 1,
       "missingApplicableKinds": [
         "additional-prop-general",
+        "allof-conflict",
+        "allof-missing-required",
         "body-top-type-mismatch",
+        "format-invalid",
         "missing-body",
         "nested-additional-prop",
         "param-missing",
@@ -55,10 +56,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 10,
       "applicableKindCount": 10,
       "presentKindCount": 1,
@@ -75,270 +75,6 @@
       ]
     },
     {
-      "operationId": "assignClientToGroup",
-      "method": "PUT",
-      "path": "/groups/{groupId}/clients/{clientId}",
-      "counts": {
-        "type-mismatch": 2
-      },
-      "total": 2,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "assignClientToTenant",
-      "method": "PUT",
-      "path": "/tenants/{tenantId}/clients/{clientId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "assignGroupToTenant",
-      "method": "PUT",
-      "path": "/tenants/{tenantId}/groups/{groupId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "assignMappingRuleToGroup",
-      "method": "PUT",
-      "path": "/groups/{groupId}/mapping-rules/{mappingRuleId}",
-      "counts": {
-        "type-mismatch": 2
-      },
-      "total": 2,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "assignMappingRuleToTenant",
-      "method": "PUT",
-      "path": "/tenants/{tenantId}/mapping-rules/{mappingRuleId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "assignRoleToClient",
-      "method": "PUT",
-      "path": "/roles/{roleId}/clients/{clientId}",
-      "counts": {
-        "type-mismatch": 2
-      },
-      "total": 2,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "assignRoleToGroup",
-      "method": "PUT",
-      "path": "/roles/{roleId}/groups/{groupId}",
-      "counts": {
-        "type-mismatch": 2
-      },
-      "total": 2,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "assignRoleToMappingRule",
-      "method": "PUT",
-      "path": "/roles/{roleId}/mapping-rules/{mappingRuleId}",
-      "counts": {
-        "type-mismatch": 2
-      },
-      "total": 2,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "assignRoleToTenant",
-      "method": "PUT",
-      "path": "/tenants/{tenantId}/roles/{roleId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "assignRoleToUser",
-      "method": "PUT",
-      "path": "/roles/{roleId}/users/{username}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "assignUserToGroup",
-      "method": "PUT",
-      "path": "/groups/{groupId}/users/{username}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
       "operationId": "broadcastSignal",
       "method": "POST",
       "path": "/signals/broadcast",
@@ -350,10 +86,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 10,
       "applicableKindCount": 10,
       "presentKindCount": 1,
@@ -381,10 +116,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 5.9,
       "applicableKindCount": 17,
       "presentKindCount": 1,
@@ -419,10 +153,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 9.1,
       "applicableKindCount": 11,
       "presentKindCount": 1,
@@ -451,10 +184,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 10,
       "applicableKindCount": 10,
       "presentKindCount": 1,
@@ -471,33 +203,6 @@
       ]
     },
     {
-      "operationId": "createDocumentLink",
-      "method": "POST",
-      "path": "/documents/{documentId}/links",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 16.7,
-      "applicableKindCount": 6,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "additional-prop-general",
-        "body-top-type-mismatch",
-        "missing-body",
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
       "operationId": "createElementInstanceVariables",
       "method": "PUT",
       "path": "/element-instances/{elementInstanceKey}/variables",
@@ -509,10 +214,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 12.5,
       "applicableKindCount": 8,
       "presentKindCount": 1,
@@ -538,10 +242,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 16.7,
       "applicableKindCount": 6,
       "presentKindCount": 1,
@@ -565,10 +268,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 14.3,
       "applicableKindCount": 7,
       "presentKindCount": 1,
@@ -593,10 +295,9 @@
         "union"
       ],
       "missingKinds": [
-        "missing-required",
-        "type-mismatch"
+        "missing-required"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 5.6,
       "applicableKindCount": 18,
       "presentKindCount": 1,
@@ -632,10 +333,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 16.7,
       "applicableKindCount": 6,
       "presentKindCount": 1,
@@ -659,10 +359,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 14.3,
       "applicableKindCount": 7,
       "presentKindCount": 1,
@@ -673,78 +372,6 @@
         "missing-body",
         "missing-required-combo",
         "type-mismatch"
-      ]
-    },
-    {
-      "operationId": "deleteGroup",
-      "method": "DELETE",
-      "path": "/groups/{groupId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "deleteMappingRule",
-      "method": "DELETE",
-      "path": "/mapping-rules/{mappingRuleId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "deleteRole",
-      "method": "DELETE",
-      "path": "/roles/{roleId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
       ]
     },
     {
@@ -759,10 +386,9 @@
         "union"
       ],
       "missingKinds": [
-        "missing-required",
-        "type-mismatch"
+        "missing-required"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 7.1,
       "applicableKindCount": 14,
       "presentKindCount": 1,
@@ -783,126 +409,6 @@
       ]
     },
     {
-      "operationId": "getDocument",
-      "method": "GET",
-      "path": "/documents/{documentId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "getGroup",
-      "method": "GET",
-      "path": "/groups/{groupId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "getMappingRule",
-      "method": "GET",
-      "path": "/mapping-rules/{mappingRuleId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "getRole",
-      "method": "GET",
-      "path": "/roles/{roleId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "getUsageMetrics",
-      "method": "GET",
-      "path": "/system/usage-metrics",
-      "counts": {
-        "type-mismatch": 2
-      },
-      "total": 2,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
       "operationId": "migrateProcessInstance",
       "method": "POST",
       "path": "/process-instances/{processInstanceKey}/migration",
@@ -914,10 +420,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 8.3,
       "applicableKindCount": 12,
       "presentKindCount": 1,
@@ -947,10 +452,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 5.6,
       "applicableKindCount": 18,
       "presentKindCount": 1,
@@ -986,10 +490,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 5.6,
       "applicableKindCount": 18,
       "presentKindCount": 1,
@@ -1025,10 +528,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 20,
       "applicableKindCount": 5,
       "presentKindCount": 1,
@@ -1051,10 +553,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 9.1,
       "applicableKindCount": 11,
       "presentKindCount": 1,
@@ -1083,10 +584,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 5.9,
       "applicableKindCount": 17,
       "presentKindCount": 1,
@@ -1110,310 +610,6 @@
       ]
     },
     {
-      "operationId": "searchClientsForGroup",
-      "method": "POST",
-      "path": "/groups/{groupId}/clients/search",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 5.9,
-      "applicableKindCount": 17,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "additional-prop-general",
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "enum-violation",
-        "format-invalid",
-        "missing-body",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchClientsForRole",
-      "method": "POST",
-      "path": "/roles/{roleId}/clients/search",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 5.9,
-      "applicableKindCount": 17,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "additional-prop-general",
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "enum-violation",
-        "format-invalid",
-        "missing-body",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchGroupsForRole",
-      "method": "POST",
-      "path": "/roles/{roleId}/groups/search",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 5.9,
-      "applicableKindCount": 17,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "additional-prop-general",
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "enum-violation",
-        "format-invalid",
-        "missing-body",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchMappingRulesForGroup",
-      "method": "POST",
-      "path": "/groups/{groupId}/mapping-rules/search",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 5.9,
-      "applicableKindCount": 17,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "additional-prop-general",
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "enum-violation",
-        "format-invalid",
-        "missing-body",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchMappingRulesForRole",
-      "method": "POST",
-      "path": "/roles/{roleId}/mapping-rules/search",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 5.9,
-      "applicableKindCount": 17,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "additional-prop-general",
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "enum-violation",
-        "format-invalid",
-        "missing-body",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchRolesForGroup",
-      "method": "POST",
-      "path": "/groups/{groupId}/roles/search",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 5.9,
-      "applicableKindCount": 17,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "additional-prop-general",
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "enum-violation",
-        "format-invalid",
-        "missing-body",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchUsersForGroup",
-      "method": "POST",
-      "path": "/groups/{groupId}/users/search",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 5.9,
-      "applicableKindCount": 17,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "additional-prop-general",
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "enum-violation",
-        "format-invalid",
-        "missing-body",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ]
-    },
-    {
-      "operationId": "searchUsersForRole",
-      "method": "POST",
-      "path": "/roles/{roleId}/users/search",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 5.9,
-      "applicableKindCount": 17,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "additional-prop-general",
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "constraint-violation",
-        "enum-violation",
-        "format-invalid",
-        "missing-body",
-        "nested-additional-prop",
-        "oneof-ambiguous",
-        "oneof-cross-bleed",
-        "oneof-multi-ambiguous",
-        "oneof-none-match",
-        "param-missing",
-        "param-type-mismatch",
-        "union"
-      ]
-    },
-    {
       "operationId": "throwJobError",
       "method": "POST",
       "path": "/jobs/{jobKey}/error",
@@ -1425,10 +621,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 14.3,
       "applicableKindCount": 7,
       "presentKindCount": 1,
@@ -1439,270 +634,6 @@
         "nested-additional-prop",
         "param-missing",
         "type-mismatch"
-      ]
-    },
-    {
-      "operationId": "unassignClientFromGroup",
-      "method": "DELETE",
-      "path": "/groups/{groupId}/clients/{clientId}",
-      "counts": {
-        "type-mismatch": 2
-      },
-      "total": 2,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "unassignClientFromTenant",
-      "method": "DELETE",
-      "path": "/tenants/{tenantId}/clients/{clientId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "unassignGroupFromTenant",
-      "method": "DELETE",
-      "path": "/tenants/{tenantId}/groups/{groupId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "unassignMappingRuleFromGroup",
-      "method": "DELETE",
-      "path": "/groups/{groupId}/mapping-rules/{mappingRuleId}",
-      "counts": {
-        "type-mismatch": 2
-      },
-      "total": 2,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "unassignMappingRuleFromTenant",
-      "method": "DELETE",
-      "path": "/tenants/{tenantId}/mapping-rules/{mappingRuleId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "unassignRoleFromClient",
-      "method": "DELETE",
-      "path": "/roles/{roleId}/clients/{clientId}",
-      "counts": {
-        "type-mismatch": 2
-      },
-      "total": 2,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "unassignRoleFromGroup",
-      "method": "DELETE",
-      "path": "/roles/{roleId}/groups/{groupId}",
-      "counts": {
-        "type-mismatch": 2
-      },
-      "total": 2,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "unassignRoleFromMappingRule",
-      "method": "DELETE",
-      "path": "/roles/{roleId}/mapping-rules/{mappingRuleId}",
-      "counts": {
-        "type-mismatch": 2
-      },
-      "total": 2,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "unassignRoleFromTenant",
-      "method": "DELETE",
-      "path": "/tenants/{tenantId}/roles/{roleId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "unassignRoleFromUser",
-      "method": "DELETE",
-      "path": "/roles/{roleId}/users/{username}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
-      "operationId": "unassignUserFromGroup",
-      "method": "DELETE",
-      "path": "/groups/{groupId}/users/{username}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 33.3,
-      "applicableKindCount": 3,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "param-missing",
-        "param-type-mismatch"
       ]
     },
     {
@@ -1717,10 +648,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 9.1,
       "applicableKindCount": 11,
       "presentKindCount": 1,
@@ -1742,28 +672,27 @@
       "method": "PUT",
       "path": "/groups/{groupId}",
       "counts": {
-        "missing-required": 2,
-        "type-mismatch": 1
+        "missing-required": 2
       },
-      "total": 3,
+      "total": 2,
       "kinds": [
-        "missing-required",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
         "union"
       ],
-      "rawKindCoveragePct": 66.7,
-      "applicableKindCoveragePct": 25,
+      "rawKindCoveragePct": 50,
+      "applicableKindCoveragePct": 12.5,
       "applicableKindCount": 8,
-      "presentKindCount": 2,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
         "additional-prop-general",
         "body-top-type-mismatch",
         "missing-body",
         "missing-required-combo",
         "param-missing",
-        "param-type-mismatch"
+        "param-type-mismatch",
+        "type-mismatch"
       ]
     },
     {
@@ -1778,10 +707,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 11.1,
       "applicableKindCount": 9,
       "presentKindCount": 1,
@@ -1797,61 +725,31 @@
       ]
     },
     {
-      "operationId": "updateMappingRule",
-      "method": "PUT",
-      "path": "/mapping-rules/{mappingRuleId}",
-      "counts": {
-        "type-mismatch": 1
-      },
-      "total": 1,
-      "kinds": [
-        "type-mismatch"
-      ],
-      "missingKinds": [
-        "missing-required",
-        "union"
-      ],
-      "rawKindCoveragePct": 33.3,
-      "applicableKindCoveragePct": 12.5,
-      "applicableKindCount": 8,
-      "presentKindCount": 1,
-      "missingApplicableKinds": [
-        "additional-prop-general",
-        "allof-conflict",
-        "allof-missing-required",
-        "body-top-type-mismatch",
-        "missing-body",
-        "param-missing",
-        "param-type-mismatch"
-      ]
-    },
-    {
       "operationId": "updateRole",
       "method": "PUT",
       "path": "/roles/{roleId}",
       "counts": {
-        "missing-required": 2,
-        "type-mismatch": 1
+        "missing-required": 2
       },
-      "total": 3,
+      "total": 2,
       "kinds": [
-        "missing-required",
-        "type-mismatch"
+        "missing-required"
       ],
       "missingKinds": [
         "union"
       ],
-      "rawKindCoveragePct": 66.7,
-      "applicableKindCoveragePct": 25,
+      "rawKindCoveragePct": 50,
+      "applicableKindCoveragePct": 12.5,
       "applicableKindCount": 8,
-      "presentKindCount": 2,
+      "presentKindCount": 1,
       "missingApplicableKinds": [
         "additional-prop-general",
         "body-top-type-mismatch",
         "missing-body",
         "missing-required-combo",
         "param-missing",
-        "param-type-mismatch"
+        "param-type-mismatch",
+        "type-mismatch"
       ]
     },
     {
@@ -1866,10 +764,9 @@
         "missing-required"
       ],
       "missingKinds": [
-        "type-mismatch",
         "union"
       ],
-      "rawKindCoveragePct": 33.3,
+      "rawKindCoveragePct": 50,
       "applicableKindCoveragePct": 14.3,
       "applicableKindCount": 7,
       "presentKindCount": 1,
@@ -1885,7 +782,7 @@
   ],
   "endpointTotals": {
     "totalOps": 145,
-    "coveredOps": 65,
-    "endpointCoveragePct": 44.8
+    "coveredOps": 25,
+    "endpointCoveragePct": 17.2
   }
 }
