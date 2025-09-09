@@ -12,8 +12,8 @@ interface OA3Spec { paths?: Record<string, OA3PathItem> }
 
 const ROOT = process.cwd();
 const SPEC_PATH = path.resolve(ROOT, '../../rest-api.domain.yaml');
-const TEMPLATE_FILE = path.join(ROOT, 'src/CamundaClient.template.ts');
-const CLASS_FILE = path.join(ROOT, 'src/CamundaClient.ts');
+const TEMPLATE_FILE = path.join(ROOT, 'src/template/CamundaClient.template.ts');
+const CLASS_FILE = path.join(ROOT, 'src/gen/CamundaClient.ts');
 const SDK_GEN_PATH = path.join(ROOT, 'src/gen/sdk.gen.ts');
 
 const MARK_TYPES_START = '// === AUTO-GENERATED CAMUNDA SUPPORT TYPES START ===';
@@ -194,8 +194,7 @@ type ${o.opId}Consistency = {
             methods.push('        let data = (r as any)?.data;');
             methods.push('        if (data === undefined) data = r;');
             methods.push(`        const _respSchemaName = 'z${o.opId.charAt(0).toUpperCase() + o.opId.slice(1)}Response';`);
-            methods.push('        if (' +
-                '(Schemas as any)[_respSchemaName]?.type === "void") {');
+            methods.push('        if (this._isVoidResponse(_respSchemaName)) {');
             methods.push('          data = undefined;');
             methods.push('        }');
             if (o.opId === 'createDeployment') {
@@ -239,8 +238,7 @@ type ${o.opId}Consistency = {
             methods.push('        let data = (r as any)?.data;');
             methods.push('        if (data === undefined) data = r;');
             methods.push(`        const _respSchemaName = 'z${o.opId.charAt(0).toUpperCase() + o.opId.slice(1)}Response';`);
-            methods.push('        if (' +
-                ' (Schemas as any)[_respSchemaName]?._def?.typeName === "ZodVoid") {');
+            methods.push('        if (this._isVoidResponse(_respSchemaName)) {');
             methods.push('          data = undefined;');
             methods.push('        }');
             const respName2 = `z${o.opId.charAt(0).toUpperCase() + o.opId.slice(1)}Response`;
@@ -268,14 +266,21 @@ type ${o.opId}Consistency = {
         methods.push('');
     }
 
-    const banner = '// @generated from CamundaClient.template.ts – DO NOT EDIT DIRECTLY\n';
+    const banner = '// @generated from CamundaClient.template.ts - DO NOT EDIT DIRECTLY\n';
     const withTypes = tpl.slice(0, tS + MARK_TYPES_START.length) + '\n' + support.join('\n') + '\n' + tpl.slice(tE);
     const w2S = withTypes.indexOf(MARK_METHODS_START); const w2E = withTypes.indexOf(MARK_METHODS_END);
     let finalSrc = banner + withTypes.slice(0, w2S + MARK_METHODS_START.length) + '\n' + methods.join('\n') + '\n' + withTypes.slice(w2E);
     // Strip template-only @ts-ignore annotations (we keep them in template for DX, but don't ship them)
     finalSrc = finalSrc.replace(/\n[^\n]*@ts-ignore[^\n]*\n/g, (m) => '\n');
-    fs.writeFileSync(CLASS_FILE, finalSrc, 'utf8');
-    console.log(`[class-gen] Wrote Camunda.ts with ${ops.length} methods`);
+    // Strip any template hint comments (// TEMPLATE: ...)
+    finalSrc = finalSrc.replace(/^\/\/ TEMPLATE:.*(?:\r?\n|$)/gm, '');
+        fs.writeFileSync(CLASS_FILE, finalSrc, 'utf8');
+        // Regression gate: forbid usage of private Zod internals '_def?.typeName'
+        if (/_def\?\.typeName/.test(finalSrc)) {
+            console.error('[class-gen][FAIL] Detected forbidden pattern _def?.typeName in generated output.');
+            process.exit(1);
+        }
+        console.log(`[class-gen] Wrote Camunda.ts with ${ops.length} methods`);
 }
 
 function hasJsonLike(rb: OA3RequestBody): boolean { return !!rb?.content && Object.keys(rb.content).some(k => /json|octet|multipart|text\//i.test(k)); }

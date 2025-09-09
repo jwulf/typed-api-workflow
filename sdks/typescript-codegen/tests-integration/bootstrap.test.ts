@@ -97,7 +97,7 @@ describe('integration acceptance', () => {
                 processDefinitionKey: process.processDefinitionKey,
                 state: 'ACTIVE'
             }
-        }, {consistency: {  waitUpToMs: 20000, predicate: res => res.items.some(item => item.processInstanceKey === process.processInstanceKey)}});
+        }, {consistency: {  waitUpToMs: 20000, predicate: res => res.items.some(item => item.processInstanceKey === process.processInstanceKey), trace: true }});
         await Promise.all(processes.items.map(item => 
             camunda.cancelProcessInstance({ processInstanceKey: item.processInstanceKey })
         ));

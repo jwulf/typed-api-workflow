@@ -1,19 +1,18 @@
-// Canonical Camunda class template (manually maintained)
-// DO NOT add generated operation methods here; generator will produce CamundaClient.ts from this template.
-
-import { createClient } from './gen/client/client.gen';
-import type { Client } from './gen/client/types.gen';
-import { createAuthFacade } from './runtime/auth';
-import type { CamundaConfig } from './runtime/unifiedConfiguration';
-import type { EnvOverrides } from './runtime/configSchema';
-import { hydrateConfig } from './runtime/unifiedConfiguration';
-import * as Sdk from './gen/sdk.gen';
-import { ConsistencyOptions, eventualPoll } from './runtime/eventual'
-import * as Schemas from './gen/zod.gen';
-import { ValidationManager } from './runtime/validationManager';
-import { createLogger, Logger, LogLevel, LogTransport } from './runtime/logger';
-import { wrapFetch, withCorrelation as _withCorrelation, getCorrelation } from './runtime/telemetry';
-import { installAuthInterceptor } from './runtime/installAuthInterceptor';
+// TEMPLATE: Canonical Camunda class template (manually maintained)
+// TEMPLATE: DO NOT add generated operation methods here; generator will produce CamundaClient.ts from this template.
+import { createClient } from '../gen/client/client.gen';
+import type { Client } from '../gen/client/types.gen';
+import { createAuthFacade } from '../runtime/auth';
+import type { CamundaConfig } from '../runtime/unifiedConfiguration';
+import type { EnvOverrides } from '../runtime/configSchema';
+import { hydrateConfig } from '../runtime/unifiedConfiguration';
+import * as Sdk from '../gen/sdk.gen';
+import { ConsistencyOptions, eventualPoll } from '../runtime/eventual'
+import * as Schemas from '../gen/zod.gen';
+import { ValidationManager } from '../runtime/validationManager';
+import { createLogger, Logger, LogLevel, LogTransport } from '../runtime/logger';
+import { wrapFetch, withCorrelation as _withCorrelation, getCorrelation } from '../runtime/telemetry';
+import { installAuthInterceptor } from '../runtime/installAuthInterceptor';
 
 // Internal deep-freeze to make exposed config immutable for consumers.
 function deepFreeze<T>(obj: T): T {
@@ -53,7 +52,7 @@ export interface CamundaOptions {
   // Per-client logging options
   log?: { level?: LogLevel; transport?: LogTransport };
   // Telemetry (Phase 1)
-  telemetry?: { hooks?: import('./runtime/telemetry').TelemetryHooks; correlation?: boolean; mirrorToLog?: boolean };
+  telemetry?: { hooks?: import('../runtime/telemetry').TelemetryHooks; correlation?: boolean; mirrorToLog?: boolean };
   // If true (default), non-2xx HTTP responses throw instead of returning an error object.
   // Set to false to opt into non-throwing behavior.
   throwOnError?: boolean;
@@ -169,6 +168,11 @@ export class CamundaClient {
   // Run a function with a correlation ID (manual propagation phase 1)
   withCorrelation<T>(id: string, fn: () => Promise<T> | T): Promise<T> { return _withCorrelation(id, fn); }
 
+  // Helper for detecting documented void responses (stable public contract)
+  // Referenced from generated code - DO NOT REMOVE
+  private _isVoidResponse(name: string): boolean {
+    try { return (Schemas as any)[name]?.type === "void"; } catch { return false; }
+  }
   // === AUTO-GENERATED CAMUNDA METHODS START ===
   // === AUTO-GENERATED CAMUNDA METHODS END ===
 

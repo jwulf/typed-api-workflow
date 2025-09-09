@@ -2,7 +2,7 @@
 // Produces TaskEither-like thunks structurally compatible with fp-ts/TaskEither.
 // Includes domain error typing and small helper combinators.
 
-import { createCamundaClient, CamundaClient, CamundaOptions } from './CamundaClient';
+import { createCamundaClient, CamundaClient, CamundaOptions } from './gen/CamundaClient';
 import { EventualConsistencyTimeoutError, CamundaValidationError } from './runtime/errors';
 
 // Basic Either + TaskEither structural types (kept minimal to avoid runtime dependency).
