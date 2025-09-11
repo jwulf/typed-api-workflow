@@ -80,7 +80,7 @@ describe('integration acceptance', () => {
 
     it('can do activate jobs', { timeout: 20000 }, async () => {
         const camunda = createCamundaClient({});
-        const _tag = Tag.assumeExists("example")
+        const _tag = Tag.fromString("example")
         const filepath = './tests-integration/fixtures/test-process.bpmn'
         const res = await camunda.deployResourcesFromFiles([filepath]);
         const jobTypes = extractJobTypesFromBpmnFile(filepath);
