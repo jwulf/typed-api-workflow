@@ -85,6 +85,15 @@ interface BrandingMetadata {
   };
   keys: BrandedKeyEntry[];
   unions: UnionKeyEntry[];
+  arrays?: Array<{
+    name: string;
+    itemRef?: string;
+    itemType?: string;
+    minItems?: number;
+    maxItems?: number;
+    uniqueItems?: boolean;
+    source: { schemaPointer: string; lineStart?: number; lineEnd?: number };
+  }>;
   integrity: {
     totalPrimaryKeys: number;
     totalUnionWrappers: number;
@@ -175,6 +184,7 @@ function refsCamunda(o: any): { camunda: boolean; long: boolean } {
 const brandedKeys: BrandedKeyEntry[] = [];
 const unionKeys: UnionKeyEntry[] = [];
 const implicitIds: string[] = [];
+const arraySchemas: NonNullable<BrandingMetadata['arrays']> = [];
 
 // First pass over schemas
 for (const [name, schema] of Object.entries<any>(schemas)) {
@@ -234,6 +244,22 @@ for (const [name, schema] of Object.entries<any>(schemas)) {
       stableId: toStableId(name)
     });
     continue; // unions are not primary branded primitives themselves
+  }
+
+  // Collect top-level array schemas with potential length constraints
+  if (schema.type === 'array') {
+    const pointer = `#/components/schemas/${name}`;
+    const { lineStart, lineEnd } = locateSchema(name);
+    const entry = {
+      name,
+      itemRef: schema.items?.$ref ? String(schema.items.$ref).split('/').pop() : undefined,
+      itemType: schema.items?.type,
+      minItems: typeof schema.minItems === 'number' ? schema.minItems : undefined,
+      maxItems: typeof schema.maxItems === 'number' ? schema.maxItems : undefined,
+      uniqueItems: !!schema.uniqueItems,
+      source: { schemaPointer: pointer, lineStart, lineEnd }
+    };
+    arraySchemas.push(entry);
   }
 
   let includesCamundaKeyRef = false;
@@ -358,6 +384,7 @@ const metadata: BrandingMetadata = {
   },
   keys: brandedKeys.sort((a, b) => a.name.localeCompare(b.name)),
   unions: unionKeys.sort((a, b) => a.name.localeCompare(b.name)),
+  arrays: arraySchemas.sort((a, b) => a.name.localeCompare(b.name)),
   integrity: {
     totalPrimaryKeys: brandedKeys.length,
     totalUnionWrappers: unionKeys.length,
@@ -382,6 +409,7 @@ summaryLines.push(`  Spec: ${path.relative(process.cwd(), specPath)}`);
 summaryLines.push(`  Out : ${path.relative(process.cwd(), outPath)}`);
 summaryLines.push(`  Keys: ${metadata.integrity.totalPrimaryKeys}`);
 summaryLines.push(`  Unions: ${metadata.integrity.totalUnionWrappers}`);
+summaryLines.push(`  Arrays: ${metadata.arrays?.length || 0}`);
 if (implicitIds.length) summaryLines.push(`  Implicit IDs: ${implicitIds.join(', ')}`);
 console.log(summaryLines.join('\n'));
 

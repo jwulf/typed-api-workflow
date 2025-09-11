@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import createCamundaClient, { createCamundaResultClient, Tag } from '../dist';
+import createCamundaClient, { createCamundaResultClient, ElementId, Tag } from '../dist';
 import fs from 'fs';
 import { extractJobTypesFromBpmnFile } from '../test-support/bpmn';
 
@@ -54,12 +54,20 @@ describe('integration acceptance', () => {
         expect(res.error).toBeDefined();
     });
 
-    it('can do all the things', { timeout: 20000 }, async () => {
+    it.only('can do all the things', { timeout: 20000 }, async () => {
         const camunda = createCamundaClient({});
         const res = await camunda.deployResourcesFromFiles(['./tests-integration/fixtures/test-process.bpmn']);
+
         const process = await camunda.createProcessInstance({
             processDefinitionKey: res.processes[0].processDefinitionKey,
+            // runtimeInstructions: [{type: 'TERMINATE_PROCESS_INSTANCE', afterElementId: ElementId.assumeExists('Activity_106kosb')}],
+            
         })
+
+        const buffer = await fs.promises.readFile('./tests-integration/fixtures/test-process.bpmn');
+        const copied = Uint8Array.from(buffer);
+        const blob = new Blob([copied], { type: 'application/xml' });
+
         console.log('ProcessInstance', JSON.stringify(process, null, 2))
         const search = await camunda.searchProcessInstances({
             filter: {
@@ -70,7 +78,7 @@ describe('integration acceptance', () => {
         await camunda.cancelProcessInstance({ processInstanceKey: process.processInstanceKey });
     });
 
-    it.only('can do activate jobs', { timeout: 20000 }, async () => {
+    it('can do activate jobs', { timeout: 20000 }, async () => {
         const camunda = createCamundaClient({});
         const _tag = Tag.assumeExists("example")
         const filepath = './tests-integration/fixtures/test-process.bpmn'

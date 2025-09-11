@@ -16,7 +16,7 @@ Type‑safe, promise‑based client for the Camunda 8 Orchestration Cluster REST
 
 ## Install
 ```bash
-npm install @camunda8/orchestration-cluster
+npm install @camunda8/orchestration-cluster-api
 ```
 Runtime support:
 
@@ -29,7 +29,7 @@ For older Node versions supply a fetch ponyfill AND a `File` shim (or upgrade). 
 Keep configuration out of application code. Let the factory read `CAMUNDA_*` variables from the environment (12‑factor style). This makes rotation, secret management, and environment promotion safer & simpler.
 
 ```ts
-import createCamundaClient from '@camunda8/orchestration-cluster';
+import createCamundaClient from '@camunda8/orchestration-cluster-api';
 
 // Zero‑config construction: reads CAMUNDA_* from process.env once.
 const camunda = createCamundaClient();

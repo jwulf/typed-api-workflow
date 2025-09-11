@@ -9,7 +9,8 @@ interface BrandingMetadataKey {
   // Added: composition info from metadata to allow filtering
   composition?: { schemaKind?: string; refs?: string[]; inlineFragments?: number };
 }
-interface BrandingMetadata { keys: BrandingMetadataKey[]; schemaVersion: string; generatedAt: string; specHash: string; }
+interface BrandingArrayMeta { name: string; minItems?: number; maxItems?: number; uniqueItems?: boolean; itemRef?: string; itemType?: string; }
+interface BrandingMetadata { keys: BrandingMetadataKey[]; arrays?: BrandingArrayMeta[]; schemaVersion: string; generatedAt: string; specHash: string; }
 
 export const handler: BrandingPlugin['Handler'] = (ctx) => {
   console.log('[branding-plugin] handler start');
@@ -56,15 +57,30 @@ export const handler: BrandingPlugin['Handler'] = (ctx) => {
     lines.push('  if (typeof c.maxLength === "number" && value.length > c.maxLength) throw new Error(`Value too long for ${label}`);');
     lines.push('}');
   }
+  // Load lifter overrides once (search common relative locations)
+  let lifterOverrides: Record<string,string> = {};
+  try {
+    const overrideCandidates = [
+      path.resolve(process.cwd(), 'branding/lifter-overrides.json'), // when cwd = sdks/typescript-codegen
+      path.resolve(process.cwd(), 'sdks/typescript-codegen/branding/lifter-overrides.json'), // when cwd = repo root
+      path.resolve(process.cwd(), '../branding/lifter-overrides.json')
+    ];
+    for (const p of overrideCandidates) {
+      if (fs.existsSync(p)) { lifterOverrides = JSON.parse(fs.readFileSync(p,'utf8')); break; }
+    }
+  } catch {/* ignore */}
+
   for (const k of meta.keys.sort((a,b)=>a.name.localeCompare(b.name))) {
     const c: string[] = [];
     if (k.constraints.pattern) c.push(`pattern: ${JSON.stringify(k.constraints.pattern)}`);
     if (k.constraints.minLength !== undefined) c.push(`minLength: ${k.constraints.minLength}`);
     if (k.constraints.maxLength !== undefined) c.push(`maxLength: ${k.constraints.maxLength}`);
     const obj = `{ ${c.join(', ')} }`;
+    // lifter method overrides sidecar
+  const lifterName = lifterOverrides[k.name] || 'assumeExists';
     if (k.description) lines.push(`// ${k.description.replace(/\n/g,' ')}`);
     lines.push(`export namespace ${k.name} {`);
-    lines.push(`  export function assumeExists(value: string): ${k.name} {`);
+    lines.push(`  export function ${lifterName}(value: string): ${k.name} {`);
     if (doValidate && c.length) lines.push(`    assertConstraint(value, '${k.name}', ${obj});`);
     lines.push('    return value as any;');
     lines.push('  }');
@@ -123,6 +139,53 @@ export const handler: BrandingPlugin['Handler'] = (ctx) => {
                   console.log(`[branding-plugin] branded ${changed} aliases during write`);
                 }
               }
+              // Generic bounded array length transformation based on metadata
+              try {
+                const arrayMetaList: BrandingArrayMeta[] = (meta as any).arrays || [];
+                if (arrayMetaList.length) {
+                  const arrayMetaMap = new Map(arrayMetaList.map(a => [a.name, a]));
+                  const aliasRegex = /^export type (\w+) = Array<([^>]+)>;$/gm;
+                  src = src.replace(aliasRegex, (full, name, elemType) => {
+                    const m = arrayMetaMap.get(name);
+                    if (!m) return full; // not tracked
+                    if (/readonly length:/.test(full)) return full; // already transformed
+                    // Only act if maxItems defined and <= 10 (policy cap) and > 0
+                    const max = typeof m.maxItems === 'number' ? m.maxItems : undefined;
+                    const min = typeof m.minItems === 'number' ? m.minItems : 0; // default policy
+                    if (!max || max > 10) return full;
+                    if (min < 0 || min > max) return full;
+                    // If fixed length (min==max) and small, optionally emit tuple for precision
+                    if (min === max) {
+                      if (max === 0) {
+                        return `export type ${name} = [] & { readonly length: 0 }; // fixed length 0`;
+                      }
+                      if (max <= 10) {
+                        const tupleElems = Array.from({ length: max }, () => elemType).join(', ');
+                        return `export type ${name} = [${tupleElems}] & { readonly length: ${max} }; // fixed length ${max}`;
+                      }
+                    }
+                    // Build union of lengths
+                    const lengths = [] as number[];
+                    for (let i = min; i <= max; i++) lengths.push(i);
+                    const union = lengths.join(' | ');
+                    const uniquenessComment = m.uniqueItems ? ' uniqueItems=true;' : '';
+                    return `export type ${name} = Array<${elemType}> & { readonly length: ${union} }; // minItems=${min} maxItems=${max};${uniquenessComment}`;
+                  });
+                }
+              } catch (e) {
+                console.warn('[branding-plugin] array length transformation failed', e);
+              }
+              // Apply lifter override post-generation for already appended namespaces (in case of regeneration order)
+              try {
+                if (Object.keys(lifterOverrides).length) {
+                  for (const [typeName, methodName] of Object.entries(lifterOverrides)) {
+                    const nsRegex = new RegExp(`export namespace ${typeName} {[^}]*?export function (assumeExists|${methodName})\\(value: string\\): ${typeName}`,'s');
+                    if (nsRegex.test(src)) {
+                      src = src.replace(new RegExp(`export function assumeExists\\(value: string\\): ${typeName}`,'g'), `export function ${methodName}(value: string): ${typeName}`);
+                    }
+                  }
+                }
+              } catch {/* ignore */}
               arguments[1] = src;
             }
             // Inject zod augmentation import into zod.gen.ts if missing

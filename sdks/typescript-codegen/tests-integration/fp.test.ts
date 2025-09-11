@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { pipe } from 'fp-ts/function';
 import * as TE from 'fp-ts/TaskEither';
-import { createCamundaFpClient, isLeft } from '@camunda8/orchestration-cluster/fp';
+import { createCamundaFpClient, isLeft } from '@camunda8/orchestration-cluster-api/fp';
 
 describe('fp-ts client', () => {
     it('deploys -> starts instance -> finds it via eventual search (TaskEither pipeline)', { timeout: 30000 }, async () => {

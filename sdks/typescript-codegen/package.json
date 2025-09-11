@@ -1,5 +1,5 @@
 {
-    "name": "@camunda8/orchestration-cluster",
+    "name": "@camunda8/orchestration-cluster-api",
     "private": true,
     "version": "0.0.0-dev",
     "type": "module",
