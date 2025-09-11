@@ -11,7 +11,7 @@
     "spec:update": "cd camunda && git reset --hard && git clean -fd && git pull && cd .. && cp camunda/zeebe/gateway-protocol/src/main/proto/rest-api.yaml rest-api.yaml",
     "docs:copy:patches": "cp -R docs-patch/src/mdx/* ./camunda-docs/src/mdx/ && cp docs-patch/api.camunda.generation-strategy.js ./camunda-docs/api/camunda/generation-strategy.js",
     "docs:copy:spec": "cp rest-api.domain.yaml camunda-docs/api/camunda/camunda-openapi.yaml",
-    "docs:generate": "npm run docs:copy:patches && npm run docs:copy:spec && npm run --prefix camunda-docs api:generate:camunda",
+    "docs:generate": "npm run docs:copy:spec && npm run --prefix camunda-docs api:generate:camunda",
     "docs:start": "npm run --prefix camunda-docs start",
     "docs:push": "cd camunda-docs && git add . && git commit -m\"updated docs\" && git fetch origin && git rebase origin/main -X ours && git push --force-with-lease",
     "spec:go": "npm run spec:generate && npm run lint && npm run spec:install && npm run spec:build && npm run spec:verify",
