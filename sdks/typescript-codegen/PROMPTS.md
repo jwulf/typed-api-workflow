@@ -1,8 +1,11 @@
-Add a test that z.infer<typeof Schema> is assignable to the exported TypeScript type (using a tsd or conditional type assertion pattern).
-Generate Zod first and derive TS types from z.infer (single source).
+TODO: 
+Job Worker
+Support Logger
 
+Logging 
+Operation-aware, shape-aware validation errors
+Telemetry
 
-Remove the unwrapped services export, to make sure that users only use the schema validating calls.
 
 ## Preprocess Spec to get CamundaKeys via templates vs post-processing
 
