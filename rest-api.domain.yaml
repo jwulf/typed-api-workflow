@@ -1631,7 +1631,7 @@ paths:
           in: "path"
           required: true
           description: "The assigned key of the process definition, which acts as\
-            \ a unique identifier for this process."
+            \ a unique identifier for this process definition."
           schema:
             $ref: "#/components/schemas/ProcessDefinitionKey"
       responses:
@@ -4338,6 +4338,37 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
+
+  /correlated-messages/search:
+    post:
+      tags:
+        - "Message"
+      operationId: "searchCorrelatedMessages"
+      summary: "Search correlated messages"
+      description: "Search for correlated messages based on given criteria."
+      x-eventually-consistent: true
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CorrelatedMessageSearchQuery"
+      responses:
+        "200":
+          description: "The correlated messages search result."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CorrelatedMessageSearchQueryResult"
+        "400":
+          $ref: "#/components/responses/InvalidData"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /message-subscriptions/search:
     post:
       tags:
@@ -4427,19 +4458,14 @@ paths:
         - "Document"
       operationId: "createDocuments"
       summary: "Upload multiple documents"
-      description: "Upload multiple documents to the Camunda 8 cluster.\n\nThe caller\
-        \ must provide a file name for each document, which will be used in case of\
-        \ a multi-status response\nto identify which documents failed to upload. The\
-        \ file name can be provided in the `Content-Disposition` header\nof the file\
-        \ part or in the `fileName` field of the metadata, which can be configured\
-        \ with\nthe `X-Document-Metadata` header for each file part. If both are provided,\
-        \ the `fileName` metadata field\ntakes precedence. For example, given the\
-        \ following headers for a file:\n```\nContent-Disposition: form-data; name=\"\
-        files\"; filename=\"bill.pdf\"\nX-Document-Metadata: {\"fileName\": \"invoice.pdf\"\
-        , \"size\": 1234567}\n```\n\nThe filename will be `invoice.pdf`, but in the\
-        \ following example:\n```\nContent-Disposition: form-data; name=\"files\"\
-        ; filename=\"bill.pdf\"\nX-Document-Metadata: {\"size\": 1234567}\n```\n\n\
-        it would be `bill.pdf`.\n\nIn case of a multi-status response, the response\
+      description: "Upload multiple documents to the Camunda 8 cluster.\n\n\
+        The caller must provide a file name for each document, which will be used in case of a multi-status response\
+        to identify which documents failed to upload. The file name can be provided in the `Content-Disposition` header\
+        of the file part or in the `fileName` field of the metadata. You can add a parallel array of metadata objects. These\
+        are matched with the files based on index, and must have the same length as the files array.\
+        To pass homogenous metadata for all files, spread the metadata over the metadata array.\ 
+        A filename value provided explicitly via the metadata array in the request overrides the `Content-Disposition` header\
+        of the file part. \n\nIn case of a multi-status response, the response\
         \ body will contain a list of `DocumentBatchProblemDetail` objects,\neach\
         \ of which contains the file name of the document that failed to upload and\
         \ the reason for the failure.\nThe client can choose to retry the whole batch\
@@ -4469,17 +4495,21 @@ paths:
                   items:
                     type: "string"
                     format: "binary"
+                  minItems: 1
+                metadataList: 
+                  type: array 
+                  description: "Optional JSON array; index aligns with each files entry. Takes precedence over per-file X-Document-Metadata headers when provided." 
+                  items: 
+                    $ref: "#/components/schemas/DocumentMetadata" 
               required:
                 - "files"
             encoding:
               files:
                 headers:
                   X-Document-Metadata:
+                    description: "DEPRECATED - prefer metadataList."
                     schema:
                       $ref: "#/components/schemas/DocumentMetadata"
-                  X-Document-Id:
-                    schema:
-                      type: "string"
       responses:
         "201":
           description: "All documents were uploaded successfully."
@@ -5435,10 +5465,6 @@ paths:
       x-eventually-consistent: true
 components:
   schemas:
-    CamundaKey:
-      type: "string"
-      format: "Camunda Key"
-      description: "System-assigned key for a system entity. These keys are generated by the system on entity creation."
     LongKey:
       description: "Zeebe Engine resource key (Java long serialized as string)"
       type: "string"
@@ -5447,45 +5473,38 @@ components:
       maxLength: 25
     StartCursor:
       description: "The start cursor in a search query result set."
-      allOf:
-        - $ref: "#/components/schemas/CamundaKey"
-          format: "base64"
-          x-semantic-type: "StartCursor"
-          pattern: '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=)?$'
-          minLength: 2
-          maxLength: 300
-          example: "WzIyNTE3OTk4MTM2ODcxMDJd"
+      format: "base64"
+      x-semantic-type: "StartCursor"
+      pattern: '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=)?$'
+      minLength: 2
+      maxLength: 300
+      example: "WzIyNTE3OTk4MTM2ODcxMDJd"
     EndCursor:
       description: "The end cursor in a search query result set."
-      allOf:
-        - $ref: "#/components/schemas/CamundaKey"
-          format: "base64"
-          x-semantic-type: "EndCursor"
-          pattern: '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=)?$'
-          minLength: 2
-          maxLength: 300
-          example: "WzIyNTE3OTk4MTM2ODcxMDJd"
+      format: "base64"
+      x-semantic-type: "EndCursor"
+      pattern: '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=)?$'
+      minLength: 2
+      maxLength: 300
+      example: "WzIyNTE3OTk4MTM2ODcxMDJd"
     ProcessInstanceKey:
       description: "System-generated key for a process instance."
       format: "ProcessInstanceKey"
       x-semantic-type: "ProcessInstanceKey"
       example: "2251799813690746"
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
     DeploymentKey:
       description: "Key for a deployment."
       format: "DeploymentKey"
       x-semantic-type: "DeploymentKey"
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
     UserTaskKey:
       description: "System-generated key for a user task."
       format: "UserTaskKey"
       x-semantic-type: "UserTaskKey"
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
     ProcessDefinitionKey:
       description: "System-generated key for a deployed process definition."
@@ -5493,40 +5512,35 @@ components:
       x-semantic-type: "ProcessDefinitionKey"
       example: "2251799813686749"
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
     ProcessDefinitionId: 
       description: "Id of a process definition, from the model. Only ids of process definitions that are deployed\
           \ are useful."
       format: "ProcessDefinitionId"
+      type: "string"
       x-semantic-type: "ProcessDefinitionId"
       minLength: 1
       pattern: ^[a-zA-Z_][a-zA-Z0-9_\-\.]*$
-      example: "new-hire-onboarding-workflow"
-      allOf:  
-        - $ref: "#/components/schemas/CamundaKey"
+      example: "new-account-onboarding-workflow"
     ElementInstanceKey:
       description: "System-generated key for a element instance."
       format: "ElementInstanceKey"
       x-semantic-type: "ElementInstanceKey"
       example: "2251799813686789"
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
     ElementId: 
       description: "The model-defined id of an element."
       format: "ElementId"
+      type: "string"
       x-semantic-type: "ElementId"
       example: "Activity_106kosb"
-      allOf: 
-        - $ref: "#/components/schemas/CamundaKey"
     FormKey:
       description: "System-generated key for a deployed form."
       format: "FormKey"
       x-semantic-type: "FormKey"
       example: "2251799813684365"
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
     VariableKey:
       description: "System-generated key for a variable."
@@ -5534,7 +5548,6 @@ components:
       x-semantic-type: "VariableKey"
       example: "2251799813683287"
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
     ResourceKey:
       oneOf:
@@ -5558,7 +5571,6 @@ components:
       x-semantic-type: "ScopeKey"
       example: "2251799813683890"
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
     IncidentKey:
       description: "System-generated key for a incident."
@@ -5566,7 +5578,6 @@ components:
       x-semantic-type: "IncidentKey"
       example: "2251799813689432"
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
     JobKey:
       description: "System-generated key for a job."
@@ -5574,7 +5585,6 @@ components:
       x-semantic-type: "JobKey"
       example: "2251799813653498"
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
     MessageSubscriptionKey:
       description: "System-generated key for a message subscription."
@@ -5582,7 +5592,6 @@ components:
       x-semantic-type: "MessageSubscriptionKey"
       example: "2251799813632456"
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
     MessageCorrelationKey:
       description: "System-generated key for a message correlation."
@@ -5590,7 +5599,6 @@ components:
       x-semantic-type: "MessageCorrelationKey"
       example: "2251799813634265"
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
     DecisionDefinitionKey:
       description: "System-generated key for a decision definition."
@@ -5598,30 +5606,26 @@ components:
       x-semantic-type: "DecisionDefinitionKey"
       example: "2251799813326547"
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"       
     DecisionDefinitionId:
       description: "Id of a decision definition, from the model. Only ids of decision definitions that are deployed\
           \ are useful."
       format: "DecisionDefinitionId"
       x-semantic-type: "DecisionDefinitionId"
+      type: "string"
       minLength: 1
       maxLength: 256
       pattern: "^[A-Za-z0-9_@.+-]+$"
       example: "new-hire-onboarding-workflow"
-      allOf:
-        - $ref: "#/components/schemas/CamundaKey"
     DecisionEvaluationInstanceKey:
       description: "System-generated key for a decision evaluation instance."
       format: "DecisionEvaluationInstanceKey"
       x-semantic-type: "DecisionEvaluationInstanceKey"
       example: "2251799813684367"
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
     DecisionEvaluationKey:
       allOf: 
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
       description: "System-generated key for a decision evaluation."
       format: "DecisionEvaluationKey"
@@ -5629,7 +5633,6 @@ components:
       example: "2251792362345323"
     DecisionRequirementsKey:
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
       description: "System-generated key for a deployed decision requirements definition."
       format: "DecisionRequirementsKey"
@@ -5637,7 +5640,6 @@ components:
       example: "2251799813683346"
     AuthorizationKey:
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
       description: "System-generated key for an authorization."
       format: "AuthorizationKey"
@@ -5645,7 +5647,6 @@ components:
       example: "2251799813684332"
     MessageKey:
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
       description: "System-generated key for an message."
       format: "MessageKey"
@@ -5653,7 +5654,6 @@ components:
       example: "2251799813683467"
     DecisionInstanceKey:
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
       description: "System-generated key for a deployed decision instance."
       format: "DecisionInstanceKey"
@@ -5661,16 +5661,15 @@ components:
       example: "22517998136843567"
     SignalKey:
       allOf:
-        - $ref: "#/components/schemas/CamundaKey"
         - $ref: "#/components/schemas/LongKey"
       description: "System-generated key for an signal."
       format: "SignalKey"
       x-semantic-type: "SignalKey"
       example: "22517998136987467"
     BatchOperationKey:
+      x-semantic-type: "BatchOperationKey"
       oneOf:
         - allOf:
-          - $ref: "#/components/schemas/CamundaKey"
           - $ref: "#/components/schemas/LongKey"
         - type: "string"
           format: "uuid"
@@ -6963,10 +6962,10 @@ components:
         - "tenantId"
         - "processInstanceKey"
         - "processDefinitionKey"
+        - "tags"
       properties:
         processDefinitionId:
-          type: "string"
-          description: "The process definition ID."
+          $ref: "#/components/schemas/ProcessDefinitionId"
         processDefinitionName:
           type: "string"
           description: "The process definition name."
@@ -7571,6 +7570,164 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/IncidentResult"
+    CorrelatedMessageSearchQueryResult:
+      type: "object"
+      allOf:
+        - $ref: "#/components/schemas/SearchQueryResponse"
+      properties:
+        items:
+          description: "The matching correlated messages."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/CorrelatedMessageResult"
+    CorrelatedMessageResult:
+      type: "object"
+      properties:
+        correlationKey:
+          description: "The correlation key of the message."
+          type: "string"
+        correlationTime:
+          description: "The time when the message was correlated."
+          type: "string"
+          format: "date-time"
+        elementId:
+          description: "The element ID that received the message."
+          type: "string"
+        elementInstanceKey:
+          description: "The element instance key that received the message."
+          allOf:  
+            - $ref: "#/components/schemas/ElementInstanceKey"
+        messageKey:
+          description: "The message key."
+          allOf:  
+            - $ref: "#/components/schemas/MessageKey"
+        messageName:
+          description: "The name of the message."
+          type: "string"
+        partitionId:
+          description: "The partition ID that correlated the message."
+          type: "integer"
+          format: "int32"
+        processDefinitionId:
+          description: "The process definition ID associated with this correlated message."
+          allOf:  
+            - $ref: "#/components/schemas/ProcessDefinitionId"
+        processDefinitionKey:
+          description: "The process definition key associated with this correlated message."
+          allOf:  
+            - $ref: "#/components/schemas/ProcessDefinitionKey"
+        processInstanceKey:
+          description: "The process instance key associated with this correlated message."
+          allOf:  
+            - $ref: "#/components/schemas/ProcessInstanceKey"
+        subscriptionKey:
+          description: "The subscription key that received the message."
+          allOf:  
+            - $ref: "#/components/schemas/MessageSubscriptionKey"
+        tenantId:
+          description: "The tenant ID associated with this correlated message."
+          allOf:  
+            - $ref: "#/components/schemas/TenantId"
+      required:
+        - "correlationKey"
+        - "correlationTime"
+        - "elementId"
+        - "messageKey"
+        - "messageName"
+        - "partitionId"
+        - "processDefinitionId"
+        - "processInstanceKey"
+        - "subscriptionKey"
+        - "tenantId"
+    CorrelatedMessageSearchQuery:
+      type: "object"
+      allOf:
+        - $ref: "#/components/schemas/SearchQueryRequest"
+      properties:
+        sort:
+          description: "Sort field criteria."
+          type: "array"
+          items:
+            $ref: "#/components/schemas/CorrelatedMessageSearchQuerySortRequest"
+        filter:
+          description: "The correlated messages search filters."
+          allOf:
+            - $ref: "#/components/schemas/CorrelatedMessageFilter"
+    CorrelatedMessageSearchQuerySortRequest:
+      type: "object"
+      properties:
+        field:
+          description: "The field to sort by."
+          type: "string"
+          enum:
+            - "correlationKey"
+            - "correlationTime"
+            - "elementId"
+            - "elementInstanceKey"
+            - "messageKey"
+            - "messageName"
+            - "partitionId"
+            - "processDefinitionId"
+            - "processDefinitionKey"
+            - "processInstanceKey"
+            - "subscriptionKey"
+            - "tenantId"
+        order:
+          $ref: "#/components/schemas/SortOrderEnum"
+      required:
+        - "field"
+    CorrelatedMessageFilter:
+      description: "Correlated messages search filter."
+      type: "object"
+      properties:
+        correlationKey:
+          description: "The correlation key of the message."
+          allOf:
+            - $ref: "#/components/schemas/StringFilterProperty"
+        correlationTime:
+          description: "The time when the message was correlated."
+          allOf:
+            - $ref: "#/components/schemas/DateTimeFilterProperty"
+        elementId:
+          description: "The element ID that received the message."
+          allOf:
+            - $ref: "#/components/schemas/StringFilterProperty"
+        elementInstanceKey:
+          description: "The element instance key that received the message."
+          allOf:
+            - $ref: "#/components/schemas/ElementInstanceFilter"
+        messageKey:
+          description: "The message key."
+          allOf:
+            - $ref: "#/components/schemas/BasicStringFilterProperty"
+        messageName:
+          description: "The name of the message."
+          allOf:
+            - $ref: "#/components/schemas/StringFilterProperty"
+        partitionId:
+          description: "The partition ID that correlated the message."
+          allOf:
+            - $ref: "#/components/schemas/IntegerFilterProperty"
+        processDefinitionId:
+          description: "The process definition ID associated with this correlated message."
+          allOf:
+            - $ref: "#/components/schemas/StringFilterProperty"
+        processDefinitionKey:
+          description: "The process definition key associated with this correlated message."
+          allOf:
+            - $ref: "#/components/schemas/BasicStringFilter"
+        processInstanceKey:
+          description: "The process instance key associated with this correlated message."
+          allOf:
+            - $ref: "#/components/schemas/BasicStringFilterProperty"
+        subscriptionKey:
+          description: "The subscription key that received the message."
+          allOf:
+            - $ref: "#/components/schemas/BasicStringFilterProperty"
+        tenantId:
+          description: "The tenant ID associated with this correlated message."
+          allOf:
+            - $ref: "#/components/schemas/StringFilterProperty"
     MessageSubscriptionSearchQueryResult:
       type: "object"
       allOf:
@@ -7824,6 +7981,7 @@ components:
         items:
           description: "The matching decision definitions."
           type: "array"
+          required: ["items"]
           items:
             $ref: "#/components/schemas/DecisionDefinitionResult"
     DecisionDefinitionResult:
@@ -8078,6 +8236,7 @@ components:
             $ref: "#/components/schemas/AuthorizationResult"
     UserRequest:
       type: "object"
+      required: [ "password", "username", "email" ]
       properties:
         password:
           description: "The password of the user."
@@ -9974,11 +10133,14 @@ components:
           description: "The index of items to start searching from."
           type: "integer"
           format: "int32"
+          default: 0
+          minimum: 0
         limit:
-          description: "The maximum number of items to return in one request."
+          description: "The maximum number of items to return in one request. <=10,000 for ElasticSearch."
           type: "integer"
           format: "int32"
           default: 100
+          minimum: 1
     CursorForwardPagination:
       type: "object"
       title: "Cursor-based forward pagination"
@@ -10647,10 +10809,8 @@ components:
                 $ref: "#/components/schemas/DocumentCreationFailureDetail"
     DocumentId:
       description: "Document Id that uniquely identifies a document."
-      allOf:
-        - $ref: "#/components/schemas/CamundaKey"
-          format: "DocumentId"
-          x-semantic-type: "DocumentId"
+      format: "DocumentId"
+      x-semantic-type: "DocumentId"
     DocumentMetadata:
       description: "Information about the document."
       type: "object"
@@ -11053,6 +11213,7 @@ components:
           TERMINATE_PROCESS_INSTANCE: "#/components/schemas/ProcessInstanceCreationTerminateInstruction"
       description: "Base type for all runtime instructions.\n"
     ProcessInstanceCreationTerminateInstruction:
+      description: "Terminate the process"
       allOf:
         - $ref: "#/components/schemas/ProcessInstanceCreationRuntimeInstruction"
         - type: "object"
@@ -11758,11 +11919,10 @@ components:
       example: "business_key:1234"
       format: "Tag"
       x-semantic-type: "Tag"
-      allOf:
-        - $ref: "#/components/schemas/CamundaKey"
-          minLength: 1
-          maxLength: 100
-          pattern: '^[A-Za-z][A-Za-z0-9_\-:.]{0,99}$'
+      type: "string"
+      minLength: 1
+      maxLength: 100
+      pattern: '^[A-Za-z][A-Za-z0-9_\-:.]{0,99}$'
     TagSet:
       description: List of tags. Tags need to start with a letter; then alphanumerics, `_`, `-`, `:`, or `.`; length ≤ 100.
       type: array
@@ -11776,22 +11936,19 @@ components:
       example: "customer-service"
       description: "The unique identifier of the tenant."
       format: "TenantId"
+      type: "string"
       x-semantic-type: "TenantId"
-      allOf:
-        - $ref: "#/components/schemas/CamundaKey"
-          minLength: 1
-          maxLength: 256
-          pattern: "^(<default>|[A-Za-z0-9_@.+-]+)$"
+      minLength: 1
+      maxLength: 256
+      pattern: "^(<default>|[A-Za-z0-9_@.+-]+)$"
     Username: 
-      allOf:
-        - $ref: "#/components/schemas/CamundaKey"
-        - example: "swillis"
-          format: "Username"
-          description: "The unique name of a user."
-          x-semantic-type: "Username"
-          minLength: 1
-          maxLength: 256
-          pattern: "^(<default>|[A-Za-z0-9_@.+-]+)$"
+      example: "swillis"
+      format: "Username"
+      description: "The unique name of a user."
+      x-semantic-type: "Username"
+      minLength: 1
+      maxLength: 256
+      pattern: "^(<default>|[A-Za-z0-9_@.+-]+)$"
     OperationMetadata:
       description: "Information about the operation effect characteristics. Suitable for reasoning about the idempotency and safety of operations"
       type: object
