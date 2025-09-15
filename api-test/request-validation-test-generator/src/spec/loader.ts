@@ -25,7 +25,9 @@ export async function loadSpec(file: string): Promise<SpecModel> {
       let requiredProps: string[] | undefined;
       let rootOneOf: any[] | undefined;
       let discriminator: { propertyName: string; mapping?: Record<string,string> } | undefined;
+      let bodyRequired: boolean | undefined;
       if (op.requestBody && op.requestBody.content) {
+        if (op.requestBody.required === true) bodyRequired = true; // OpenAPI requestBody.required
         const json = op.requestBody.content['application/json'];
         if (json && json.schema) {
           requestBodySchema = json.schema;
@@ -48,6 +50,7 @@ export async function loadSpec(file: string): Promise<SpecModel> {
         path: p,
         tags: op.tags || [],
         requestBodySchema,
+        bodyRequired,
         requiredProps,
         parameters: params,
         rootOneOf,

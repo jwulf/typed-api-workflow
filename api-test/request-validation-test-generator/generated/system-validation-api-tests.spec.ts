@@ -8,8 +8,8 @@
 
 /*
  * GENERATED FILE - DO NOT EDIT MANUALLY
- * Generated At: 2025-09-08T04:05:10.896Z
- * Spec Commit: 177fb9193d6c4d0ab558734d76c501bbac1f2454
+ * Generated At: 2025-09-15T03:11:51.640Z
+ * Spec Commit: 0fe50d88d8253bb5367efab5a2c911758c95e7ea
  */
 import {test, expect} from '@playwright/test';
 import {jsonHeaders, buildUrl} from '../../../../utils/http';
@@ -77,6 +77,26 @@ test.describe('System Validation API Tests', () => {
         startTime: '12345',
         endTime: 'x',
         tenantId: 'x',
+        withTenants: 'true',
+      }),
+      {
+        headers: jsonHeaders(),
+      },
+    );
+    // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
+    //   if (res.status() !== 400) {
+    //     try { console.error(await res.text()); } catch {}
+    //   }
+    expect(res.status()).toBe(400);
+  });
+  test('getUsageMetrics - Param query.tenantId wrong type', async ({
+    request,
+  }) => {
+    const res = await request.get(
+      buildUrl('/system/usage-metrics', {
+        startTime: 'x',
+        endTime: 'x',
+        tenantId: '12345',
         withTenants: 'true',
       }),
       {

@@ -4,6 +4,8 @@ export interface OperationModel {
   path: string;
   tags: string[];
   requestBodySchema?: any; // dereferenced schema (JSON)
+  /** True if the OpenAPI operation-level requestBody object is marked required: true */
+  bodyRequired?: boolean;
   requiredProps?: string[]; // top-level required fields (object bodies)
   parameters: ParameterModel[];
   rootOneOf?: any[]; // array of variant schemas if oneOf at root

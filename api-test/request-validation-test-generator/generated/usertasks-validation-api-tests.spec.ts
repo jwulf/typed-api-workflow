@@ -8,8 +8,8 @@
 
 /*
  * GENERATED FILE - DO NOT EDIT MANUALLY
- * Generated At: 2025-09-08T04:05:10.896Z
- * Spec Commit: 177fb9193d6c4d0ab558734d76c501bbac1f2454
+ * Generated At: 2025-09-15T03:11:51.640Z
+ * Spec Commit: 0fe50d88d8253bb5367efab5a2c911758c95e7ea
  */
 import {test, expect} from '@playwright/test';
 import {jsonHeaders, buildUrl} from '../../../../utils/http';
@@ -100,10 +100,10 @@ test.describe('Usertasks Validation API Tests', () => {
       },
     );
     // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
-    //   if (res.status() !== 400) {
+    //   if (res.status() !== 200) {
     //     try { console.error(await res.text()); } catch {}
     //   }
-    expect(res.status()).toBe(400);
+    expect(res.status()).toBe(200);
   });
   test('searchUserTasks - Additional prop __extraField', async ({request}) => {
     const requestBody = {
@@ -251,10 +251,10 @@ test.describe('Usertasks Validation API Tests', () => {
       headers: jsonHeaders(),
     });
     // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
-    //   if (res.status() !== 400) {
+    //   if (res.status() !== 200) {
     //     try { console.error(await res.text()); } catch {}
     //   }
-    expect(res.status()).toBe(400);
+    expect(res.status()).toBe(200);
   });
   test('searchUserTaskVariables - Additional prop __extraField', async ({
     request,
@@ -418,10 +418,10 @@ test.describe('Usertasks Validation API Tests', () => {
       },
     );
     // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
-    //   if (res.status() !== 400) {
+    //   if (res.status() !== 200) {
     //     try { console.error(await res.text()); } catch {}
     //   }
-    expect(res.status()).toBe(400);
+    expect(res.status()).toBe(200);
   });
   test('updateUserTask - Additional prop __extraField', async ({request}) => {
     const requestBody = {
@@ -463,9 +463,9 @@ test.describe('Usertasks Validation API Tests', () => {
       },
     );
     // Conditionals are banned by eslint in qa tests. The following block can be uncommented for debugging purposes.
-    //   if (res.status() !== 400) {
+    //   if (res.status() !== 200) {
     //     try { console.error(await res.text()); } catch {}
     //   }
-    expect(res.status()).toBe(400);
+    expect(res.status()).toBe(200);
   });
 });
