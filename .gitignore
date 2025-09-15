@@ -20,6 +20,9 @@ spec-tools/semantic-types-coverage/dist
 /camunda
 /camunda-docs
 /camunda-8-js-sdk
+/orchestration-cluster-api-js
+/orchestration-cluster-api-js/external-spec
+/orchestration-cluster-api-js/rest-api.source.yaml
 
 target/
 !.mvn/wrapper/maven-wrapper.jar
