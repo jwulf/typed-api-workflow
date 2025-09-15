@@ -4,6 +4,7 @@ functions:
   - enforceCamundaKeys
   - enforceCamundaKeyPathParams
   - enforceKeySchemasSemanticType
+  - ensureReferencedSchemaAdditionalProperties
   - vendorExtensionWhitelist
   - duplicatePolicyConsistency
   - idempotencyKeyHeaderPresent
@@ -165,6 +166,25 @@ rules:
           type: array
           minItems: 1
           maxItems: 1
+
+  request-inline-object-additional-properties-explicit:
+    description: "Inline object request body schemas must explicitly declare additionalProperties (even if false)."
+    message: "Inline request body object schema must declare additionalProperties explicitly."
+    given:
+      - "$.paths[*][*].requestBody.content.*.schema[?(@.type=='object' && !@.$ref)]"
+    severity: error
+    then:
+      field: additionalProperties
+      function: defined
+
+  request-ref-schema-additional-properties-explicit:
+    description: "Referenced request body component schemas must declare additionalProperties explicitly."
+    message: "{{error}}"
+    given:
+      - "$.paths[*][*].requestBody.content.*.schema[?(@ && @.$ref)]"
+    severity: error
+    then:
+      function: ensureReferencedSchemaAdditionalProperties
 
 overrides:
   - files:

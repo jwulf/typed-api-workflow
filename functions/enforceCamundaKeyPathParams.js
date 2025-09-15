@@ -1,33 +1,22 @@
-module.exports = function (targetVal, opts, context) {
+module.exports = function (targetVal, opts) {
   if (!targetVal || typeof targetVal !== 'object') return;
 
-  const path = context.path || [];
-
-  // Ensure we are only validating schemas of path parameters
   const isPathParam = targetVal.in === 'path';
   const isKeyParam = targetVal.name && /Key$/.test(targetVal.name);
   const isException = opts?.exceptions?.includes(targetVal.name);
 
-  if (isPathParam && isKeyParam && !isException) {
-    const schema = targetVal.schema;
-    
-    // Helper function to check if a schema contains CamundaKey indicators
-    const containsCamundaKey = (schemaObj) => {
-      return schemaObj?.format === 'Camunda Key' || 
-             schemaObj?.pattern === '^-?[0-9]+$' ||
-             schemaObj?.allOf?.some(item => item.format === 'Camunda Key' || item.pattern === '^-?[0-9]+$');
-    };
-    
-    // Check if the schema indicates it's a CamundaKey (direct, allOf, or oneOf)
-    const isCamundaKey = containsCamundaKey(schema) ||
-                         schema?.oneOf?.some(option => containsCamundaKey(option));
-    
-    if (!isCamundaKey) {
-      return [
-        {
-          message: `Path parameter '${targetVal.name}' must use $ref, not a primitive type. It should reference a schema that extends CamundaKey.`,
-        },
-      ];
-    }
+  if (!(isPathParam && isKeyParam) || isException) return;
+
+  const schema = targetVal.schema;
+  if (!schema) return [{ message: `Path parameter '${targetVal.name}' must reference a semantic key schema via $ref.` }];
+
+  // Heuristic: a valid semantic key path param should be a $ref (or oneOf including a $ref)
+  // to a schema that (after resolution) would carry x-semantic-key or x-semantic-type.
+  // We cannot resolve here, so only enforce that it's not an inline primitive.
+  const isInlinePrimitive = schema.type === 'string' && !schema.$ref;
+  if (isInlinePrimitive) {
+    return [{
+      message: `Path parameter '${targetVal.name}' must use $ref to a semantic key schema (with x-semantic-key or x-semantic-type), not an inline primitive string.`,
+    }];
   }
 };
