@@ -11,7 +11,8 @@ import java.util.*;
 import java.util.Map;
 
 /**
- * This tool flattens the CamundaKey types in the OpenAPI spec to simple string types.
+ * This tool flattens semantic key schemas (those declaring x-semantic-type or x-semantic-key) to simple string types.
+ * Legacy mode relied on structural inheritance from a CamundaKey base schema; that base is removed.
  */
 public class CamundaKeyFlattener {
 
@@ -25,8 +26,8 @@ public class CamundaKeyFlattener {
     private static String generateHeaderComment() {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         return "# ⚠️ THIS IS A GENERATED FILE. DO NOT EDIT. ⚠️\n" +
-                "# This file has been automatically transformed to remove complex CamundaKey types.\n" +
-                "# All descendants of CamundaKey have been replaced with simple string types.\n" +
+                "# This file has been automatically transformed to flatten semantic key schemas.\n" +
+                "# All schemas declaring x-semantic-type (or x-semantic-key) have been replaced with simple string types.\n" +
                 "# This is for backward-compatibility with loosely typed components within the system.\n" +
                 "# Canonical source: " + CANONICAL_SOURCE + "\n" +
                 "# File generated at: " + timestamp + "\n\n";
@@ -40,8 +41,8 @@ public class CamundaKeyFlattener {
         File input = new File(INPUT_FILE );  
         File output = new File(OUTPUT_FILE); 
 
-        JsonNode root = mapper.readTree(input);
-        Set<String> camundaKeyDescendants = new HashSet<>();
+    JsonNode root = mapper.readTree(input);
+    Set<String> semanticKeySchemas = new HashSet<>();
 
         // -------- Tracing Configuration --------
         // Enable with: -Dtrace.enabled=true (or env TRACE_ENABLED=true)
@@ -86,67 +87,55 @@ public class CamundaKeyFlattener {
 
         trace.accept("initial-load", root);
 
-        // Step 1: Find all descendants of CamundaKey
+        // Step 1: Collect semantic key schemas via vendor extension markers
         JsonNode schemas = root.at("/components/schemas");
         if (schemas != null && schemas.isObject()) {
             for (Iterator<String> it = schemas.fieldNames(); it.hasNext(); ) {
                 String name = it.next();
-                if (isDescendantOfCamundaKey(name, schemas, new HashSet<>())) {
-                    camundaKeyDescendants.add(name);
+                JsonNode schema = schemas.get(name);
+                if (schema != null && schema.isObject()) {
+                    boolean hasSemanticType = schema.has("x-semantic-type");
+                    boolean hasSemanticKey = schema.has("x-semantic-key") && schema.get("x-semantic-key").asBoolean(false);
+                    if (hasSemanticType || hasSemanticKey) {
+                        semanticKeySchemas.add(name);
+                    }
                 }
             }
         }
-
-        System.out.println("Found CamundaKey descendants: " + camundaKeyDescendants);
+        System.out.println("Found semantic key schemas: " + semanticKeySchemas);
         if (traceEnabled) {
             for (String t : traceSchemas) {
-                if (camundaKeyDescendants.contains(t)) {
-                    System.out.println("[TRACE][WARNING] Traced schema '" + t + "' classified as CamundaKey descendant.");
+                if (semanticKeySchemas.contains(t)) {
+                    System.out.println("[TRACE][WARNING] Traced schema '" + t + "' classified as semantic key.");
                 }
             }
         }
-
-        // --- Forced inclusions for known key schemas that lost classification after stricter detection ---
-        // BatchOperationKey inherits CamundaKey via nested composite structure not followed by the narrowed algorithm.
-        // To avoid broad recursion (which previously misclassified non-key instruction schemas), we explicitly include it.
-        List<String> forced = List.of("BatchOperationKey");
-        JsonNode schemasForForce = root.at("/components/schemas");
-        for (String f : forced) {
-            if (schemasForForce.has(f)) {
-                if (camundaKeyDescendants.add(f) && traceEnabled) {
-                    System.out.println("[TRACE] forced-include=" + f + " as CamundaKey descendant");
-                }
-            }
-        }
-        if (traceEnabled && !forced.isEmpty()) {
-            System.out.println("[TRACE] descendants-after-forced=" + camundaKeyDescendants);
-        }
-        trace.accept("after-descendant-scan", root);
+        trace.accept("after-marker-scan", root);
 
         // Step 2: Flatten union schemas marked with x-polymorphic-schema
         flattenUnionSchemas(schemas);
         trace.accept("after-flatten-unions", root);
 
-        // Step 3: Rewrite descendants as simple string type
-        for (String keyName : camundaKeyDescendants) {
+    // Step 3: Rewrite semantic key schemas as simple string type
+    for (String keyName : semanticKeySchemas) {
             ObjectNode schemaNode = (ObjectNode) schemas.get(keyName);
             retainDescriptionAndReplaceWithString(schemaNode);
         }
         trace.accept("after-rewrite-descendants", root);
 
-        // Step 4: Replace references and types throughout the spec
-        replaceRefs(root, camundaKeyDescendants, new HashSet<>(), root.at("/components/schemas"));
+    // Step 4: Replace references and types throughout the spec
+    replaceRefs(root, semanticKeySchemas, new HashSet<>(), root.at("/components/schemas"));
         trace.accept("after-replace-refs", root);
 
         // Step 4.5: Fix Advanced Key Filter descriptions
         fixAdvancedKeyFilterDescriptions(root.at("/components/schemas"));
         trace.accept("after-fix-advanced-key-filter-descriptions", root);
 
-        // Step 4.75: Remove the (now redundant) CamundaKey descendant schemas entirely so spec matches low-res style
+        // Step 4.75: Remove the (now redundant) semantic key schemas entirely so spec matches low-res style
         JsonNode schemasNode = root.at("/components/schemas");
         if (schemasNode != null && schemasNode.isObject()) {
             ObjectNode schemasObj = (ObjectNode) schemasNode;
-            for (String keyName : camundaKeyDescendants) {
+            for (String keyName : semanticKeySchemas) {
                 if (schemasObj.has(keyName)) {
                     schemasObj.remove(keyName);
                 }
@@ -166,8 +155,8 @@ public class CamundaKeyFlattener {
         reapplyRemovedInt64Formats(mapper, root);
         trace.accept("after-reapply-int64", root);
 
-    // Step 6.6: Re-introduce inline path parameter numeric patterns to avoid ambiguity with literal sibling paths
-    // flattenInlinePathParametersFromSchemas(root, camundaKeyDescendants);
+        // Step 6.6: Re-introduce inline path parameter numeric patterns to avoid ambiguity with literal sibling paths
+        flattenInlinePathParametersFromSchemas(root, semanticKeySchemas);
 
         // Step 7: Write with dynamic header comment
         String headerComment = generateHeaderComment();
@@ -196,14 +185,14 @@ public class CamundaKeyFlattener {
      * We do not overwrite an existing pattern if already present so manual / earlier enrichment
      * remains authoritative.
      */
-    public static void flattenInlinePathParametersFromSchemas(JsonNode root, Set<String> camundaKeyDescendants) {
+    public static void flattenInlinePathParametersFromSchemas(JsonNode root, Set<String> semanticKeySchemas) {
         if (root == null || !root.isObject()) return;
         JsonNode paths = root.get("paths");
         if (paths == null || !paths.isObject()) return;
 
         // Build mapping from parameter name -> schema type name
         Map<String, String> paramNameToSchema = new HashMap<>();
-        for (String schemaName : camundaKeyDescendants) {
+    for (String schemaName : semanticKeySchemas) {
             if (!schemaName.endsWith("Key")) continue; // only path style keys
             String paramName = schemaName.substring(0, 1).toLowerCase() + schemaName.substring(1); // e.g. ProcessInstanceKey -> processInstanceKey
             paramNameToSchema.put(paramName, schemaName);
@@ -385,8 +374,8 @@ public class CamundaKeyFlattener {
     }
 
     /**
-     * Checks if a oneOf array represents a CamundaKey filter pattern:
-     * oneOf: [$ref to CamundaKey descendant, AdvancedXxxKeyFilter] where XxxKeyFilter matches the CamundaKey type
+     * Checks if a oneOf array represents a semantic key filter pattern:
+     * oneOf: [$ref to semantic key schema, AdvancedXxxKeyFilter] where XxxKeyFilter matches the key type
      */
     private static boolean isKeyFilterOneOfPattern(ArrayNode oneOfArray, Set<String> keyNames) {
         if (oneOfArray.size() != 2) return false;
@@ -395,13 +384,13 @@ public class CamundaKeyFlattener {
         boolean hasAdvancedKeyFilter = false;
         
         for (JsonNode item : oneOfArray) {
-            // Check for reference to CamundaKey descendant (e.g., $ref: "#/components/schemas/VariableKey")
+            // Check for reference to semantic key schema (e.g., $ref: "#/components/schemas/VariableKey")
             if (item.has("$ref")) {
                 String ref = item.get("$ref").asText();
                 if (ref.startsWith("#/components/schemas/")) {
                     String referencedType = ref.substring("#/components/schemas/".length());
                     
-                    // Check if this is a CamundaKey descendant
+                    // Check if this is a semantic key schema
                     if (keyNames.contains(referencedType)) {
                         keyTypeName = referencedType;
                     }
@@ -421,8 +410,8 @@ public class CamundaKeyFlattener {
     }
 
     /**
-     * Checks if an allOf array represents a CamundaKey filter pattern:
-     * allOf: [AdvancedXxxKeyFilter] where XxxKeyFilter matches a CamundaKey descendant type
+     * Checks if an allOf array represents a semantic key filter pattern:
+     * allOf: [AdvancedXxxKeyFilter] where XxxKeyFilter matches a semantic key type
      */
     private static boolean isKeyFilterAllOfPattern(ArrayNode allOfArray, Set<String> keyNames) {
         if (allOfArray.size() != 1) return false;
@@ -441,8 +430,8 @@ public class CamundaKeyFlattener {
     }
 
     /**
-     * Checks if a oneOf array represents a string default with CamundaKey pattern:
-     * oneOf: [string with default, CamundaKey descendant reference]
+     * Checks if a oneOf array represents a string default with semantic key pattern:
+     * oneOf: [string with default, semantic key schema reference]
      */
     private static boolean isStringDefaultWithCamundaKeyPattern(ArrayNode oneOfArray, Set<String> keyNames) {
         if (oneOfArray.size() != 2) return false;
@@ -455,7 +444,7 @@ public class CamundaKeyFlattener {
             if (item.has("type") && "string".equals(item.get("type").asText()) && item.has("default")) {
                 hasStringWithDefault = true;
             }
-            // Check for reference to CamundaKey descendant
+            // Check for reference to semantic key schema
             else if (item.has("$ref")) {
                 String ref = item.get("$ref").asText();
                 if (ref.startsWith("#/components/schemas/")) {
@@ -471,13 +460,13 @@ public class CamundaKeyFlattener {
     }
 
     /**
-     * Checks if a oneOf array consists exclusively of references to CamundaKey descendants.
+     * Checks if a oneOf array consists exclusively of references to semantic key schemas.
      * In such cases we can safely collapse the union to a plain string for backward compatibility.
      */
     private static boolean isOneOfAllCamundaKeyRefs(ArrayNode oneOfArray, Set<String> keyNames) {
         if (oneOfArray == null || oneOfArray.isEmpty()) return false;
         for (JsonNode item : oneOfArray) {
-            // Only allow $ref items that point to a CamundaKey descendant
+            // Only allow $ref items that point to a semantic key schema
             if (!item.has("$ref")) {
                 return false;
             }
@@ -686,73 +675,7 @@ public class CamundaKeyFlattener {
         }
     }
 
-    private static boolean isDescendantOfCamundaKey(String name, JsonNode schemas, Set<String> visited) {
-        if (visited.contains(name)) return false;
-        visited.add(name);
-
-        JsonNode schema = schemas.get(name);
-        if (schema == null) return false;
-        // Only consider direct inheritance via composite keywords; DO NOT traverse arbitrary nested property graphs.
-        for (String composite : List.of("allOf", "oneOf", "anyOf")) {
-            JsonNode items = schema.get(composite);
-            if (items == null || !items.isArray()) continue;
-            for (JsonNode item : items) {
-                if (!item.has("$ref")) continue; // Only follow explicit refs in composite array
-                String ref = item.get("$ref").asText();
-                if (!ref.startsWith("#/components/schemas/")) continue;
-                String refName = ref.substring(ref.lastIndexOf("/") + 1);
-                if ("CamundaKey".equals(refName)) {
-                    return true; // Direct inheritance
-                }
-                // Recurse ONLY along composite inheritance chains
-                if (isDescendantOfCamundaKey(refName, schemas, visited)) {
-                    return true;
-                }
-            }
-        }
-        return false; // Not a descendant
-    }
-
-    /**
-     * Recursively searches an arbitrary schema node for a $ref to CamundaKey (directly or via descendants).
-     */
-    private static boolean containsNestedCamundaKeyRef(JsonNode node, JsonNode schemas, Set<String> visited) {
-        if (node == null) return false;
-        if (node.has("$ref")) {
-            String ref = node.get("$ref").asText();
-            String refName = ref.substring(ref.lastIndexOf("/") + 1);
-            if (refName.equals("CamundaKey")) {
-                return true;
-            }
-            // Guard against infinite recursion
-            if (!visited.contains(refName) && isDescendantOfCamundaKey(refName, schemas, visited)) {
-                return true;
-            }
-        }
-        // Dive into known composite arrays and object fields
-        for (String composite : List.of("allOf", "oneOf", "anyOf")) {
-            JsonNode arr = node.get(composite);
-            if (arr != null && arr.isArray()) {
-                for (JsonNode child : arr) {
-                    if (containsNestedCamundaKeyRef(child, schemas, visited)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        // Generic object/array traversal (lightweight)
-        if (node.isObject()) {
-            Iterator<JsonNode> it = node.elements();
-            while (it.hasNext()) {
-                if (containsNestedCamundaKeyRef(it.next(), schemas, visited)) return true;
-            }
-        } else if (node.isArray()) {
-            for (JsonNode child : node) {
-                if (containsNestedCamundaKeyRef(child, schemas, visited)) return true;
-            }
-        }
-        return false;
-    }
+    // Removed legacy CamundaKey inheritance detection utilities (isDescendantOfCamundaKey, containsNestedCamundaKeyRef)
     private static void injectMetadata(JsonNode root) {
         ObjectNode objRoot = (ObjectNode) root;
         ObjectNode info = (ObjectNode) objRoot.get("info");
