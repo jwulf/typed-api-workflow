@@ -5477,6 +5477,7 @@ components:
     StartCursor:
       description: "The start cursor in a search query result set."
       format: "base64"
+      type: "string"
       x-semantic-type: "StartCursor"
       pattern: '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=)?$'
       minLength: 2
@@ -5486,6 +5487,7 @@ components:
       description: "The end cursor in a search query result set."
       format: "base64"
       x-semantic-type: "EndCursor"
+      type: "string"
       pattern: '^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=)?$'
       minLength: 2
       maxLength: 300
@@ -5495,17 +5497,20 @@ components:
       format: "ProcessInstanceKey"
       x-semantic-type: "ProcessInstanceKey"
       example: "2251799813690746"
+      type: "string"
       allOf:
         - $ref: "#/components/schemas/LongKey"
     DeploymentKey:
       description: "Key for a deployment."
       format: "DeploymentKey"
       x-semantic-type: "DeploymentKey"
+      type: "string"
       allOf:
         - $ref: "#/components/schemas/LongKey"
     UserTaskKey:
       description: "System-generated key for a user task."
       format: "UserTaskKey"
+      type: "string"
       x-semantic-type: "UserTaskKey"
       allOf:
         - $ref: "#/components/schemas/LongKey"
@@ -5514,6 +5519,7 @@ components:
       format: "ProcessDefinitionKey"
       x-semantic-type: "ProcessDefinitionKey"
       example: "2251799813686749"
+      type: "string"
       allOf:
         - $ref: "#/components/schemas/LongKey"
     ProcessDefinitionId: 
@@ -5530,6 +5536,7 @@ components:
       format: "ElementInstanceKey"
       x-semantic-type: "ElementInstanceKey"
       example: "2251799813686789"
+      type: "string"
       allOf:
         - $ref: "#/components/schemas/LongKey"
     ElementId: 
@@ -5543,6 +5550,7 @@ components:
       format: "FormKey"
       x-semantic-type: "FormKey"
       example: "2251799813684365"
+      type: "string"
       allOf:
         - $ref: "#/components/schemas/LongKey"
     VariableKey:
@@ -5550,22 +5558,16 @@ components:
       format: "VariableKey"
       x-semantic-type: "VariableKey"
       example: "2251799813683287"
+      type: "string"
       allOf:
         - $ref: "#/components/schemas/LongKey"
     ResourceKey:
+      type: "string"
       oneOf:
         - $ref: "#/components/schemas/ProcessDefinitionKey"
-          format: "ProcessDefinitionKey"
-          description: "The ProcessDefinitionKey for a deployed process."
         - $ref: "#/components/schemas/DecisionRequirementsKey"
-          format: "DecisionRequirementsKey"
-          description: "The DecisionRequirementsKey for a deployed decision requirements definition."
         - $ref: "#/components/schemas/FormKey"
-          format: "FormKey"
-          description: "The FormKey for a deployed form."
         - $ref: "#/components/schemas/DecisionDefinitionKey"
-          format: "DecisionDefinitionKey"
-          description: "The DecisionDefinitionKey for a deployed decision definition."
       description: "The system-assigned key for this resource."
       format: "ResourceKey"
     ScopeKey:
@@ -5573,6 +5575,7 @@ components:
       format: "ScopeKey"
       x-semantic-type: "ScopeKey"
       example: "2251799813683890"
+      type: "string"
       allOf:
         - $ref: "#/components/schemas/LongKey"
     IncidentKey:
@@ -5580,6 +5583,7 @@ components:
       format: "IncidentKey"
       x-semantic-type: "IncidentKey"
       example: "2251799813689432"
+      type: "string"
       allOf:
         - $ref: "#/components/schemas/LongKey"
     JobKey:
@@ -5587,6 +5591,7 @@ components:
       format: "JobKey"
       x-semantic-type: "JobKey"
       example: "2251799813653498"
+      type: "string"
       allOf:
         - $ref: "#/components/schemas/LongKey"
     MessageSubscriptionKey:
@@ -5594,6 +5599,7 @@ components:
       format: "MessageSubscriptionKey"
       x-semantic-type: "MessageSubscriptionKey"
       example: "2251799813632456"
+      type: "string"
       allOf:
         - $ref: "#/components/schemas/LongKey"
     MessageCorrelationKey:
@@ -5601,6 +5607,7 @@ components:
       format: "MessageCorrelationKey"
       x-semantic-type: "MessageCorrelationKey"
       example: "2251799813634265"
+      type: "string"
       allOf:
         - $ref: "#/components/schemas/LongKey"
     DecisionDefinitionKey:
@@ -5608,6 +5615,7 @@ components:
       format: "DecisionDefinitionKey"
       x-semantic-type: "DecisionDefinitionKey"
       example: "2251799813326547"
+      type: "string"
       allOf:
         - $ref: "#/components/schemas/LongKey"       
     DecisionDefinitionId:
@@ -5625,6 +5633,7 @@ components:
       format: "DecisionEvaluationInstanceKey"
       x-semantic-type: "DecisionEvaluationInstanceKey"
       example: "2251799813684367"
+      type: "string"
       allOf:
         - $ref: "#/components/schemas/LongKey"
     DecisionEvaluationKey:
@@ -5634,6 +5643,7 @@ components:
       format: "DecisionEvaluationKey"
       x-semantic-type: "DecisionEvaluationKey"
       example: "2251792362345323"
+      type: "string"
     DecisionRequirementsKey:
       allOf:
         - $ref: "#/components/schemas/LongKey"
@@ -5641,6 +5651,7 @@ components:
       format: "DecisionRequirementsKey"
       x-semantic-type: "DecisionRequirementsKey"
       example: "2251799813683346"
+      type: "string"
     AuthorizationKey:
       allOf:
         - $ref: "#/components/schemas/LongKey"
@@ -5648,6 +5659,7 @@ components:
       format: "AuthorizationKey"
       x-semantic-type: "AuthorizationKey"
       example: "2251799813684332"
+      type: "string"
     MessageKey:
       allOf:
         - $ref: "#/components/schemas/LongKey"
@@ -5655,6 +5667,7 @@ components:
       format: "MessageKey"
       x-semantic-type: "MessageKey"
       example: "2251799813683467"
+      type: "string"
     DecisionInstanceKey:
       allOf:
         - $ref: "#/components/schemas/LongKey"
@@ -5662,6 +5675,7 @@ components:
       format: "DecisionInstanceKey"
       x-semantic-type: "DecisionInstanceKey"
       example: "22517998136843567"
+      type: "string"
     SignalKey:
       allOf:
         - $ref: "#/components/schemas/LongKey"
@@ -5669,13 +5683,11 @@ components:
       format: "SignalKey"
       x-semantic-type: "SignalKey"
       example: "22517998136987467"
+      type: "string"
     BatchOperationKey:
       x-semantic-type: "BatchOperationKey"
-      oneOf:
-        - allOf:
-          - $ref: "#/components/schemas/LongKey"
-        - type: "string"
-          format: "uuid"
+      format: "BatchOperationKey | uuid"
+      type: "string"
       description: "System-generated key for an batch operation."
       example: "2251799813684321"
     TenantCreateRequest:
@@ -7125,15 +7137,19 @@ components:
         active:
           description: "The total number of active instances of the element."
           type: "integer"
+          format: "int64"
         canceled:
           description: "The total number of canceled instances of the element."
           type: "integer"
+          format: "int64"
         incidents:
           description: "The total number of incidents for the element."
           type: "integer"
+          format: "int64"
         completed:
           description: "The total number of completed instances of the element."
           type: "integer"
+          format: "int64"
     CancelProcessInstanceRequest:
       type: "object"
       nullable: true
@@ -8058,12 +8074,15 @@ components:
         processInstances:
           description: "The amount of created root process instances."
           type: "integer"
+          format: "int64"
         decisionInstances:
           description: "The amount of executed decision instances."
           type: "integer"
+          format: "int64"
         assignees:
           description: "The amount of unique active task users."
           type: "integer"
+          format: "int64"
     PermissionTypeEnum:
       description: "Specifies the type of permissions."
       enum:
@@ -9335,6 +9354,7 @@ components:
           description: "The exact time in epoch milliseconds to which the clock should\
             \ be pinned."
           type: "integer"
+          format: "int64"
       required:
         - "timestamp"
     JobActivationRequest:
@@ -9355,6 +9375,7 @@ components:
           description: "A job returned after this call will not be activated by another\
             \ call until the timeout (in ms) has been reached.\n"
           type: "integer"
+          format: "int64"
           example: 20000
         maxJobsToActivate:
           description: "The maximum jobs to activate by this request."
@@ -9375,6 +9396,7 @@ components:
             \ timeout is used. If the requestTimeout < 0, long polling is disabled\
             \ and the request is completed immediately, even when no job is activated.\n"
           type: "integer"
+          format: "int64"
           default: 0
           example: 60000
         tenantIds:
@@ -9455,6 +9477,7 @@ components:
           description: "When the job can be activated again, sent as a UNIX epoch\
             \ timestamp."
           type: "integer"
+          format: "int64"
           example: 1757280974277
         variables:
           description: "All variables visible to the task scope, computed at activation\
@@ -9561,6 +9584,7 @@ components:
         retryBackOff:
           description: "The backoff timeout (in ms) for the next retry.\n"
           type: "integer"
+          format: "int64"
           default: 0
         variables:
           additionalProperties: true
@@ -9750,6 +9774,7 @@ components:
           nullable: true
         timeout:
           type: "integer"
+          format: "int64"
           description: "The duration of the new timeout in ms, starting from the current\
             \ moment."
           nullable: true
@@ -10233,6 +10258,7 @@ components:
         totalItems:
           description: "Total items matching the criteria."
           type: "integer"
+          format: "int64"
           example: 1
         hasMoreTotalItems:
           description: "Indicates if more results exist beyond the reported totalItems\
@@ -10732,6 +10758,7 @@ components:
       description: "A reference key chosen by the user that will be part of all records\
         \ resulting from this operation.\nMust be > 0 if provided.\n"
       type: "integer"
+      format: "int64"
       minimum: 1
     MessageCorrelationRequest:
       type: "object"
@@ -10788,6 +10815,7 @@ components:
         timeToLive:
           description: "Timespan (in ms) to buffer the message on the broker."
           type: "integer"
+          format: "int64"
           default: 0
         messageId:
           description: "The unique ID of the message. This is used to ensure only one\
@@ -10862,6 +10890,7 @@ components:
       description: "Document Id that uniquely identifies a document."
       format: "DocumentId"
       x-semantic-type: "DocumentId"
+      type: "string"
     DocumentMetadata:
       description: "Information about the document."
       type: "object"
@@ -10878,6 +10907,7 @@ components:
           description: "The date and time when the document expires."
         size:
           type: "integer"
+          format: "int64"
           description: "The size of the document in bytes."
         processDefinitionId:
           allOf:
@@ -10896,6 +10926,7 @@ components:
       properties:
         timeToLive:
           type: "integer"
+          format: "int64"
           description: "The time-to-live of the document link in ms."
           default: 3600000
     DocumentLink:
@@ -11165,6 +11196,7 @@ components:
             \ By default or\nwhen set to 0, the generic request timeout configured\
             \ in the cluster is applied.\n"
           type: "integer"
+          format: "int64"
           default: 0
         tags:
           $ref: '#/components/schemas/TagSet'
@@ -11231,6 +11263,7 @@ components:
             \ By default or\nwhen set to 0, the generic request timeout configured\
             \ in the cluster is applied.\n"
           type: "integer"
+          format: "int64"
           default: 0
         tags:
           $ref: '#/components/schemas/TagSet'
@@ -11538,6 +11571,7 @@ components:
         version:
           description: "The version of the the deployed form."
           type: "integer"
+          format: "int64"
         formKey:
           allOf:
             - $ref: "#/components/schemas/FormKey"
@@ -12007,6 +12041,7 @@ components:
       format: "Username"
       description: "The unique name of a user."
       x-semantic-type: "Username"
+      type: "string"
       minLength: 1
       maxLength: 256
       pattern: "^(<default>|[A-Za-z0-9_@.+-]+)$"
