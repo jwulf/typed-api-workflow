@@ -69,6 +69,7 @@ rules:
           - "x-idempotency-key-header"
           - "x-idempotency-scope"
           - "x-conditional-idempotency"
+          - "x-internal"
 
   endpoints-must-have-consistency-declaration:
     description: "All endpoints must have x-eventually-consistent vendor extension."
