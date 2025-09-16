@@ -1,7 +1,6 @@
 extends: ["spectral:oas"]
 
 functions:
-  - enforceCamundaKeys
   - enforceCamundaKeyPathParams
   - enforceKeySchemasSemanticType
   - ensureReferencedSchemaAdditionalProperties
@@ -9,20 +8,17 @@ functions:
   - duplicatePolicyConsistency
   - idempotencyKeyHeaderPresent
   - conditionalIdempotencyStructure
+  - enforceCamundaKeyPropertiesDeep
 
 rules:
-  key-properties-must-use-semantic-key-ref:
-    description: "Properties ending in 'Key' must be $ref to a semantic key schema (x-semantic-key or x-semantic-type marker)."
-    message: "Property '{{property}}' must use $ref to a semantic key schema (with x-semantic-key or x-semantic-type), not an inline primitive."
-    given: $..properties[?(@property.match(/^[a-z].*Key$/))]
+  camunda-key-properties-must-use-semantic-key-ref-deep:
+    description: "(Camunda) *Key properties must be $ref to semantic key schema (deep scan)."
     severity: error
+    given: "$"  # root; custom function performs full traversal
     then:
-      function: enforceCamundaKeys
+      function: enforceCamundaKeyPropertiesDeep
       functionOptions:
-        exceptions:
-          correlationKey
-          itemKey
-          ResourceKey
+        exceptions: "correlationKey itemKey ResourceKey"
 
   key-path-params-must-use-semantic-key-ref:
     description: "Path parameters ending in 'Key' must be $ref to a semantic key schema (x-semantic-key or x-semantic-type)."
@@ -34,6 +30,7 @@ rules:
       functionOptions:
         exceptions:
           - correlationKey
+          - resourceKey
 
   key-schemas-must-declare-semantic-type:
     description: "Schemas whose name ends with 'Key' must declare x-semantic-type (the stable semantic key signal)."
@@ -48,6 +45,23 @@ rules:
           - ProcessInstanceCreationInstructionByKey
           - LongKey
           - ResourceKey
+
+  semantic-type-schemas-must-specify-type-string:
+    description: "Schemas declaring x-semantic-type must explicitly set type: string."
+    message: "Schema '{{property}}' declares x-semantic-type but must also have type: string."
+    given: "$.components.schemas[?(@ && @['x-semantic-type'])]"
+    severity: error
+    then:
+      - field: type
+        function: truthy
+      - function: schema
+        functionOptions:
+          schema:
+            properties:
+              type:
+                const: string
+            required:
+              - type
 
   vendor-extensions-whitelist:
     description: "Only approved vendor extensions are allowed."
@@ -193,7 +207,6 @@ overrides:
       - "rest-api.generated.yaml"
     rules: 
       key-path-params-must-use-semantic-key-ref: "off"
-      key-properties-must-use-semantic-key-ref: "off"
       endpoints-must-have-consistency-declaration: "off"
       key-schemas-must-declare-semantic-type: "off"
 
