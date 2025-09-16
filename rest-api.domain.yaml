@@ -12013,6 +12013,7 @@ components:
     OperationMetadata:
       description: "Information about the operation effect characteristics. Suitable for reasoning about the idempotency and safety of operations"
       type: object
+      x-internal: true
       discriminator:
         propertyName: kind
       oneOf:
@@ -12035,6 +12036,7 @@ components:
     CommandOperation:
       description: "A non-idempotent state transition / process action"
       type: "object"
+      x-internal: true
       properties:
         kind:
           type: "string"
@@ -12049,6 +12051,7 @@ components:
           default: false
       required: ["kind"]
     QueryOperation:
+      x-internal: true
       description: "A pure read operation. May return a different state with each call, but causes no effect with each call."
       type: "object"
       properties:
@@ -12065,6 +12068,7 @@ components:
           default: true
       required: ["kind"]
     CreateOperation:
+      x-internal: true
       description: "Creates a new resource. The duplicatePolicy describes what happens when you make the same request more than once."
       type: "object"
       properties:
@@ -12106,6 +12110,7 @@ components:
           default: "request"
       required: ["kind", "duplicatePolicy"]
     PatchOperation:
+      x-internal: true
       description: "Updates a resource."
       type: "object"
       properties:
@@ -12122,6 +12127,7 @@ components:
           default: false
       required: ["kind"]
     DeleteOperation:
+      x-internal: true
       description: "Deletes a resource."
       type: "object"
       properties:
@@ -12138,6 +12144,7 @@ components:
           default: false
       required: ["kind"]
     EventOperation:
+      x-internal: true
       description: "Fire-and-forget notification. May fan out."
       type: "object"
       properties:
@@ -12154,6 +12161,7 @@ components:
           default: false
       required: ["kind"]
     UpdateOperation:
+      x-internal: true
       description: "Updates a resource."
       type: "object"
       properties:
@@ -12170,6 +12178,7 @@ components:
           default: false
       required: ["kind"]
     BatchCommandOperation:
+      x-internal: true
       description: "Updates a resource."
       type: object
       properties:
