@@ -4500,7 +4500,7 @@ paths:
                   minItems: 1
                 metadataList: 
                   type: array 
-                  description: "Optional JSON array; index aligns with each files entry. Takes precedence over per-file X-Document-Metadata headers when provided." 
+                  description: "Optional JSON array of metadata object whose index aligns with each file entry. The metadata array must have the same length as the files array." 
                   items: 
                     $ref: "#/components/schemas/DocumentMetadata" 
               required:
@@ -7803,8 +7803,8 @@ components:
             - $ref: "#/components/schemas/ElementInstanceKey"
           description: "The element instance key associated with this message\
                 \ subscription."
-        messageSubscriptionType:
-          $ref: "#/components/schemas/MessageSubscriptionTypeEnum"
+        messageSubscriptionState:
+          $ref: "#/components/schemas/MessageSubscriptionStateEnum"
         lastUpdatedDate:
           description: "The last updated date of the message subscription."
           type: "string"
@@ -7879,10 +7879,10 @@ components:
           description: "The element instance key associated with this message subscription."
           allOf:
             - $ref: "#/components/schemas/AdvancedElementInstanceKeyFilter"
-        messageSubscriptionType:
+        messageSubscriptionState:
           description: "The message subscription type."
           allOf:
-            - $ref: "#/components/schemas/MessageSubscriptionTypeFilterProperty"
+            - $ref: "#/components/schemas/MessageSubscriptionStateFilterProperty"
         lastUpdatedDate:
           description: "The last updated date of the message subscription."
           allOf:
@@ -7899,7 +7899,7 @@ components:
           description: "The unique external tenant ID."
           allOf:
             - $ref: "#/components/schemas/StringFilterProperty"
-    MessageSubscriptionTypeFilterProperty:
+    MessageSubscriptionStateFilterProperty:
       description: "MessageSubscriptionTypeEnum with full advanced search capabilities."
       type: "object"
       oneOf:
@@ -7907,27 +7907,29 @@ components:
           title: "Exact match"
           description: "Matches the value exactly."
           allOf:
-            - $ref: "#/components/schemas/MessageSubscriptionTypeEnum"
-        - $ref: "#/components/schemas/AdvancedMessageSubscriptionTypeFilter"
-    MessageSubscriptionTypeEnum:
-      description: "The type of message subscription."
+            - $ref: "#/components/schemas/MessageSubscriptionStateEnum"
+        - $ref: "#/components/schemas/AdvancedMessageSubscriptionStateFilter"
+    MessageSubscriptionStateEnum:
+      description: "The state of message subscription."
       type: "string"
       enum:
+        - "CORRELATED"
         - "CREATED"
+        - "DELETED"
         - "MIGRATED"
-    AdvancedMessageSubscriptionTypeFilter:
+    AdvancedMessageSubscriptionStateFilter:
       title: "Advanced filter"
-      description: "Advanced MessageSubscriptionTypeEnum filter"
+      description: "Advanced MessageSubscriptionStateEnum filter"
       type: "object"
       properties:
         $eq:
           description: "Checks for equality with the provided value."
           allOf:
-            - $ref: "#/components/schemas/MessageSubscriptionTypeEnum"
+            - $ref: "#/components/schemas/MessageSubscriptionStateEnum"
         $neq:
           description: "Checks for inequality with the provided value."
           allOf:
-            - $ref: "#/components/schemas/MessageSubscriptionTypeEnum"
+            - $ref: "#/components/schemas/MessageSubscriptionStateEnum"
         $exists:
           description: "Checks if the current property exists."
           type: "boolean"
@@ -7935,7 +7937,7 @@ components:
           description: "Checks if the property matches any of the provided values."
           type: "array"
           items:
-            $ref: "#/components/schemas/MessageSubscriptionTypeEnum"
+            $ref: "#/components/schemas/MessageSubscriptionStateEnum"
         $like:
           $ref: "#/components/schemas/LikeFilterProperty"
     IncidentResult:
@@ -10205,7 +10207,7 @@ components:
           default: 0
           minimum: 0
         limit:
-          description: "The maximum number of items to return in one request. <=10,000 for ElasticSearch."
+          description: "The maximum number of items to return in one request. <=10,000 for Elasticsearch."
           type: "integer"
           format: "int32"
           default: 100
@@ -10415,6 +10417,19 @@ components:
       required: ["decisionDefinitionKey"]
     EvaluateDecisionResult:
       type: "object"
+      required: 
+        - "decisionDefinitionId"
+        - "decisionDefinitionName"
+        - "decisionDefinitionVersion"
+        - "decisionRequirementsId"
+        - "output"
+        - "failedDecisionDefinitionId"
+        - "failedMessage"
+        - "decisionDefinitionKey"
+        - "tenantId"
+        - "decisionRequirementsKey"
+        - "decisionEvaluationKey"
+        - "evaluatedDecisions"
       properties:
         decisionDefinitionId:
           description: "The ID of the decision which was evaluated."
