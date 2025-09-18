@@ -7830,7 +7830,7 @@ components:
             - "processInstanceKey"
             - "elementId"
             - "elementInstanceKey"
-            - "messageSubscriptionType"
+            - "messageSubscriptionState"
             - "lastUpdatedDate"
             - "messageName"
             - "correlationKey"
@@ -7880,7 +7880,7 @@ components:
           allOf:
             - $ref: "#/components/schemas/AdvancedElementInstanceKeyFilter"
         messageSubscriptionState:
-          description: "The message subscription type."
+          description: "The message subscription state."
           allOf:
             - $ref: "#/components/schemas/MessageSubscriptionStateFilterProperty"
         lastUpdatedDate:
@@ -7900,7 +7900,7 @@ components:
           allOf:
             - $ref: "#/components/schemas/StringFilterProperty"
     MessageSubscriptionStateFilterProperty:
-      description: "MessageSubscriptionTypeEnum with full advanced search capabilities."
+      description: "MessageSubscriptionStateEnum with full advanced search capabilities."
       type: "object"
       oneOf:
         - type: "string"
