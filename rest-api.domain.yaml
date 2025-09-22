@@ -1,4 +1,3 @@
-# yaml-language-server: $schema=../schemas/openapi-operation-metadata-extensions.schema.json
 openapi: "3.0.3"
 info:
   title: "Orchestration Cluster API"
@@ -59,9 +58,6 @@ paths:
   /topology:
     get:
       x-eventually-consistent: false
-      x-operation-kind:
-        - $ref: "#/components/schemas/OperationMetadata"
-          kind: "query"
       tags:
         - "Cluster"
       operationId: "getTopology"
@@ -110,9 +106,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       x-eventually-consistent: false
-      x-operation-kind: 
-        - $ref: "#/components/schemas/OperationMetadata"
-          kind: "query"
   /authentication/me:
     get:
       tags:
@@ -135,10 +128,7 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      x-eventually-consistent: false
-      x-operation-kind:
-        - $ref: "#/components/schemas/OperationMetadata"
-          kind: "query"     
+      x-eventually-consistent: false   
   /jobs/activation:
     post:
       tags:
@@ -148,9 +138,6 @@ paths:
       description: "Iterate through all known partitions and activate jobs up to the\
         \ requested maximum.\n"
       x-eventually-consistent: false
-      x-operation-kind:
-        $ref: "#/components/schemas/OperationMetadata"
-        kind: command
       requestBody:
         required: true
         content:
@@ -201,9 +188,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
       x-eventually-consistent: true
-      x-operation-kind:
-        - $ref: "#/components/schemas/OperationMetadata"
-          kind: "query"
   /jobs/{jobKey}/failure:
     post:
       tags:
@@ -230,14 +214,14 @@ paths:
         "400":
           $ref: "#/components/responses/InvalidData"
         "404":
-          description: "The job with the given jobKey is not found.\n"
+          description: "The job with the given jobKey is not found. It was completed by another worker, or the process instance itself was cancelled.\n"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
         "409":
-          description: "The job with the given key is in the wrong state currently.\
-            \ More details are provided in the response body.\n"
+          description: "The job with the given key is in the wrong state (i.e: not ACTIVATED or ACTIVATABLE).\
+            \ The job was failed by another worker with retries = 0, and the process is now in an incident state.\n"
           content:
             application/problem+json:
               schema:
@@ -247,9 +231,6 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
-      x-operation-kind:
-        - $ref: "#/components/schemas/OperationMetadata"
-          kind: "command"
   /jobs/{jobKey}/error:
     post:
       tags:
@@ -294,9 +275,6 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
-      x-operation-kind:
-        - $ref: "#/components/schemas/OperationMetadata"
-          kind: "command"
   /jobs/{jobKey}/completion:
     post:
       tags:
@@ -341,9 +319,6 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
-      x-operation-kind:
-        - $ref: "#/components/schemas/OperationMetadata"
-          kind: "command"
   /jobs/{jobKey}:
     patch:
       tags:
@@ -387,9 +362,6 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
-      x-operation-kind:
-        - $ref: "#/components/schemas/OperationMetadata"
-          kind: "patch"
   /incidents/{incidentKey}/resolution:
     post:
       tags:
@@ -427,9 +399,6 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
-      x-operation-kind:
-        - $ref: "#/components/schemas/OperationMetadata"
-          kind: "command"
   /tenants:
     post:
       tags:
@@ -467,10 +436,6 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
-      x-operation-kind:
-        - $ref: "#/components/schemas/OperationMetadata"
-          kind: "create"
-          duplicatePolicy: "conflict"
   /tenants/{tenantId}:
     get:
       tags:
@@ -4287,19 +4252,6 @@ paths:
         "503":
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
-      # Operational semantics: command (not a create). Conditionally idempotent only when messageId is supplied.
-      # Duplicate publishes with identical messageId inside the timeToLive window produce no additional effect.
-      x-operation-kind:
-        - $ref: "#/components/schemas/OperationMetadata"
-          kind: "command"
-          idempotent: false
-      x-conditional-idempotency:
-        keyFields: ["messageId"]
-        window:
-          field: "timeToLive"
-          unit: "ms"
-        duplicatePolicy: "ignore"
-        appliesWhen: "key-present"
   /messages/correlation:
     post:
       tags:
@@ -4339,27 +4291,27 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
       x-eventually-consistent: false
 
-  /correlated-messages/search:
+  /correlated-messages-subscriptions/search:
     post:
       tags:
-        - "Message"
-      operationId: "searchCorrelatedMessages"
-      summary: "Search correlated messages"
-      description: "Search for correlated messages based on given criteria."
+        - "Message subscription"
+      operationId: "searchCorrelatedMessageSubscriptions"
+      summary: "Search correlated message subscriptions"
+      description: "Search correlated message subscriptions."
       x-eventually-consistent: true
       requestBody:
         required: false
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CorrelatedMessageSearchQuery"
+              $ref: "#/components/schemas/CorrelatedMessageSubscriptionSearchQuery"
       responses:
         "200":
-          description: "The correlated messages search result."
+          description: "The correlated message subscriptions search result."
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CorrelatedMessageSearchQueryResult"
+                $ref: "#/components/schemas/CorrelatedMessageSubscriptionSearchQueryResult"
         "400":
           $ref: "#/components/responses/InvalidData"
         "401":
@@ -4936,7 +4888,7 @@ paths:
         - name: "startTime"
           in: "query"
           required: true
-          description: "The start date for usage metrics, including this date."
+          description: "The start date for usage metrics, including this date. Value in ISO 8601 format."
           schema:
             type: "string"
             format: "date-time"
@@ -4944,7 +4896,7 @@ paths:
         - name: "endTime"
           in: "query"
           required: true
-          description: "The end date for usage metrics, including this date."
+          description: "The end date for usage metrics, including this date. Value in ISO 8601 format."
           schema:
             type: "string"
             format: "date-time"
@@ -5553,6 +5505,12 @@ components:
       type: "string"
       allOf:
         - $ref: "#/components/schemas/LongKey"
+    FormId: 
+      description: "The user-defined id for the form"
+      type: "string"
+      format: "FormId"
+      x-semantic-type: "FormId" 
+      example: "Form_1nx5hav"
     VariableKey:
       description: "System-generated key for a variable."
       format: "VariableKey"
@@ -5711,10 +5669,10 @@ components:
         - "name"
     TenantCreateResult:
       type: "object"
+      x-semantic-provider: "tenantId"
       properties:
         tenantId:
           $ref: "#/components/schemas/TenantId"
-          x-semantic-provider: true
         name:
           type: "string"
           description: "The name of the tenant."
@@ -6174,7 +6132,8 @@ components:
             - $ref: "#/components/schemas/StringFilterProperty"
         tenantId:
           description: "Tenant ID of this variable."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+          - $ref: "#/components/schemas/TenantId"
         isTruncated:
           description: "Whether the value is truncated or not."
           type: "boolean"
@@ -6234,7 +6193,8 @@ components:
           type: "string"
         tenantId:
           description: "Tenant ID of this variable."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         variableKey:
           allOf:
             - $ref: "#/components/schemas/VariableKey"
@@ -6311,7 +6271,8 @@ components:
             - $ref: "#/components/schemas/StringFilterProperty"
         tenantId:
           description: "Tenant ID of this process definition."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
@@ -6352,7 +6313,8 @@ components:
             - $ref: "#/components/schemas/ProcessDefinitionId"
         tenantId:
           description: "Tenant ID of this process definition."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         processDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/ProcessDefinitionKey"
@@ -7373,7 +7335,8 @@ components:
           type: "boolean"
         tenantId:
           description: "The tenant ID of the incident."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         elementInstanceKey:
           allOf:
             - $ref: "#/components/schemas/ElementInstanceKey"
@@ -7472,8 +7435,9 @@ components:
           description: "the DMN ID of the decision requirements graph that the decision\
             \ definition is part of."
         tenantId:
-          $ref: "#/components/schemas/TenantId"
           description: "The tenant ID of the decision definition."
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         decisionDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/DecisionDefinitionKey"
@@ -7571,7 +7535,8 @@ components:
             - "PENDING"
         tenantId:
           description: "The tenant ID of the incident."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         incidentKey:
           allOf:
             - $ref: "#/components/schemas/IncidentKey"
@@ -7603,17 +7568,17 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/IncidentResult"
-    CorrelatedMessageSearchQueryResult:
+    CorrelatedMessageSubscriptionSearchQueryResult:
       type: "object"
       allOf:
         - $ref: "#/components/schemas/SearchQueryResponse"
       properties:
         items:
-          description: "The matching correlated messages."
+          description: "The matching correlated message subscriptions."
           type: "array"
           items:
-            $ref: "#/components/schemas/CorrelatedMessageResult"
-    CorrelatedMessageResult:
+            $ref: "#/components/schemas/CorrelatedMessageSubscriptionResult"
+    CorrelatedMessageSubscriptionResult:
       type: "object"
       properties:
         correlationKey:
@@ -7642,15 +7607,15 @@ components:
           type: "integer"
           format: "int32"
         processDefinitionId:
-          description: "The process definition ID associated with this correlated message."
+          description: "The process definition ID associated with this correlated message subscription."
           allOf:  
             - $ref: "#/components/schemas/ProcessDefinitionId"
         processDefinitionKey:
-          description: "The process definition key associated with this correlated message."
+          description: "The process definition key associated with this correlated message subscription."
           allOf:  
             - $ref: "#/components/schemas/ProcessDefinitionKey"
         processInstanceKey:
-          description: "The process instance key associated with this correlated message."
+          description: "The process instance key associated with this correlated message subscription."
           allOf:  
             - $ref: "#/components/schemas/ProcessInstanceKey"
         subscriptionKey:
@@ -7658,7 +7623,7 @@ components:
           allOf:  
             - $ref: "#/components/schemas/MessageSubscriptionKey"
         tenantId:
-          description: "The tenant ID associated with this correlated message."
+          description: "The tenant ID associated with this correlated message subscription."
           allOf:  
             - $ref: "#/components/schemas/TenantId"
       required:
@@ -7672,7 +7637,7 @@ components:
         - "processInstanceKey"
         - "subscriptionKey"
         - "tenantId"
-    CorrelatedMessageSearchQuery:
+    CorrelatedMessageSubscriptionSearchQuery:
       type: "object"
       additionalProperties: false
       allOf:
@@ -7682,12 +7647,12 @@ components:
           description: "Sort field criteria."
           type: "array"
           items:
-            $ref: "#/components/schemas/CorrelatedMessageSearchQuerySortRequest"
+            $ref: "#/components/schemas/CorrelatedMessageSubscriptionSearchQuerySortRequest"
         filter:
-          description: "The correlated messages search filters."
+          description: "The correlated message subscriptions search filters."
           allOf:
-            - $ref: "#/components/schemas/CorrelatedMessageFilter"
-    CorrelatedMessageSearchQuerySortRequest:
+            - $ref: "#/components/schemas/CorrelatedMessageSubscriptionFilter"
+    CorrelatedMessageSubscriptionSearchQuerySortRequest:
       type: "object"
       properties:
         field:
@@ -7710,8 +7675,8 @@ components:
           $ref: "#/components/schemas/SortOrderEnum"
       required:
         - "field"
-    CorrelatedMessageFilter:
-      description: "Correlated messages search filter."
+    CorrelatedMessageSubscriptionFilter:
+      description: "Correlated message subscriptions search filter."
       type: "object"
       properties:
         correlationKey:
@@ -7743,15 +7708,15 @@ components:
           allOf:
             - $ref: "#/components/schemas/IntegerFilterProperty"
         processDefinitionId:
-          description: "The process definition ID associated with this correlated message."
+          description: "The process definition ID associated with this correlated message subscription."
           allOf:
             - $ref: "#/components/schemas/StringFilterProperty"
         processDefinitionKey:
-          description: "The process definition key associated with this correlated message."
+          description: "The process definition key associated with this correlated message subscription."
           allOf:
             - $ref: "#/components/schemas/BasicStringFilter"
         processInstanceKey:
-          description: "The process instance key associated with this correlated message."
+          description: "The process instance key associated with this correlated message subscription."
           allOf:
             - $ref: "#/components/schemas/BasicStringFilterProperty"
         subscriptionKey:
@@ -7759,7 +7724,7 @@ components:
           allOf:
             - $ref: "#/components/schemas/BasicStringFilterProperty"
         tenantId:
-          description: "The tenant ID associated with this correlated message."
+          description: "The tenant ID associated with this correlated message subscription."
           allOf:
             - $ref: "#/components/schemas/StringFilterProperty"
     MessageSubscriptionSearchQueryResult:
@@ -7988,7 +7953,8 @@ components:
             - "PENDING"
         tenantId:
           description: "The tenant ID of the incident."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         incidentKey:
           allOf:
             - $ref: "#/components/schemas/IncidentKey"
@@ -8040,8 +8006,9 @@ components:
           description: "the DMN ID of the decision requirements graph that the decision\
             \ definition is part of."
         tenantId:
-          $ref: "#/components/schemas/TenantId"
           description: "The tenant ID of the decision definition."
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         decisionDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/DecisionDefinitionKey"
@@ -8087,6 +8054,7 @@ components:
           format: "int64"
     PermissionTypeEnum:
       description: "Specifies the type of permissions."
+      type: "string"
       enum:
         - "ACCESS"
         - "CREATE"
@@ -8121,6 +8089,7 @@ components:
         - "DELETE_DECISION_INSTANCE"
     ResourceTypeEnum:
       description: "The type of resource to add/remove permissions to/from."
+      type: "string"
       enum:
         - "AUTHORIZATION"
         - "MAPPING_RULE"
@@ -8138,6 +8107,7 @@ components:
         - "ROLE"
         - "DOCUMENT"
     OwnerTypeEnum:
+      type: "string"
       description: "The type of the owner of permissions."
       enum:
         - "USER"
@@ -8155,7 +8125,6 @@ components:
           type: "string"
         ownerType:
           description: "The type of the owner of the permissions."
-          type: "object"
           allOf:
             - $ref: "#/components/schemas/OwnerTypeEnum"
         resourceId:
@@ -8163,14 +8132,13 @@ components:
           type: "string"
         resourceType:
           description: "The type of resource to add permissions to."
-          type: "object"
+          type: "string"
           allOf:
             - $ref: "#/components/schemas/ResourceTypeEnum"
         permissionTypes:
           type: "array"
           description: "The permission types to add."
           items:
-            type: "string"
             allOf:
               - $ref: "#/components/schemas/PermissionTypeEnum"
       required:
@@ -8235,7 +8203,7 @@ components:
             type: "string"
         resourceType:
           description: "The type of resource to search permissions for."
-          type: "object"
+          type: "string"
           allOf:
             - $ref: "#/components/schemas/ResourceTypeEnum"
     AuthorizationResult:
@@ -8246,12 +8214,12 @@ components:
           type: "string"
         ownerType:
           description: "The type of the owner of permissions."
-          type: "object"
+          type: "string"
           allOf:
             - $ref: "#/components/schemas/OwnerTypeEnum"
         resourceType:
           description: "The type of resource that owner have permissions."
-          type: "object"
+          type: "string"
           allOf:
             - $ref: "#/components/schemas/ResourceTypeEnum"
         resourceId:
@@ -8261,7 +8229,8 @@ components:
           description: "Specifies the types of the permissions."
           type: "array"
           items:
-            $ref: "#/components/schemas/PermissionTypeEnum"
+            allOf:
+              - $ref: "#/components/schemas/PermissionTypeEnum"
         authorizationKey:
           allOf:
             - $ref: "#/components/schemas/AuthorizationKey"
@@ -8295,11 +8264,10 @@ components:
           type: "string"
     UserCreateResult:
       type: "object"
+      x-semantic-provider: "username"
       properties:
         username:
-          description: "The username of the user."
           $ref: "#/components/schemas/Username"
-          x-semantic-provider: true
         name:
           description: "The name of the user."
           type: "string"
@@ -8310,7 +8278,6 @@ components:
       type: "object"
       properties:
         username:
-          description: "The username of the user."
           $ref: "#/components/schemas/Username"
         name:
           description: "The name of the user."
@@ -8474,7 +8441,6 @@ components:
       type: "object"
       properties:
         username:
-          description: "The username of the user."
           $ref: "#/components/schemas/Username"
         name:
           description: "The name of the user."
@@ -8549,7 +8515,6 @@ components:
       type: "object"
       properties:
         username:
-          description: "The username of the user."
           $ref: "#/components/schemas/Username"
     TenantUserSearchResult:
       type: "object"
@@ -8743,7 +8708,6 @@ components:
       type: "object"
       properties:
         username:
-          description: "The username of the user."
           $ref: "#/components/schemas/Username"
     RoleUserSearchResult:
       type: "object"
@@ -8974,7 +8938,6 @@ components:
       type: "object"
       properties:
         username:
-          description: "The username of the user."
           $ref: "#/components/schemas/Username"
     GroupUserSearchResult:
       type: "object"
@@ -9489,7 +9452,8 @@ components:
           additionalProperties: true
         tenantId:
           description: "The ID of the tenant that owns the job."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         jobKey:
           x-semantic-provider: true
           allOf:
@@ -10017,7 +9981,6 @@ components:
         state:
           $ref: "#/components/schemas/JobStateEnum"
         tenantId:
-          description: "The tenant ID."
           $ref: "#/components/schemas/TenantId"
         type:
           description: "The type of the job."
@@ -10256,6 +10219,9 @@ components:
       type: "object"
       required:
         - "totalItems"
+      x-semantic-provider:
+        - "startCursor"
+        - "endCursor"
       properties:
         totalItems:
           description: "Total items matching the criteria."
@@ -10268,17 +10234,15 @@ components:
           type: "boolean"
           example: false
         startCursor:
-          x-semantic-provider: true
-          nullable: true
           description: "The cursor value for getting the previous page of results.\
             \ Use this in the `before` field of an ensuing request."
-          $ref: "#/components/schemas/StartCursor"
+          allOf:
+            - $ref: "#/components/schemas/StartCursor"
         endCursor:
-          x-semantic-provider: true
-          nullable: true
           description: "The cursor value for getting the next page of results. Use\
             \ this in the `after` field of an ensuing request."
-          $ref: "#/components/schemas/EndCursor"
+          allOf:
+            - $ref: "#/components/schemas/EndCursor"
       example:
         totalItems: 1
         hasMoreTotalItems: false
@@ -10328,8 +10292,9 @@ components:
           type: "string"
           description: "the DMN ID of the decision requirements."
         tenantId:
-          $ref: "#/components/schemas/TenantId"
           description: "The tenant ID of the decision requirements."
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         decisionRequirementsKey:
           allOf:
             - $ref: "#/components/schemas/DecisionRequirementsKey"
@@ -10368,8 +10333,9 @@ components:
           description: "The name of the resource from which this decision requirements\
             \ was parsed."
         tenantId:
-          $ref: "#/components/schemas/TenantId"
           description: "The tenant ID of the decision requirements."
+          allOf: 
+            - $ref: "#/components/schemas/TenantId"
         decisionRequirementsKey:
           allOf:
             - $ref: "#/components/schemas/DecisionRequirementsKey"
@@ -10397,7 +10363,8 @@ components:
           type: "object"
         tenantId:
           description: "The tenant ID of the decision."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
       required: ["decisionDefinitionId"]
     DecisionEvaluationByKey:
       type: "object"
@@ -10413,7 +10380,8 @@ components:
           type: "object"
         tenantId:
           description: "The tenant ID of the decision."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
       required: ["decisionDefinitionKey"]
     EvaluateDecisionResult:
       type: "object"
@@ -10459,7 +10427,8 @@ components:
           type: "string"
         tenantId:
           description: "The tenant ID of the evaluated decision."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         decisionDefinitionKey:
           allOf:
             - $ref: "#/components/schemas/DecisionDefinitionKey"
@@ -10509,7 +10478,8 @@ components:
           type: "string"
         tenantId:
           description: "The tenant ID of the evaluated decision."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         matchedRules:
           description: "The decision rules that matched within this decision evaluation."
           type: "array"
@@ -10642,8 +10612,9 @@ components:
         decisionDefinitionType:
           $ref: "#/components/schemas/DecisionDefinitionTypeEnum"
         tenantId:
-          $ref: "#/components/schemas/TenantId"
           description: "The tenant ID of the decision instance."
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         decisionEvaluationKey:
           allOf:
             - $ref: "#/components/schemas/DecisionEvaluationKey"
@@ -10710,8 +10681,9 @@ components:
           type: "string"
           description: "The result of the decision instance."
         tenantId:
-          $ref: "#/components/schemas/TenantId"
           description: "The tenant ID of the decision instance."
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         decisionEvaluationKey:
           allOf:
             - $ref: "#/components/schemas/DecisionEvaluationKey"
@@ -10796,7 +10768,8 @@ components:
           type: "object"
         tenantId:
           description: "the tenant for which the message is published"
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
     MessageCorrelationResult:
       description: "The message key of the correlated message, as well as the first\
         \ process instance key it\ncorrelated with.\n"
@@ -10842,8 +10815,8 @@ components:
           type: "object"
         tenantId:
           description: "The tenant of the message sender."
-          $ref: "#/components/schemas/TenantId"
-          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
       required:
         - "name"
         - "correlationKey"
@@ -10853,7 +10826,8 @@ components:
       properties:
         tenantId:
           description: "The tenant ID of the message."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         messageKey:
           allOf:
             - $ref: "#/components/schemas/MessageKey"
@@ -10963,7 +10937,8 @@ components:
       properties:
         tenantId:
           description: "The tenant ID associated with the deployment."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         deploymentKey:
           allOf:
             - $ref: "#/components/schemas/DeploymentKey"
@@ -11009,8 +10984,9 @@ components:
           type: "string"
           description: "The resource name from which this process was parsed."
         tenantId:
-          $ref: "#/components/schemas/TenantId"
           description: "The tenant ID of the deployed process."
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         processDefinitionKey:
           x-semantic-provider: true
           allOf:
@@ -11034,8 +11010,9 @@ components:
           type: "string"
           description: "The DMN name of the decision, as parsed during deployment."
         tenantId:
-          $ref: "#/components/schemas/TenantId"
           description: "The tenant ID of the deployed decision."
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         decisionRequirementsId:
           type: "string"
           description: "The dmn ID of the decision requirements graph that this decision\
@@ -11055,6 +11032,7 @@ components:
     DeploymentDecisionRequirementsResult:
       description: "Deployed decision requirements."
       type: "object"
+      x-semantic-provider: "decisionRequirementsKey"
       properties:
         decisionRequirementsId:
           type: "string"
@@ -11070,14 +11048,14 @@ components:
           description: "The DMN name of the decision requirements, as parsed during\
             \ deployment."
         tenantId:
-          $ref: "#/components/schemas/TenantId"
           description: "The tenant ID of the deployed decision requirements."
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         resourceName:
           type: "string"
           description: "The resource name from which this decision requirements was\
             \ parsed."
         decisionRequirementsKey:
-          x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/DecisionRequirementsKey"
           description: "The assigned decision requirements key, which acts as\
@@ -11085,9 +11063,11 @@ components:
     DeploymentFormResult:
       description: "A deployed form."
       type: "object"
+      x-semantic-provider: "formKey"
       properties:
         formId:
-          type: "string"
+          allOf:
+            - $ref: "#/components/schemas/FormId"
           description: "The form ID, as parsed during deployment, together with the\
             \ version forms a\nunique identifier for a specific form.\n"
         version:
@@ -11099,15 +11079,14 @@ components:
           description: "The resource name from which this form was parsed."
         tenantId:
           $ref: "#/components/schemas/TenantId"
-          description: "The tenant ID of the deployed form."
         formKey:
-          x-semantic-provider: true
           allOf:
             - $ref: "#/components/schemas/FormKey"
           description: "The assigned key, which acts as a unique identifier for\
                 \ this form."
     DeploymentResourceResult:
       description: "A deployed Resource."
+      x-semantic-provider: "resourceKey"
       type: "object"
       properties:
         resourceId:
@@ -11123,9 +11102,8 @@ components:
           description: "The resource name from which this resource was parsed."
         tenantId:
           $ref: "#/components/schemas/TenantId"
-          description: "The tenant ID of the deployed form."
         resourceKey:
-          x-semantic-provider: true
+
           allOf:
             - $ref: "#/components/schemas/ResourceKey"
           description: "The assigned key, which acts as a unique identifier for\
@@ -11168,7 +11146,8 @@ components:
           additionalProperties: true
         tenantId:
           description: "The tenant ID of the process definition."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         operationReference:
           $ref: "#/components/schemas/OperationReference"
         startInstructions:
@@ -11235,7 +11214,8 @@ components:
           additionalProperties: true
         tenantId:
           description: "The tenant ID of the process definition."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         operationReference:
           $ref: "#/components/schemas/OperationReference"
         startInstructions:
@@ -11351,8 +11331,9 @@ components:
           format: "int32"
           example: 3
         tenantId:
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
           description: "The tenant ID of the created process instance."
-          $ref: "#/components/schemas/TenantId"
           example: "<default>"
         variables:
           additionalProperties: true
@@ -11555,7 +11536,8 @@ components:
           type: "object"
         tenantId:
           description: "The ID of the tenant that owns the signal."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
       required:
         - "signalName"
     SignalBroadcastResult:
@@ -11563,23 +11545,30 @@ components:
       required: 
         - "tenantId"
         - "signalKey"
+      x-semantic-provider: "signalKey"
       properties:
         tenantId:
           description: "The tenant ID of the signal that was broadcast."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         signalKey:
           allOf:
             - $ref: "#/components/schemas/SignalKey"
           description: "The unique ID of the signal that was broadcast."
     FormResult:
       type: "object"
+      x-semantic-provider:
+        - "formId"
+        - "formKey"
       properties:
         tenantId:
           description: "The tenant ID of the form."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         formId:
           description: "The user-provided identifier of the form."
-          type: "string"
+          allOf:
+            - $ref: "#/components/schemas/FormId"
         schema:
           description: "The form content."
           type: "object"
@@ -11610,7 +11599,8 @@ components:
           type: "string"
         tenantId:
           description: "The tenant ID of this resource."
-          $ref: "#/components/schemas/TenantId"
+          allOf:
+            - $ref: "#/components/schemas/TenantId"
         resourceKey:
           allOf:
             - $ref: "#/components/schemas/ResourceKey"
@@ -12060,190 +12050,6 @@ components:
       minLength: 1
       maxLength: 256
       pattern: "^(<default>|[A-Za-z0-9_@.+-]+)$"
-    OperationMetadata:
-      description: "Information about the operation effect characteristics. Suitable for reasoning about the idempotency and safety of operations"
-      type: object
-      x-internal: true
-      discriminator:
-        propertyName: kind
-      oneOf:
-        - description: "Command operation metadata"
-          $ref: '#/components/schemas/CommandOperation'
-        - description: "Query (read-only) operation metadata"
-          $ref: '#/components/schemas/QueryOperation'
-        - description: "Create operation metadata (resource creation)"
-          $ref: '#/components/schemas/CreateOperation' 
-        - description: "Patch (partial update) operation metadata"
-          $ref: "#/components/schemas/PatchOperation"
-        - description: "Delete operation metadata"
-          $ref: "#/components/schemas/DeleteOperation"
-        - description: "Event operation metadata (fire-and-forget)"
-          $ref: "#/components/schemas/EventOperation"
-        - description: "Update (full idempotent update) operation metadata"
-          $ref: "#/components/schemas/UpdateOperation"
-        - description: "Batch command operation metadata"
-          $ref: "#/components/schemas/BatchCommandOperation"
-    CommandOperation:
-      description: "A non-idempotent state transition / process action"
-      type: "object"
-      x-internal: true
-      properties:
-        kind:
-          type: "string"
-          enum: ["command"]
-        idempotent:
-          description: "Idempotent operations cause at-most one effect regardless of how many times that are called."
-          type: "boolean"
-          default: false
-        safe:
-          description: "Safe operations do not mutate the state of the Camunda engine."
-          type: boolean
-          default: false
-      required: ["kind"]
-    QueryOperation:
-      x-internal: true
-      description: "A pure read operation. May return a different state with each call, but causes no effect with each call."
-      type: "object"
-      properties:
-        kind:
-          type: "string"
-          enum: ["query"]
-        idempotent:
-          description: "Idempotent operations cause at-most one effect regardless of how many times that are called."
-          type: "boolean"
-          default: true
-        safe:
-          description: "Safe operations do not mutate the state of the Camunda engine."
-          type: "boolean"
-          default: true
-      required: ["kind"]
-    CreateOperation:
-      x-internal: true
-      description: "Creates a new resource. The duplicatePolicy describes what happens when you make the same request more than once."
-      type: "object"
-      properties:
-        kind:
-          type: "string"
-          enum: ["create"]
-        idempotent:
-          description: "Idempotent operations cause at-most one effect regardless of how many times that are called. Explicit override; otherwise inferred from duplicatePolicy."
-          type: "boolean"
-          default: false
-        safe:
-          description: "Safe operations do not mutate state."
-          type: "boolean"
-          default: false
-        duplicatePolicy:
-          description: "Server behavior when the identical create request is repeated:\
-            \n - conflict (subsequent identical request → 409; creates none; NOT idempotent)\
-            \n - return-existing (subsequent identical request → 200/201 with same representation; idempotent)\
-            \n - ignore (subsequent identical request → 2xx minimal body, no new resource; idempotent)\
-            \n - upsert (creates if absent, otherwise updates in place producing same final state; idempotent)\
-            \n - merge (each call adds/accumulates something; NOT idempotent)\
-            \n - batch-partial (mixed: per item may create or conflict; whole-call classification becomes non-idempotent unless every item stabilized)"
-          type: "string"
-          enum: ["conflict", "return-existing", "ignore", "upsert", "merge", "batch-partial"]
-        idempotencyMechanism:
-          description: "How this operation calculates idempotency:\
-            \ - natural-key (server uses unique natural key(s) in body/path)\
-            \ - body-hash (semantic or byte hash dedupe)\
-            \ - idempotency-key (client supplies Idempotency-Key header)\
-            \ - server-token (client obtains token then submits)\
-            \ - none (default)"
-          type: "string"
-          enum: ["natural-key", "body-hash", "idempotency-key", "server-token", "none"]
-          default: "none"
-        idempotencyScope:
-          description: "Scope within which idempotency applies (resource = same logical resource identity, request = exact same payload, key+payload = Idempotency-Key + payload tuple)."
-          type: "string"
-          enum: ["resource", "request", "key+payload"]
-          default: "request"
-      required: ["kind", "duplicatePolicy"]
-    PatchOperation:
-      x-internal: true
-      description: "Updates a resource."
-      type: "object"
-      properties:
-        kind:
-          type: "string"
-          enum: ["patch"]
-        idempotent:
-          description: "Idempotent operations cause at-most one effect regardless of how many times that are called."
-          type: "boolean"
-          default: false
-        safe:
-          description: "Safe operations do not mutate the state of the Camunda engine."
-          type: "boolean"
-          default: false
-      required: ["kind"]
-    DeleteOperation:
-      x-internal: true
-      description: "Deletes a resource."
-      type: "object"
-      properties:
-        kind:
-          type: "string"
-          enum: ["delete"]
-        idempotent:
-          description: "Idempotent operations cause at-most one effect regardless of how many times that are called."
-          type: "boolean"
-          default: true
-        safe:
-          description: "Safe operations do not mutate the state of the Camunda engine."
-          type: "boolean"
-          default: false
-      required: ["kind"]
-    EventOperation:
-      x-internal: true
-      description: "Fire-and-forget notification. May fan out."
-      type: "object"
-      properties:
-        kind:
-          type: "string"
-          enum: ["event"]
-        idempotent:
-          description: "Idempotent operations cause at-most one effect regardless of how many times that are called."
-          type: "boolean"
-          default: false
-        safe:
-          description: "Safe operations do not mutate the state of the Camunda engine."
-          type: "boolean"
-          default: false
-      required: ["kind"]
-    UpdateOperation:
-      x-internal: true
-      description: "Updates a resource."
-      type: "object"
-      properties:
-        kind:
-          type: "string"
-          enum: ["update"]
-        idempotent:
-          description: "Idempotent operations cause at-most one effect regardless of how many times that are called."
-          type: "boolean"
-          default: true
-        safe:
-          description: "Safe operations do not mutate the state of the Camunda engine."
-          type: "boolean"
-          default: false
-      required: ["kind"]
-    BatchCommandOperation:
-      x-internal: true
-      description: "Updates a resource."
-      type: object
-      properties:
-        kind:
-          type: "string"
-          enum: ["batch-command"]
-        idempotent:
-          description: "Idempotent operations cause at-most one effect regardless of how many times that are called."
-          type: "boolean"
-          default: true
-        safe:
-          description: "Safe operations do not mutate the state of the Camunda engine."
-          type: "boolean"
-          default: false
-      required: ["kind"]
   responses:
     InternalServerError:
       description: "An internal error occurred while processing the request.\n"
