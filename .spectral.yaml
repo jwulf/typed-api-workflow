@@ -209,8 +209,3 @@ overrides:
       key-path-params-must-use-semantic-key-ref: "off"
       endpoints-must-have-consistency-declaration: "off"
       key-schemas-must-declare-semantic-type: "off"
-
-  - files:
-      - "rest-api.domain.yaml"
-    rules:
-      no-$ref-siblings: "off"
